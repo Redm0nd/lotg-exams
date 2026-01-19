@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/dylanredmond/code/lotg-exams log --oneline)",
+      "Bash(git -C /Users/dylanredmond/code/lotg-exams config:*)",
+      "Bash(git -C /Users/dylanredmond/code/lotg-exams branch:*)",
+      "Bash(git -C /Users/dylanredmond/code/lotg-exams status)",
+      "Bash(git -C /Users/dylanredmond/code/lotg-exams log --oneline --all)",
+      "Bash(tree:*)",
+      "Bash(terraform fmt:*)",
+      "Bash(terraform validate:*)",
+      "Bash(npm run build:*)",
+      "Bash(terraform apply:*)"
+    ]
+  }
+}

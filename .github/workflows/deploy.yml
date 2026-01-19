@@ -1,0 +1,211 @@
+name: Deploy Infrastructure and Application
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.6.0
+  NODE_VERSION: 20
+
+jobs:
+  # Terraform Plan (PR only)
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: .infra
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -no-color
+        continue-on-error: true
+
+  # Terraform Apply (main branch only)
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: .infra
+    outputs:
+      api_url: ${{ steps.tf-output.outputs.api_url }}
+      s3_bucket: ${{ steps.tf-output.outputs.s3_bucket }}
+      cloudfront_id: ${{ steps.tf-output.outputs.cloudfront_id }}
+      lambda_get_quizzes: ${{ steps.tf-output.outputs.lambda_get_quizzes }}
+      lambda_get_quiz: ${{ steps.tf-output.outputs.lambda_get_quiz }}
+      lambda_get_questions: ${{ steps.tf-output.outputs.lambda_get_questions }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      - name: Get Terraform Outputs
+        id: tf-output
+        run: |
+          echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+          echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+          echo "lambda_get_quizzes=$(terraform output -json lambda_function_names | jq -r '.get_quizzes')" >> $GITHUB_OUTPUT
+          echo "lambda_get_quiz=$(terraform output -json lambda_function_names | jq -r '.get_quiz')" >> $GITHUB_OUTPUT
+          echo "lambda_get_questions=$(terraform output -json lambda_function_names | jq -r '.get_questions')" >> $GITHUB_OUTPUT
+
+  # Build and Deploy Backend
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    needs: terraform-apply
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Lambda Functions
+        run: npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update Lambda - getQuizzes
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_get_quizzes }} \
+            --zip-file fileb://dist/getQuizzes.zip
+
+      - name: Update Lambda - getQuiz
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_get_quiz }} \
+            --zip-file fileb://dist/getQuiz.zip
+
+      - name: Update Lambda - getQuestions
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_get_questions }} \
+            --zip-file fileb://dist/getQuestions.zip
+
+  # Build and Deploy Frontend
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: terraform-apply
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Frontend
+        env:
+          VITE_API_URL: ${{ needs.terraform-apply.outputs.api_url }}
+        run: npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync dist/ s3://${{ needs.terraform-apply.outputs.s3_bucket }} --delete
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.terraform-apply.outputs.cloudfront_id }} \
+            --paths "/*"
+
+  # Deployment Summary
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [terraform-apply, deploy-backend, deploy-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Summary
+        run: |
+          echo "## Deployment Successful :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- **API Gateway:** ${{ needs.terraform-apply.outputs.api_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **CloudFront:** https://$(aws cloudfront get-distribution --id ${{ needs.terraform-apply.outputs.cloudfront_id }} --query 'Distribution.DomainName' --output text)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Resources Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- Lambda Functions: 3" >> $GITHUB_STEP_SUMMARY
+          echo "- S3 Bucket: ${{ needs.terraform-apply.outputs.s3_bucket }}" >> $GITHUB_STEP_SUMMARY
+          echo "- CloudFront Distribution: ${{ needs.terraform-apply.outputs.cloudfront_id }}" >> $GITHUB_STEP_SUMMARY

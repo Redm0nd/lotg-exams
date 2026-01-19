@@ -1,0 +1,19 @@
+{
+  "name": "lotg-exams-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend Lambda functions for LOTG Exams",
+  "scripts": {
+    "build": "node build.js",
+    "test": "echo \"Tests not yet implemented\" && exit 0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0"
+  },
+  "devDependencies": {
+    "archiver": "^6.0.0",
+    "esbuild": "^0.19.0",
+    "@types/archiver": "^6.0.0"
+  }
+}

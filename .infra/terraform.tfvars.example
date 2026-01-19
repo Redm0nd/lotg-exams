@@ -1,0 +1,6 @@
+# Copy this file to terraform.tfvars and fill in your values
+# $ cp terraform.tfvars.example terraform.tfvars
+
+aws_region   = "us-east-1"
+project_name = "lotg-exams"
+environment  = "prod"

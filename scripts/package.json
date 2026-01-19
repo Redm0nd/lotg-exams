@@ -1,0 +1,13 @@
+{
+  "name": "lotg-exams-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Scripts for LOTG Exams database operations",
+  "scripts": {
+    "seed": "node seed-database.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0"
+  }
+}

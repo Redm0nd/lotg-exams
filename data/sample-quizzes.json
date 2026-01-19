@@ -1,0 +1,217 @@
+{
+  "quizzes": [
+    {
+      "quizId": "001",
+      "title": "Law 1: The Field of Play",
+      "description": "Test your knowledge of field dimensions, markings, and requirements",
+      "category": "Laws of the Game",
+      "questionCount": 10,
+      "questions": [
+        {
+          "questionId": "001",
+          "text": "What are the maximum dimensions for a football field?",
+          "options": [
+            "120m x 90m",
+            "110m x 75m",
+            "105m x 68m",
+            "100m x 64m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "According to Law 1, the maximum length is 120m and the maximum width is 90m for international matches.",
+          "lawReference": "Law 1.1"
+        },
+        {
+          "questionId": "002",
+          "text": "What are the minimum dimensions for a football field?",
+          "options": [
+            "90m x 45m",
+            "100m x 50m",
+            "100m x 64m",
+            "110m x 64m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The minimum length is 90m and the minimum width is 45m according to Law 1.",
+          "lawReference": "Law 1.1"
+        },
+        {
+          "questionId": "003",
+          "text": "What is the radius of the center circle?",
+          "options": [
+            "9.15m (10 yards)",
+            "10m",
+            "11m",
+            "12m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The center circle has a radius of 9.15m (10 yards) from the center mark.",
+          "lawReference": "Law 1.7"
+        },
+        {
+          "questionId": "004",
+          "text": "How far must the corner arc radius be from the corner flag?",
+          "options": [
+            "1m",
+            "0.5m",
+            "1.5m",
+            "2m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The corner arc has a radius of 1m (1 yard) from each corner flagpost.",
+          "lawReference": "Law 1.9"
+        },
+        {
+          "questionId": "005",
+          "text": "What is the distance from the penalty mark to the goal line?",
+          "options": [
+            "11m (12 yards)",
+            "10m",
+            "9.15m",
+            "12m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The penalty mark is 11m (12 yards) from the midpoint of the goal line.",
+          "lawReference": "Law 1.11"
+        },
+        {
+          "questionId": "006",
+          "text": "What is the width of the goal?",
+          "options": [
+            "7.32m (8 yards)",
+            "8m",
+            "7m",
+            "6.5m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The distance between the goalposts is 7.32m (8 yards).",
+          "lawReference": "Law 1.5"
+        },
+        {
+          "questionId": "007",
+          "text": "What is the height of the goal?",
+          "options": [
+            "2.44m (8 feet)",
+            "2.5m",
+            "2.3m",
+            "3m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The distance from the lower edge of the crossbar to the ground is 2.44m (8 feet).",
+          "lawReference": "Law 1.5"
+        },
+        {
+          "questionId": "008",
+          "text": "What is the width of the penalty area from each goalpost?",
+          "options": [
+            "16.5m (18 yards)",
+            "15m",
+            "18m",
+            "20m"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Two lines are drawn at right angles to the goal line, 16.5m (18 yards) from each goalpost.",
+          "lawReference": "Law 1.11"
+        },
+        {
+          "questionId": "009",
+          "text": "What is the width of all field markings?",
+          "options": [
+            "Not more than 12cm (5 inches)",
+            "Exactly 10cm",
+            "Between 10-15cm",
+            "At least 12cm"
+          ],
+          "correctAnswer": 0,
+          "explanation": "All lines must be of the same width, which must not be more than 12cm (5 inches).",
+          "lawReference": "Law 1.2"
+        },
+        {
+          "questionId": "010",
+          "text": "Are artificial surfaces allowed in football?",
+          "options": [
+            "Yes, if they are green",
+            "No, only natural grass",
+            "Yes, but only for training",
+            "Only in non-competitive matches"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Artificial surfaces are allowed where competition rules permit, and they must be green.",
+          "lawReference": "Law 1.3"
+        }
+      ]
+    },
+    {
+      "quizId": "002",
+      "title": "Law 2: The Ball",
+      "description": "Test your knowledge of ball specifications and requirements",
+      "category": "Laws of the Game",
+      "questionCount": 5,
+      "questions": [
+        {
+          "questionId": "001",
+          "text": "What is the circumference range for a match ball?",
+          "options": [
+            "68-70cm",
+            "65-67cm",
+            "70-72cm",
+            "66-68cm"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The ball must have a circumference of not more than 70cm and not less than 68cm.",
+          "lawReference": "Law 2.1"
+        },
+        {
+          "questionId": "002",
+          "text": "What is the weight range for a match ball at the start of the match?",
+          "options": [
+            "410-450g",
+            "400-440g",
+            "420-460g",
+            "390-430g"
+          ],
+          "correctAnswer": 0,
+          "explanation": "At the start of the match, the ball must weigh not more than 450g and not less than 410g.",
+          "lawReference": "Law 2.1"
+        },
+        {
+          "questionId": "003",
+          "text": "What shape must the ball be?",
+          "options": [
+            "Spherical",
+            "Oval",
+            "Round but not necessarily spherical",
+            "Any shape approved by FIFA"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The ball must be spherical.",
+          "lawReference": "Law 2.1"
+        },
+        {
+          "questionId": "004",
+          "text": "What pressure should the ball be inflated to?",
+          "options": [
+            "0.6 to 1.1 atmosphere",
+            "0.5 to 1.0 atmosphere",
+            "0.7 to 1.2 atmosphere",
+            "0.8 to 1.3 atmosphere"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The ball must be inflated to a pressure of 0.6 to 1.1 atmosphere (600-1,100 g/cm²) at sea level.",
+          "lawReference": "Law 2.1"
+        },
+        {
+          "questionId": "005",
+          "text": "If the ball becomes defective during the match, what happens?",
+          "options": [
+            "Play is stopped and restarted with a dropped ball",
+            "Play continues until the next stoppage",
+            "The referee immediately stops play",
+            "The ball is replaced at half-time"
+          ],
+          "correctAnswer": 0,
+          "explanation": "If the ball becomes defective during play, play is stopped and restarted with a dropped ball at the position where it became defective.",
+          "lawReference": "Law 2.2"
+        }
+      ]
+    }
+  ]
+}
