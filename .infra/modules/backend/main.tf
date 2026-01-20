@@ -238,10 +238,27 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.get_quizzes,
     aws_api_gateway_integration.get_quiz,
     aws_api_gateway_integration.get_questions,
+    aws_api_gateway_integration.post_presigned_url,
+    aws_api_gateway_integration.get_jobs,
+    aws_api_gateway_integration.get_job,
+    aws_api_gateway_integration.get_question_bank,
+    aws_api_gateway_integration.review_question,
+    aws_api_gateway_integration.bulk_review,
   ]
 
   lifecycle {
     create_before_destroy = true
+  }
+
+  # Trigger redeployment when resources change
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.quizzes.id,
+      aws_api_gateway_resource.admin.id,
+      aws_api_gateway_resource.admin_presigned_url.id,
+      aws_api_gateway_resource.admin_jobs.id,
+      aws_api_gateway_resource.admin_questions.id,
+    ]))
   }
 }
 
@@ -276,3 +293,621 @@ resource "aws_lambda_permission" "get_questions" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
+
+# ============================================================================
+# PDF Upload S3 Bucket
+# ============================================================================
+
+resource "aws_s3_bucket" "pdf_uploads" {
+  bucket = "${var.project_name}-${var.environment}-pdf-uploads"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-pdf-uploads"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "pdf_uploads" {
+  bucket = aws_s3_bucket.pdf_uploads.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "pdf_uploads" {
+  bucket = aws_s3_bucket.pdf_uploads.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "pdf_uploads" {
+  bucket = aws_s3_bucket.pdf_uploads.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_cors_configuration" "pdf_uploads" {
+  bucket = aws_s3_bucket.pdf_uploads.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["PUT", "POST", "GET"]
+    allowed_origins = ["*"] # In production, restrict to CloudFront domain
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
+# ============================================================================
+# Secrets Manager for Claude API Key
+# ============================================================================
+
+resource "aws_secretsmanager_secret" "claude_api_key" {
+  name        = "${var.project_name}-${var.environment}-claude-api-key"
+  description = "Claude API key for PDF question extraction"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-claude-api-key"
+  }
+}
+
+# ============================================================================
+# IAM Role for Admin Lambda Functions
+# ============================================================================
+
+resource "aws_iam_role" "lambda_admin" {
+  name = "${var.project_name}-${var.environment}-lambda-admin-exec"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-lambda-admin-exec"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_admin_basic" {
+  role       = aws_iam_role.lambda_admin.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+# Policy for S3 access (PDF uploads)
+resource "aws_iam_role_policy" "lambda_admin_s3" {
+  name = "${var.project_name}-${var.environment}-lambda-admin-s3"
+  role = aws_iam_role.lambda_admin.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "${aws_s3_bucket.pdf_uploads.arn}/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = aws_s3_bucket.pdf_uploads.arn
+      }
+    ]
+  })
+}
+
+# Policy for DynamoDB access (read/write for admin operations)
+resource "aws_iam_role_policy" "lambda_admin_dynamodb" {
+  name = "${var.project_name}-${var.environment}-lambda-admin-dynamodb"
+  role = aws_iam_role.lambda_admin.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:BatchGetItem"
+        ]
+        Resource = [
+          var.dynamodb_table_arn,
+          "${var.dynamodb_table_arn}/index/*"
+        ]
+      }
+    ]
+  })
+}
+
+# Policy for Secrets Manager access (Claude API key)
+resource "aws_iam_role_policy" "lambda_admin_secrets" {
+  name = "${var.project_name}-${var.environment}-lambda-admin-secrets"
+  role = aws_iam_role.lambda_admin.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.claude_api_key.arn
+      }
+    ]
+  })
+}
+
+# ============================================================================
+# Lambda Function: generatePresignedUrl
+# ============================================================================
+
+resource "aws_lambda_function" "generate_presigned_url" {
+  filename         = "${path.module}/../../../backend/dist/generatePresignedUrl.zip"
+  function_name    = "${var.project_name}-${var.environment}-generatePresignedUrl"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/generatePresignedUrl.zip") ? filebase64sha256("${path.module}/../../../backend/dist/generatePresignedUrl.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME  = var.dynamodb_table_name
+      BUCKET_NAME = aws_s3_bucket.pdf_uploads.id
+      NODE_ENV    = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-generatePresignedUrl"
+  }
+}
+
+# ============================================================================
+# Lambda Function: processPdf
+# ============================================================================
+
+resource "aws_lambda_function" "process_pdf" {
+  filename         = "${path.module}/../../../backend/dist/processPdf.zip"
+  function_name    = "${var.project_name}-${var.environment}-processPdf"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 300 # 5 minutes for PDF processing
+  memory_size      = 1024 # More memory for PDF/image processing
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/processPdf.zip") ? filebase64sha256("${path.module}/../../../backend/dist/processPdf.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME        = var.dynamodb_table_name
+      BUCKET_NAME       = aws_s3_bucket.pdf_uploads.id
+      SECRET_NAME       = aws_secretsmanager_secret.claude_api_key.name
+      NODE_ENV          = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-processPdf"
+  }
+}
+
+# S3 event trigger for processPdf Lambda
+resource "aws_lambda_permission" "s3_invoke_process_pdf" {
+  statement_id  = "AllowS3Invoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.process_pdf.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.pdf_uploads.arn
+}
+
+resource "aws_s3_bucket_notification" "pdf_upload_trigger" {
+  bucket = aws_s3_bucket.pdf_uploads.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.process_pdf.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "uploads/"
+    filter_suffix       = ".pdf"
+  }
+
+  depends_on = [aws_lambda_permission.s3_invoke_process_pdf]
+}
+
+# ============================================================================
+# Lambda Function: getQuestionBank
+# ============================================================================
+
+resource "aws_lambda_function" "get_question_bank" {
+  filename         = "${path.module}/../../../backend/dist/getQuestionBank.zip"
+  function_name    = "${var.project_name}-${var.environment}-getQuestionBank"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/getQuestionBank.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getQuestionBank.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-getQuestionBank"
+  }
+}
+
+# ============================================================================
+# Lambda Function: reviewQuestion
+# ============================================================================
+
+resource "aws_lambda_function" "review_question" {
+  filename         = "${path.module}/../../../backend/dist/reviewQuestion.zip"
+  function_name    = "${var.project_name}-${var.environment}-reviewQuestion"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/reviewQuestion.zip") ? filebase64sha256("${path.module}/../../../backend/dist/reviewQuestion.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-reviewQuestion"
+  }
+}
+
+# ============================================================================
+# Lambda Function: bulkReviewQuestions
+# ============================================================================
+
+resource "aws_lambda_function" "bulk_review_questions" {
+  filename         = "${path.module}/../../../backend/dist/bulkReviewQuestions.zip"
+  function_name    = "${var.project_name}-${var.environment}-bulkReviewQuestions"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 30 # Longer timeout for batch operations
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/bulkReviewQuestions.zip") ? filebase64sha256("${path.module}/../../../backend/dist/bulkReviewQuestions.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-bulkReviewQuestions"
+  }
+}
+
+# ============================================================================
+# Lambda Function: getExtractionJobs
+# ============================================================================
+
+resource "aws_lambda_function" "get_extraction_jobs" {
+  filename         = "${path.module}/../../../backend/dist/getExtractionJobs.zip"
+  function_name    = "${var.project_name}-${var.environment}-getExtractionJobs"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/getExtractionJobs.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getExtractionJobs.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-getExtractionJobs"
+  }
+}
+
+# ============================================================================
+# API Gateway: Admin Routes
+# ============================================================================
+
+# /admin resource
+resource "aws_api_gateway_resource" "admin" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "admin"
+}
+
+# /admin/upload resource
+resource "aws_api_gateway_resource" "admin_upload" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "upload"
+}
+
+# /admin/upload/presigned-url
+resource "aws_api_gateway_resource" "admin_presigned_url" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_upload.id
+  path_part   = "presigned-url"
+}
+
+# POST /admin/upload/presigned-url
+resource "aws_api_gateway_method" "post_presigned_url" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_presigned_url.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "post_presigned_url" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_presigned_url.id
+  http_method             = aws_api_gateway_method.post_presigned_url.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.generate_presigned_url.invoke_arn
+}
+
+# /admin/jobs resource
+resource "aws_api_gateway_resource" "admin_jobs" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "jobs"
+}
+
+# GET /admin/jobs
+resource "aws_api_gateway_method" "get_jobs" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_jobs.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_jobs" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_jobs.id
+  http_method             = aws_api_gateway_method.get_jobs.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_extraction_jobs.invoke_arn
+}
+
+# /admin/jobs/{id}
+resource "aws_api_gateway_resource" "admin_job_id" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_jobs.id
+  path_part   = "{id}"
+}
+
+# GET /admin/jobs/{id}
+resource "aws_api_gateway_method" "get_job" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_job_id.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_job" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_job_id.id
+  http_method             = aws_api_gateway_method.get_job.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_extraction_jobs.invoke_arn
+}
+
+# /admin/questions resource
+resource "aws_api_gateway_resource" "admin_questions" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "questions"
+}
+
+# GET /admin/questions
+resource "aws_api_gateway_method" "get_question_bank" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_questions.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_question_bank" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_questions.id
+  http_method             = aws_api_gateway_method.get_question_bank.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_question_bank.invoke_arn
+}
+
+# /admin/questions/{id}
+resource "aws_api_gateway_resource" "admin_question_id" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_questions.id
+  path_part   = "{id}"
+}
+
+# /admin/questions/{id}/review
+resource "aws_api_gateway_resource" "admin_question_review" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_question_id.id
+  path_part   = "review"
+}
+
+# PUT /admin/questions/{id}/review
+resource "aws_api_gateway_method" "review_question" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_question_review.id
+  http_method   = "PUT"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "review_question" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_question_review.id
+  http_method             = aws_api_gateway_method.review_question.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.review_question.invoke_arn
+}
+
+# /admin/questions/bulk-review
+resource "aws_api_gateway_resource" "admin_bulk_review" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_questions.id
+  path_part   = "bulk-review"
+}
+
+# POST /admin/questions/bulk-review
+resource "aws_api_gateway_method" "bulk_review" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_bulk_review.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "bulk_review" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_bulk_review.id
+  http_method             = aws_api_gateway_method.bulk_review.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.bulk_review_questions.invoke_arn
+}
+
+# CORS for admin routes
+module "cors_admin" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin.id
+}
+
+module "cors_admin_presigned_url" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_presigned_url.id
+}
+
+module "cors_admin_jobs" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_jobs.id
+}
+
+module "cors_admin_job_id" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_job_id.id
+}
+
+module "cors_admin_questions" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_questions.id
+}
+
+module "cors_admin_question_review" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_question_review.id
+}
+
+module "cors_admin_bulk_review" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_bulk_review.id
+}
+
+# Lambda permissions for API Gateway (admin functions)
+resource "aws_lambda_permission" "generate_presigned_url" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.generate_presigned_url.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "get_question_bank" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.get_question_bank.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "review_question" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.review_question.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "bulk_review_questions" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.bulk_review_questions.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "get_extraction_jobs" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.get_extraction_jobs.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+

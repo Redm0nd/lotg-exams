@@ -10,7 +10,11 @@
       "Bash(terraform fmt:*)",
       "Bash(terraform validate:*)",
       "Bash(npm run build:*)",
-      "Bash(terraform apply:*)"
+      "Bash(terraform apply:*)",
+      "Bash(aws logs tail:*)",
+      "Bash(aws lambda get-function:*)",
+      "Bash(terraform force-unlock:*)",
+      "Bash(curl:*)"
     ]
   }
 }

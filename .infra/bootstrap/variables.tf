@@ -13,3 +13,19 @@ variable "project_name" {
 
   nullable = false
 }
+
+variable "github_org" {
+  description = "GitHub organization or username"
+  type        = string
+  default     = "Redm0nd"  # Update this to your GitHub org/username
+
+  nullable = false
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+  default     = "lotg-exams"
+
+  nullable = false
+}

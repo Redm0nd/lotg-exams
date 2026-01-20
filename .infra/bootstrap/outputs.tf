@@ -30,3 +30,13 @@ output "backend_config" {
     }
   EOT
 }
+
+output "github_actions_role_arn" {
+  description = "IAM Role ARN for GitHub Actions to assume"
+  value       = aws_iam_role.github_actions.arn
+}
+
+output "github_actions_role_name" {
+  description = "IAM Role name for GitHub Actions"
+  value       = aws_iam_role.github_actions.name
+}

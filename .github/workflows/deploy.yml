@@ -6,8 +6,14 @@ on:
   pull_request:
     branches: [main]
 
+# Required for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+
 env:
   AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/lotg-exams-github-actions
   TF_VERSION: 1.6.0
   NODE_VERSION: 20
 
@@ -32,8 +38,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
@@ -61,6 +66,12 @@ jobs:
       lambda_get_quizzes: ${{ steps.tf-output.outputs.lambda_get_quizzes }}
       lambda_get_quiz: ${{ steps.tf-output.outputs.lambda_get_quiz }}
       lambda_get_questions: ${{ steps.tf-output.outputs.lambda_get_questions }}
+      lambda_generate_presigned_url: ${{ steps.tf-output.outputs.lambda_generate_presigned_url }}
+      lambda_process_pdf: ${{ steps.tf-output.outputs.lambda_process_pdf }}
+      lambda_get_question_bank: ${{ steps.tf-output.outputs.lambda_get_question_bank }}
+      lambda_review_question: ${{ steps.tf-output.outputs.lambda_review_question }}
+      lambda_bulk_review_questions: ${{ steps.tf-output.outputs.lambda_bulk_review_questions }}
+      lambda_get_extraction_jobs: ${{ steps.tf-output.outputs.lambda_get_extraction_jobs }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -74,8 +85,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
@@ -93,6 +103,12 @@ jobs:
           echo "lambda_get_quizzes=$(terraform output -json lambda_function_names | jq -r '.get_quizzes')" >> $GITHUB_OUTPUT
           echo "lambda_get_quiz=$(terraform output -json lambda_function_names | jq -r '.get_quiz')" >> $GITHUB_OUTPUT
           echo "lambda_get_questions=$(terraform output -json lambda_function_names | jq -r '.get_questions')" >> $GITHUB_OUTPUT
+          echo "lambda_generate_presigned_url=$(terraform output -json lambda_function_names | jq -r '.generate_presigned_url')" >> $GITHUB_OUTPUT
+          echo "lambda_process_pdf=$(terraform output -json lambda_function_names | jq -r '.process_pdf')" >> $GITHUB_OUTPUT
+          echo "lambda_get_question_bank=$(terraform output -json lambda_function_names | jq -r '.get_question_bank')" >> $GITHUB_OUTPUT
+          echo "lambda_review_question=$(terraform output -json lambda_function_names | jq -r '.review_question')" >> $GITHUB_OUTPUT
+          echo "lambda_bulk_review_questions=$(terraform output -json lambda_function_names | jq -r '.bulk_review_questions')" >> $GITHUB_OUTPUT
+          echo "lambda_get_extraction_jobs=$(terraform output -json lambda_function_names | jq -r '.get_extraction_jobs')" >> $GITHUB_OUTPUT
 
   # Build and Deploy Backend
   deploy-backend:
@@ -123,8 +139,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Update Lambda - getQuizzes
@@ -144,6 +159,42 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.terraform-apply.outputs.lambda_get_questions }} \
             --zip-file fileb://dist/getQuestions.zip
+
+      - name: Update Lambda - generatePresignedUrl
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_generate_presigned_url }} \
+            --zip-file fileb://dist/generatePresignedUrl.zip
+
+      - name: Update Lambda - processPdf
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_process_pdf }} \
+            --zip-file fileb://dist/processPdf.zip
+
+      - name: Update Lambda - getQuestionBank
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_get_question_bank }} \
+            --zip-file fileb://dist/getQuestionBank.zip
+
+      - name: Update Lambda - reviewQuestion
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_review_question }} \
+            --zip-file fileb://dist/reviewQuestion.zip
+
+      - name: Update Lambda - bulkReviewQuestions
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_bulk_review_questions }} \
+            --zip-file fileb://dist/bulkReviewQuestions.zip
+
+      - name: Update Lambda - getExtractionJobs
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.terraform-apply.outputs.lambda_get_extraction_jobs }} \
+            --zip-file fileb://dist/getExtractionJobs.zip
 
   # Build and Deploy Frontend
   deploy-frontend:
@@ -176,8 +227,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Sync to S3
@@ -206,6 +256,6 @@ jobs:
           echo "- **CloudFront:** https://$(aws cloudfront get-distribution --id ${{ needs.terraform-apply.outputs.cloudfront_id }} --query 'Distribution.DomainName' --output text)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Resources Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "- Lambda Functions: 3" >> $GITHUB_STEP_SUMMARY
+          echo "- Lambda Functions: 9 (3 quiz + 6 admin)" >> $GITHUB_STEP_SUMMARY
           echo "- S3 Bucket: ${{ needs.terraform-apply.outputs.s3_bucket }}" >> $GITHUB_STEP_SUMMARY
           echo "- CloudFront Distribution: ${{ needs.terraform-apply.outputs.cloudfront_id }}" >> $GITHUB_STEP_SUMMARY

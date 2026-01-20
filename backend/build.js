@@ -14,6 +14,13 @@ const handlers = [
   'getQuizzes',
   'getQuiz',
   'getQuestions',
+  // Admin handlers
+  'generatePresignedUrl',
+  'processPdf',
+  'getQuestionBank',
+  'reviewQuestion',
+  'bulkReviewQuestions',
+  'getExtractionJobs',
 ];
 
 async function buildHandler(handlerName) {

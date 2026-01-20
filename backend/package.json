@@ -8,12 +8,17 @@
     "test": "echo \"Tests not yet implemented\" && exit 0"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
     "@aws-sdk/client-dynamodb": "^3.490.0",
-    "@aws-sdk/lib-dynamodb": "^3.490.0"
+    "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/client-secrets-manager": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0",
+    "@aws-sdk/s3-request-presigner": "^3.490.0",
+    "ulid": "^2.3.0"
   },
   "devDependencies": {
+    "@types/archiver": "^6.0.0",
     "archiver": "^6.0.0",
-    "esbuild": "^0.19.0",
-    "@types/archiver": "^6.0.0"
+    "esbuild": "^0.19.0"
   }
 }
