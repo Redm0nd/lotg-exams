@@ -18,14 +18,15 @@ env:
   NODE_VERSION: 20
 
 jobs:
-  # Terraform Plan (PR only)
+  # Terraform Plan - runs on both PRs and pushes to main
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     defaults:
       run:
         working-directory: .infra
+    outputs:
+      has_changes: ${{ steps.plan.outputs.has_changes }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,6 +35,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -48,13 +50,41 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -no-color
-        continue-on-error: true
+        id: plan
+        run: |
+          terraform plan -out=tfplan -detailed-exitcode -no-color 2>&1 | tee plan_output.txt || exit_code=$?
 
-  # Terraform Apply (main branch only, requires approval)
+          # Exit code 0 = no changes, 1 = error, 2 = changes
+          if [ "${exit_code:-0}" -eq 2 ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          elif [ "${exit_code:-0}" -eq 1 ]; then
+            echo "Plan failed"
+            exit 1
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Show Plan in Summary
+        run: |
+          echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat plan_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Plan
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: .infra/tfplan
+          retention-days: 1
+
+  # Terraform Apply - requires approval, uses saved plan
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
+    needs: terraform-plan
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     defaults:
@@ -92,8 +122,14 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: .infra
+
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
 
       - name: Get Terraform Outputs
         id: tf-output
@@ -248,6 +284,12 @@ jobs:
     needs: [terraform-apply, deploy-backend, deploy-frontend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Summary
         run: |
           echo "## Deployment Successful :rocket:" >> $GITHUB_STEP_SUMMARY

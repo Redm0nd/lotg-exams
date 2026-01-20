@@ -14,7 +14,8 @@
       "Bash(aws logs tail:*)",
       "Bash(aws lambda get-function:*)",
       "Bash(terraform force-unlock:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(gh api:*)"
     ]
   }
 }
