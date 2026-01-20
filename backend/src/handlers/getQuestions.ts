@@ -1,5 +1,5 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Question } from '../lib/types.js';
-import { getQuestionsByQuizId, shuffleArray } from '../lib/dynamodb.js';
+import { getApprovedQuestionsByJobId, getExtractionJob, shuffleArray } from '../lib/dynamodb.js';
 import { successResponse, errorResponse } from '../lib/response.js';
 
 /**
@@ -22,7 +22,15 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   }
 
   try {
-    const questions = await getQuestionsByQuizId(quizId);
+    // Verify the job exists and is published
+    const job = await getExtractionJob(quizId);
+
+    if (!job || !job.published || job.approvedCount === 0) {
+      return errorResponse('Quiz not found', 404);
+    }
+
+    // Get approved questions for this job
+    const questions = await getApprovedQuestionsByJobId(quizId);
 
     if (questions.length === 0) {
       return errorResponse('No questions found for this quiz', 404);
