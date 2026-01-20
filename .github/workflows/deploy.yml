@@ -359,12 +359,14 @@ jobs:
             --zip-file fileb://backend/dist/publishQuiz.zip
 
       - name: Update Lambda - createManualJob
+        if: needs.get-outputs.outputs.lambda_create_manual_job != '' && needs.get-outputs.outputs.lambda_create_manual_job != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_create_manual_job }} \
             --zip-file fileb://backend/dist/createManualJob.zip
 
       - name: Update Lambda - addManualQuestion
+        if: needs.get-outputs.outputs.lambda_add_manual_question != '' && needs.get-outputs.outputs.lambda_add_manual_question != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_add_manual_question }} \
