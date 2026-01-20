@@ -6,6 +6,8 @@ This directory contains scripts for managing the DynamoDB database.
 
 Populates the DynamoDB table with quiz data from JSON files.
 
+**Note:** This script is for manually created quizzes from JSON files. For questions extracted from PDFs via the admin interface, use the PDF upload feature at `/admin/upload` instead - those questions are automatically stored in DynamoDB by the `processPdf` Lambda.
+
 ### Prerequisites
 
 ```bash
