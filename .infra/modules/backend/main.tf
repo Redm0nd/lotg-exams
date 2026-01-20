@@ -245,6 +245,8 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.review_question,
     aws_api_gateway_integration.bulk_review,
     aws_api_gateway_integration.publish_quiz,
+    aws_api_gateway_integration.create_manual_job,
+    aws_api_gateway_integration.add_manual_question,
   ]
 
   lifecycle {
@@ -259,6 +261,8 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.admin_presigned_url.id,
       aws_api_gateway_resource.admin_jobs.id,
       aws_api_gateway_resource.admin_questions.id,
+      aws_api_gateway_resource.admin_jobs_manual.id,
+      aws_api_gateway_resource.admin_job_questions.id,
     ]))
   }
 }
@@ -927,6 +931,140 @@ module "cors_admin_bulk_review" {
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_bulk_review.id
+}
+
+# ============================================================================
+# Lambda Function: createManualJob
+# ============================================================================
+
+resource "aws_lambda_function" "create_manual_job" {
+  filename         = "${path.module}/../../../backend/dist/createManualJob.zip"
+  function_name    = "${var.project_name}-${var.environment}-createManualJob"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/createManualJob.zip") ? filebase64sha256("${path.module}/../../../backend/dist/createManualJob.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-createManualJob"
+  }
+}
+
+# ============================================================================
+# Lambda Function: addManualQuestion
+# ============================================================================
+
+resource "aws_lambda_function" "add_manual_question" {
+  filename         = "${path.module}/../../../backend/dist/addManualQuestion.zip"
+  function_name    = "${var.project_name}-${var.environment}-addManualQuestion"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/addManualQuestion.zip") ? filebase64sha256("${path.module}/../../../backend/dist/addManualQuestion.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-addManualQuestion"
+  }
+}
+
+# /admin/jobs/manual resource
+resource "aws_api_gateway_resource" "admin_jobs_manual" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_jobs.id
+  path_part   = "manual"
+}
+
+# POST /admin/jobs/manual
+resource "aws_api_gateway_method" "create_manual_job" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_jobs_manual.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "create_manual_job" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_jobs_manual.id
+  http_method             = aws_api_gateway_method.create_manual_job.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.create_manual_job.invoke_arn
+}
+
+# /admin/jobs/{id}/questions resource
+resource "aws_api_gateway_resource" "admin_job_questions" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_job_id.id
+  path_part   = "questions"
+}
+
+# POST /admin/jobs/{id}/questions
+resource "aws_api_gateway_method" "add_manual_question" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_job_questions.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "add_manual_question" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_job_questions.id
+  http_method             = aws_api_gateway_method.add_manual_question.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.add_manual_question.invoke_arn
+}
+
+# CORS for new routes
+module "cors_admin_jobs_manual" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_jobs_manual.id
+}
+
+module "cors_admin_job_questions" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_job_questions.id
+}
+
+# Lambda permissions for new functions
+resource "aws_lambda_permission" "create_manual_job" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.create_manual_job.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "add_manual_question" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.add_manual_question.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
 
 # Lambda permissions for API Gateway (admin functions)

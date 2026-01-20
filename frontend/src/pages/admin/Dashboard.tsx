@@ -182,6 +182,12 @@ export default function AdminDashboard() {
             Upload New PDF
           </Link>
           <Link
+            to="/admin/create"
+            className="px-4 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700"
+          >
+            Create Manual Quiz
+          </Link>
+          <Link
             to="/admin/review"
             className="btn-secondary"
           >

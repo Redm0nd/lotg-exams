@@ -9,6 +9,8 @@ import AdminJobs from './pages/admin/Jobs';
 import AdminJobDetail from './pages/admin/JobDetail';
 import AdminReview from './pages/admin/Review';
 import AdminQuestionBank from './pages/admin/QuestionBank';
+import AdminCreateQuiz from './pages/admin/CreateQuiz';
+import AdminAddQuestion from './pages/admin/AddQuestion';
 
 export default function App() {
   return (
@@ -23,8 +25,10 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="upload" element={<AdminUpload />} />
+          <Route path="create" element={<AdminCreateQuiz />} />
           <Route path="jobs" element={<AdminJobs />} />
           <Route path="jobs/:jobId" element={<AdminJobDetail />} />
+          <Route path="jobs/:jobId/add" element={<AdminAddQuestion />} />
           <Route path="review" element={<AdminReview />} />
           <Route path="questions" element={<AdminQuestionBank />} />
         </Route>
