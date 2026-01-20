@@ -11,6 +11,10 @@ import type {
   PublishResponse,
   QuestionStatus,
   Law,
+  CreateManualJobRequest,
+  CreateManualJobResponse,
+  AddManualQuestionRequest,
+  AddManualQuestionResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -140,5 +144,25 @@ export async function publishQuiz(
   return fetchAPI<PublishResponse>(`/admin/jobs/${jobId}/publish`, {
     method: 'PUT',
     body: JSON.stringify({ publish }),
+  });
+}
+
+// Manual quiz creation endpoints
+export async function createManualJob(
+  request: CreateManualJobRequest
+): Promise<CreateManualJobResponse> {
+  return fetchAPI<CreateManualJobResponse>('/admin/jobs/manual', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+export async function addManualQuestion(
+  jobId: string,
+  request: AddManualQuestionRequest
+): Promise<AddManualQuestionResponse> {
+  return fetchAPI<AddManualQuestionResponse>(`/admin/jobs/${jobId}/questions`, {
+    method: 'POST',
+    body: JSON.stringify(request),
   });
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getExtractionJob, reviewQuestion, publishQuiz } from '../../api/client';
-import type { JobDetailResponse, BankQuestion, QuestionStatus } from '../../types';
+import type { JobDetailResponse, BankQuestion, QuestionStatus, Difficulty } from '../../types';
 
 export default function AdminJobDetail() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -109,11 +109,25 @@ export default function AdminJobDetail() {
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{job.fileName}</h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-gray-900">{job.fileName}</h1>
+              <SourceBadge source={job.source} />
+            </div>
             <p className="text-gray-500">Job ID: {job.jobId}</p>
+            {job.description && (
+              <p className="text-gray-600 mt-1">{job.description}</p>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <StatusBadge status={job.status} />
+            {job.source === 'manual_entry' && (
+              <Link
+                to={`/admin/jobs/${job.jobId}/add`}
+                className="px-4 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Add Question
+              </Link>
+            )}
             {job.status === 'completed' && job.approvedCount > 0 && (
               <button
                 onClick={handlePublish}
@@ -211,12 +225,18 @@ function QuestionCard({
     <div className="px-6 py-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center flex-wrap gap-2 mb-2">
             <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded">
               {question.law}
             </span>
             <ConfidenceBadge confidence={question.confidence} />
             <QuestionStatusBadge status={question.status} />
+            {question.source && (
+              <SourceBadge source={question.source} />
+            )}
+            {question.difficulty && (
+              <DifficultyBadge difficulty={question.difficulty} />
+            )}
           </div>
           <p className="text-gray-900 mb-3">{question.text}</p>
           <div className="grid gap-2">
@@ -243,6 +263,18 @@ function QuestionCard({
             <p className="mt-3 text-sm text-gray-600">
               <span className="font-medium">Explanation:</span> {question.explanation}
             </p>
+          )}
+          {question.tags && question.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {question.tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           )}
         </div>
         <div className="flex flex-col gap-2">
@@ -318,6 +350,46 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
   return (
     <span className={`px-2 py-0.5 text-xs font-medium rounded ${bgColor}`}>
       {percent}%
+    </span>
+  );
+}
+
+function SourceBadge({ source }: { source?: string }) {
+  if (!source || source === 'pdf_extraction') {
+    return (
+      <span className="px-2 py-0.5 text-xs font-medium rounded bg-purple-100 text-purple-700">
+        PDF
+      </span>
+    );
+  }
+
+  if (source === 'manual_entry') {
+    return (
+      <span className="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700">
+        Manual
+      </span>
+    );
+  }
+
+  return (
+    <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
+      {source}
+    </span>
+  );
+}
+
+function DifficultyBadge({ difficulty }: { difficulty?: Difficulty }) {
+  if (!difficulty) return null;
+
+  const styles = {
+    easy: 'bg-green-100 text-green-700',
+    medium: 'bg-yellow-100 text-yellow-700',
+    hard: 'bg-red-100 text-red-700',
+  };
+
+  return (
+    <span className={`px-2 py-0.5 text-xs font-medium rounded ${styles[difficulty]}`}>
+      {difficulty}
     </span>
   );
 }

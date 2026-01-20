@@ -262,6 +262,8 @@ export async function handler(event: S3Event): Promise<void> {
       duplicateCount: 0,
       createdAt: now,
       updatedAt: now,
+      source: 'pdf_extraction',
+      category: 'Laws of the Game',
     };
 
     await createExtractionJob(job);
@@ -323,6 +325,8 @@ export async function handler(event: S3Event): Promise<void> {
           hash,
           createdAt: now,
           updatedAt: now,
+          source: 'pdf_extraction',
+          usageCount: 0,
         };
 
         questionsToSave.push(question);

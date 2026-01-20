@@ -1,5 +1,5 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Question } from '../lib/types.js';
-import { getApprovedQuestionsByJobId, getExtractionJob, shuffleArray } from '../lib/dynamodb.js';
+import { getApprovedQuestionsByJobId, getExtractionJob, shuffleArray, updateQuestionUsage } from '../lib/dynamodb.js';
 import { successResponse, errorResponse } from '../lib/response.js';
 
 /**
@@ -45,6 +45,12 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       text: q.text,
       options: q.options,
     }));
+
+    // Track usage for the selected questions (fire and forget)
+    const questionIds = shuffled.map((q) => q.questionId);
+    updateQuestionUsage(questionIds).catch((err) => {
+      console.error('Error updating question usage:', err);
+    });
 
     return successResponse(response);
   } catch (error) {

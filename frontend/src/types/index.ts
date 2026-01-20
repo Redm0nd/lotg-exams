@@ -34,6 +34,12 @@ export interface QuizResult {
 // Admin types
 export type QuestionStatus = 'pending_review' | 'approved' | 'rejected';
 
+export type QuestionSource = 'pdf_extraction' | 'manual_entry' | 'seed_script';
+
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
+export type JobSource = 'pdf_extraction' | 'manual_entry';
+
 export type Law =
   | 'Law 1' | 'Law 2' | 'Law 3' | 'Law 4' | 'Law 5'
   | 'Law 6' | 'Law 7' | 'Law 8' | 'Law 9' | 'Law 10'
@@ -55,6 +61,11 @@ export interface BankQuestion {
   createdAt: string;
   updatedAt: string;
   reviewedAt?: string;
+  source?: QuestionSource;
+  difficulty?: Difficulty;
+  tags?: string[];
+  usageCount?: number;
+  lastUsedAt?: string;
 }
 
 export type ExtractionJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
@@ -72,6 +83,9 @@ export interface ExtractionJob {
   errorMessage?: string;
   createdAt: string;
   completedAt?: string;
+  source?: JobSource;
+  description?: string;
+  category?: string;
 }
 
 export interface PresignedUrlResponse {
@@ -125,5 +139,33 @@ export interface BulkReviewResponse {
 export interface PublishResponse {
   jobId: string;
   published: boolean;
+  message: string;
+}
+
+// Manual quiz creation types
+export interface CreateManualJobRequest {
+  title: string;
+  description?: string;
+  category?: string;
+}
+
+export interface CreateManualJobResponse {
+  jobId: string;
+  message: string;
+}
+
+export interface AddManualQuestionRequest {
+  text: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  law: Law;
+  lawReference: string;
+  difficulty?: Difficulty;
+  tags?: string[];
+}
+
+export interface AddManualQuestionResponse {
+  questionId: string;
   message: string;
 }

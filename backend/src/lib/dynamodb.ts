@@ -464,3 +464,31 @@ export async function unpublishJob(jobId: string): Promise<void> {
 
   await docClient.send(new UpdateCommand(params));
 }
+
+/**
+ * Update question usage tracking (increment usageCount and set lastUsedAt)
+ */
+export async function updateQuestionUsage(questionIds: string[]): Promise<void> {
+  const now = new Date().toISOString();
+
+  // Update each question's usage count
+  await Promise.all(
+    questionIds.map((questionId) =>
+      docClient.send(
+        new UpdateCommand({
+          TableName: TABLE_NAME,
+          Key: {
+            PK: `QUESTION#${questionId}`,
+            SK: 'METADATA',
+          },
+          UpdateExpression: 'SET usageCount = if_not_exists(usageCount, :zero) + :inc, lastUsedAt = :now',
+          ExpressionAttributeValues: {
+            ':zero': 0,
+            ':inc': 1,
+            ':now': now,
+          },
+        })
+      )
+    )
+  );
+}

@@ -234,6 +234,8 @@ jobs:
       lambda_bulk_review_questions: ${{ steps.tf-output.outputs.lambda_bulk_review_questions }}
       lambda_get_extraction_jobs: ${{ steps.tf-output.outputs.lambda_get_extraction_jobs }}
       lambda_publish_quiz: ${{ steps.tf-output.outputs.lambda_publish_quiz }}
+      lambda_create_manual_job: ${{ steps.tf-output.outputs.lambda_create_manual_job }}
+      lambda_add_manual_question: ${{ steps.tf-output.outputs.lambda_add_manual_question }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -269,6 +271,8 @@ jobs:
           echo "lambda_bulk_review_questions=$(terraform output -json lambda_function_names | jq -r '.bulk_review_questions')" >> $GITHUB_OUTPUT
           echo "lambda_get_extraction_jobs=$(terraform output -json lambda_function_names | jq -r '.get_extraction_jobs')" >> $GITHUB_OUTPUT
           echo "lambda_publish_quiz=$(terraform output -json lambda_function_names | jq -r '.publish_quiz')" >> $GITHUB_OUTPUT
+          echo "lambda_create_manual_job=$(terraform output -json lambda_function_names | jq -r '.create_manual_job')" >> $GITHUB_OUTPUT
+          echo "lambda_add_manual_question=$(terraform output -json lambda_function_names | jq -r '.add_manual_question')" >> $GITHUB_OUTPUT
 
   # Deploy Backend - uses pre-built artifacts
   deploy-backend:
@@ -353,6 +357,18 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_publish_quiz }} \
             --zip-file fileb://backend/dist/publishQuiz.zip
+
+      - name: Update Lambda - createManualJob
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_create_manual_job }} \
+            --zip-file fileb://backend/dist/createManualJob.zip
+
+      - name: Update Lambda - addManualQuestion
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_add_manual_question }} \
+            --zip-file fileb://backend/dist/addManualQuestion.zip
 
   # Build and Deploy Frontend
   deploy-frontend:

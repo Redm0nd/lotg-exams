@@ -22,6 +22,9 @@ const handlers = [
   'bulkReviewQuestions',
   'getExtractionJobs',
   'publishQuiz',
+  // Manual quiz creation handlers
+  'createManualJob',
+  'addManualQuestion',
 ];
 
 async function buildHandler(handlerName) {
