@@ -68,6 +68,7 @@ export interface ExtractionJob {
   pendingCount: number;
   rejectedCount: number;
   duplicateCount: number;
+  published?: boolean;
   errorMessage?: string;
   createdAt: string;
   completedAt?: string;
@@ -119,4 +120,10 @@ export interface BulkReviewResponse {
     failed: number;
     targetStatus: QuestionStatus;
   };
+}
+
+export interface PublishResponse {
+  jobId: string;
+  published: boolean;
+  message: string;
 }

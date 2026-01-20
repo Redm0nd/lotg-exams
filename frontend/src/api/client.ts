@@ -8,6 +8,7 @@ import type {
   JobDetailResponse,
   ReviewResponse,
   BulkReviewResponse,
+  PublishResponse,
   QuestionStatus,
   Law,
 } from '../types';
@@ -129,5 +130,15 @@ export async function bulkReviewQuestions(
   return fetchAPI<BulkReviewResponse>('/admin/questions/bulk-review', {
     method: 'POST',
     body: JSON.stringify({ questionIds, status, reviewedBy }),
+  });
+}
+
+export async function publishQuiz(
+  jobId: string,
+  publish = true
+): Promise<PublishResponse> {
+  return fetchAPI<PublishResponse>(`/admin/jobs/${jobId}/publish`, {
+    method: 'PUT',
+    body: JSON.stringify({ publish }),
   });
 }

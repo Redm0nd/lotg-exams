@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getExtractionJob, reviewQuestion } from '../../api/client';
+import { getExtractionJob, reviewQuestion, publishQuiz } from '../../api/client';
 import type { JobDetailResponse, BankQuestion, QuestionStatus } from '../../types';
 
 export default function AdminJobDetail() {
@@ -9,6 +9,7 @@ export default function AdminJobDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reviewing, setReviewing] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     async function loadJob() {
@@ -26,6 +27,22 @@ export default function AdminJobDetail() {
 
     loadJob();
   }, [jobId]);
+
+  const handlePublish = async () => {
+    if (!jobId || !job) return;
+
+    setPublishing(true);
+    try {
+      const newPublishedState = !job.published;
+      await publishQuiz(jobId, newPublishedState);
+      setJob({ ...job, published: newPublishedState });
+    } catch (err) {
+      console.error('Publish failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to update publish status');
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const handleReview = async (questionId: string, status: QuestionStatus) => {
     setReviewing(questionId);
@@ -95,7 +112,31 @@ export default function AdminJobDetail() {
             <h1 className="text-2xl font-bold text-gray-900">{job.fileName}</h1>
             <p className="text-gray-500">Job ID: {job.jobId}</p>
           </div>
-          <StatusBadge status={job.status} />
+          <div className="flex items-center gap-3">
+            <StatusBadge status={job.status} />
+            {job.status === 'completed' && job.approvedCount > 0 && (
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                  job.published
+                    ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                {publishing
+                  ? 'Updating...'
+                  : job.published
+                    ? 'Unpublish Quiz'
+                    : 'Publish Quiz'}
+              </button>
+            )}
+            {job.published && (
+              <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+                Published
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

@@ -244,6 +244,7 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.get_question_bank,
     aws_api_gateway_integration.review_question,
     aws_api_gateway_integration.bulk_review,
+    aws_api_gateway_integration.publish_quiz,
   ]
 
   lifecycle {
@@ -500,16 +501,16 @@ resource "aws_lambda_function" "process_pdf" {
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
   runtime          = "nodejs20.x"
-  timeout          = 300 # 5 minutes for PDF processing
+  timeout          = 300  # 5 minutes for PDF processing
   memory_size      = 1024 # More memory for PDF/image processing
   source_code_hash = fileexists("${path.module}/../../../backend/dist/processPdf.zip") ? filebase64sha256("${path.module}/../../../backend/dist/processPdf.zip") : null
 
   environment {
     variables = {
-      TABLE_NAME        = var.dynamodb_table_name
-      BUCKET_NAME       = aws_s3_bucket.pdf_uploads.id
-      SECRET_NAME       = aws_secretsmanager_secret.claude_api_key.name
-      NODE_ENV          = var.environment
+      TABLE_NAME  = var.dynamodb_table_name
+      BUCKET_NAME = aws_s3_bucket.pdf_uploads.id
+      SECRET_NAME = aws_secretsmanager_secret.claude_api_key.name
+      NODE_ENV    = var.environment
     }
   }
 
@@ -615,6 +616,32 @@ resource "aws_lambda_function" "bulk_review_questions" {
 
   tags = {
     Name = "${var.project_name}-${var.environment}-bulkReviewQuestions"
+  }
+}
+
+# ============================================================================
+# Lambda Function: publishQuiz
+# ============================================================================
+
+resource "aws_lambda_function" "publish_quiz" {
+  filename         = "${path.module}/../../../backend/dist/publishQuiz.zip"
+  function_name    = "${var.project_name}-${var.environment}-publishQuiz"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/publishQuiz.zip") ? filebase64sha256("${path.module}/../../../backend/dist/publishQuiz.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-publishQuiz"
   }
 }
 
@@ -734,6 +761,30 @@ resource "aws_api_gateway_integration" "get_job" {
   uri                     = aws_lambda_function.get_extraction_jobs.invoke_arn
 }
 
+# /admin/jobs/{id}/publish
+resource "aws_api_gateway_resource" "admin_job_publish" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_job_id.id
+  path_part   = "publish"
+}
+
+# PUT /admin/jobs/{id}/publish
+resource "aws_api_gateway_method" "publish_quiz" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_job_publish.id
+  http_method   = "PUT"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "publish_quiz" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_job_publish.id
+  http_method             = aws_api_gateway_method.publish_quiz.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.publish_quiz.invoke_arn
+}
+
 # /admin/questions resource
 resource "aws_api_gateway_resource" "admin_questions" {
   rest_api_id = aws_api_gateway_rest_api.this.id
@@ -846,6 +897,14 @@ module "cors_admin_job_id" {
   api_resource_id = aws_api_gateway_resource.admin_job_id.id
 }
 
+module "cors_admin_job_publish" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_job_publish.id
+}
+
 module "cors_admin_questions" {
   source  = "squidfunk/api-gateway-enable-cors/aws"
   version = "0.3.3"
@@ -907,6 +966,14 @@ resource "aws_lambda_permission" "get_extraction_jobs" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.get_extraction_jobs.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "publish_quiz" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.publish_quiz.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
