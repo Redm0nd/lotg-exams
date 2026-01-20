@@ -379,3 +379,88 @@ export async function getQuestionsByJobId(jobId: string): Promise<BankQuestionIt
   const result = await docClient.send(new QueryCommand(params));
   return (result.Items || []) as BankQuestionItem[];
 }
+
+/**
+ * Get approved questions for a specific job using the JobId-Status-index GSI
+ */
+export async function getApprovedQuestionsByJobId(jobId: string): Promise<BankQuestionItem[]> {
+  const params = {
+    TableName: TABLE_NAME,
+    IndexName: 'JobId-Status-index',
+    KeyConditionExpression: 'jobId = :jobId AND #status = :status',
+    ExpressionAttributeNames: {
+      '#status': 'status',
+    },
+    ExpressionAttributeValues: {
+      ':jobId': jobId,
+      ':status': 'approved',
+    },
+  };
+
+  const result = await docClient.send(new QueryCommand(params));
+  return (result.Items || []) as BankQuestionItem[];
+}
+
+/**
+ * Get all published extraction jobs (for quiz listing)
+ */
+export async function getPublishedJobs(): Promise<ExtractionJobItem[]> {
+  const params = {
+    TableName: TABLE_NAME,
+    IndexName: 'Type-createdAt-index',
+    KeyConditionExpression: '#type = :type',
+    FilterExpression: 'published = :published AND approvedCount > :zero',
+    ExpressionAttributeNames: {
+      '#type': 'Type',
+    },
+    ExpressionAttributeValues: {
+      ':type': 'ExtractionJob',
+      ':published': true,
+      ':zero': 0,
+    },
+    ScanIndexForward: false, // Most recent first
+  };
+
+  const result = await docClient.send(new QueryCommand(params));
+  return (result.Items || []) as ExtractionJobItem[];
+}
+
+/**
+ * Publish a job (make it visible as a quiz on the homepage)
+ */
+export async function publishJob(jobId: string): Promise<void> {
+  const params = {
+    TableName: TABLE_NAME,
+    Key: {
+      PK: `JOB#${jobId}`,
+      SK: 'METADATA',
+    },
+    UpdateExpression: 'SET published = :published, updatedAt = :updatedAt',
+    ExpressionAttributeValues: {
+      ':published': true,
+      ':updatedAt': new Date().toISOString(),
+    },
+  };
+
+  await docClient.send(new UpdateCommand(params));
+}
+
+/**
+ * Unpublish a job (hide it from the homepage)
+ */
+export async function unpublishJob(jobId: string): Promise<void> {
+  const params = {
+    TableName: TABLE_NAME,
+    Key: {
+      PK: `JOB#${jobId}`,
+      SK: 'METADATA',
+    },
+    UpdateExpression: 'SET published = :published, updatedAt = :updatedAt',
+    ExpressionAttributeValues: {
+      ':published': false,
+      ':updatedAt': new Date().toISOString(),
+    },
+  };
+
+  await docClient.send(new UpdateCommand(params));
+}

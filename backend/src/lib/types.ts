@@ -71,6 +71,7 @@ export interface ExtractionJobItem {
   pendingCount: number;
   rejectedCount: number;
   duplicateCount: number;
+  published?: boolean;
   errorMessage?: string;
   createdAt: string;
   updatedAt: string;
@@ -130,6 +131,7 @@ export interface ExtractionJob {
   pendingCount: number;
   rejectedCount: number;
   duplicateCount: number;
+  published?: boolean;
   errorMessage?: string;
   createdAt: string;
   completedAt?: string;

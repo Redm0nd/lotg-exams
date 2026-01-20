@@ -21,6 +21,7 @@ const handlers = [
   'reviewQuestion',
   'bulkReviewQuestions',
   'getExtractionJobs',
+  'publishQuiz',
 ];
 
 async function buildHandler(handlerName) {
