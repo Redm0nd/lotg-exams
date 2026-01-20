@@ -18,10 +18,36 @@ env:
   NODE_VERSION: 20
 
 jobs:
-  # Terraform Plan - runs on both PRs and pushes to main
+  # Detect which folders have changes
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      infra: ${{ steps.filter.outputs.infra }}
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            infra:
+              - '.infra/**'
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+
+  # Terraform Plan - only runs if infra changed
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.infra == 'true'
     defaults:
       run:
         working-directory: .infra
@@ -99,9 +125,52 @@ jobs:
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    needs: terraform-plan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [changes, terraform-plan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.infra == 'true'
     environment: production
+    defaults:
+      run:
+        working-directory: .infra
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: .infra
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+  # Get Terraform outputs - runs after apply (if infra changed) or independently
+  get-outputs:
+    name: Get Terraform Outputs
+    runs-on: ubuntu-latest
+    needs: [changes, terraform-apply]
+    # Run if: (infra changed AND apply succeeded) OR (infra didn't change but backend/frontend changed)
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true') &&
+      (needs.terraform-apply.result == 'success' || needs.terraform-apply.result == 'skipped')
     defaults:
       run:
         working-directory: .infra
@@ -137,15 +206,6 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Download Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: .infra
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
-
       - name: Get Terraform Outputs
         id: tf-output
         run: |
@@ -166,8 +226,13 @@ jobs:
   deploy-backend:
     name: Deploy Backend
     runs-on: ubuntu-latest
-    needs: terraform-apply
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [changes, get-outputs]
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      needs.changes.outputs.backend == 'true' &&
+      needs.get-outputs.result == 'success'
     defaults:
       run:
         working-directory: backend
@@ -197,63 +262,68 @@ jobs:
       - name: Update Lambda - getQuizzes
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_get_quizzes }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_quizzes }} \
             --zip-file fileb://dist/getQuizzes.zip
 
       - name: Update Lambda - getQuiz
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_get_quiz }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_quiz }} \
             --zip-file fileb://dist/getQuiz.zip
 
       - name: Update Lambda - getQuestions
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_get_questions }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_questions }} \
             --zip-file fileb://dist/getQuestions.zip
 
       - name: Update Lambda - generatePresignedUrl
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_generate_presigned_url }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_generate_presigned_url }} \
             --zip-file fileb://dist/generatePresignedUrl.zip
 
       - name: Update Lambda - processPdf
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_process_pdf }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_process_pdf }} \
             --zip-file fileb://dist/processPdf.zip
 
       - name: Update Lambda - getQuestionBank
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_get_question_bank }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_question_bank }} \
             --zip-file fileb://dist/getQuestionBank.zip
 
       - name: Update Lambda - reviewQuestion
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_review_question }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_review_question }} \
             --zip-file fileb://dist/reviewQuestion.zip
 
       - name: Update Lambda - bulkReviewQuestions
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_bulk_review_questions }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_bulk_review_questions }} \
             --zip-file fileb://dist/bulkReviewQuestions.zip
 
       - name: Update Lambda - getExtractionJobs
         run: |
           aws lambda update-function-code \
-            --function-name ${{ needs.terraform-apply.outputs.lambda_get_extraction_jobs }} \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_extraction_jobs }} \
             --zip-file fileb://dist/getExtractionJobs.zip
 
   # Build and Deploy Frontend
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
-    needs: terraform-apply
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [changes, get-outputs]
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      needs.changes.outputs.frontend == 'true' &&
+      needs.get-outputs.result == 'success'
     defaults:
       run:
         working-directory: frontend
@@ -273,7 +343,7 @@ jobs:
 
       - name: Build Frontend
         env:
-          VITE_API_URL: ${{ needs.terraform-apply.outputs.api_url }}
+          VITE_API_URL: ${{ needs.get-outputs.outputs.api_url }}
         run: npm run build
 
       - name: Configure AWS Credentials
@@ -284,36 +354,37 @@ jobs:
 
       - name: Sync to S3
         run: |
-          aws s3 sync dist/ s3://${{ needs.terraform-apply.outputs.s3_bucket }} --delete
+          aws s3 sync dist/ s3://${{ needs.get-outputs.outputs.s3_bucket }} --delete
 
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ needs.terraform-apply.outputs.cloudfront_id }} \
+            --distribution-id ${{ needs.get-outputs.outputs.cloudfront_id }} \
             --paths "/*"
 
   # Deployment Summary
   deployment-summary:
     name: Deployment Summary
     runs-on: ubuntu-latest
-    needs: [terraform-apply, deploy-backend, deploy-frontend]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [changes, get-outputs, deploy-backend, deploy-frontend]
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success')
     steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: Summary
         run: |
-          echo "## Deployment Successful :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes Detected" >> $GITHUB_STEP_SUMMARY
+          echo "- Infrastructure: ${{ needs.changes.outputs.infra }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ needs.changes.outputs.backend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ needs.changes.outputs.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ needs.deploy-backend.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ needs.deploy-frontend.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Endpoints" >> $GITHUB_STEP_SUMMARY
-          echo "- **API Gateway:** ${{ needs.terraform-apply.outputs.api_url }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **CloudFront:** https://$(aws cloudfront get-distribution --id ${{ needs.terraform-apply.outputs.cloudfront_id }} --query 'Distribution.DomainName' --output text)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Resources Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "- Lambda Functions: 9 (3 quiz + 6 admin)" >> $GITHUB_STEP_SUMMARY
-          echo "- S3 Bucket: ${{ needs.terraform-apply.outputs.s3_bucket }}" >> $GITHUB_STEP_SUMMARY
-          echo "- CloudFront Distribution: ${{ needs.terraform-apply.outputs.cloudfront_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API Gateway:** ${{ needs.get-outputs.outputs.api_url }}" >> $GITHUB_STEP_SUMMARY

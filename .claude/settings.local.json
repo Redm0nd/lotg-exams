@@ -17,7 +17,8 @@
       "Bash(curl:*)",
       "Bash(gh api:*)",
       "Bash(gh run view:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(npm install)"
     ]
   }
 }
