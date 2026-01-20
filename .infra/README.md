@@ -10,15 +10,75 @@ Terraform configuration for LOTG Exams AWS infrastructure.
 - Custom error responses for SPA routing
 
 ### backend/
-- API Gateway REST API
-- Lambda functions (3)
-- IAM roles and permissions
-- CORS configuration
+- API Gateway REST API with 10 endpoints
+- Lambda functions (10 total: 3 public, 7 admin)
+- IAM roles and permissions (separate roles for public/admin functions)
+- CORS configuration for all routes
+- S3 bucket for PDF uploads
+- Secrets Manager for Claude API key
+- S3 event trigger for PDF processing
 
 ### database/
-- DynamoDB table with GSI
+- DynamoDB table with 5 GSIs
 - Point-in-time recovery enabled
 - On-demand billing mode
+- Server-side encryption
+
+## Resources
+
+### DynamoDB Table
+
+Single-table design with the following Global Secondary Indexes:
+
+| Index | Hash Key | Range Key | Projection | Purpose |
+|-------|----------|-----------|------------|---------|
+| `Type-createdAt-index` | Type | createdAt | ALL | Query items by type |
+| `Law-Status-index` | law | status | ALL | Filter questions by law/status |
+| `Status-CreatedAt-index` | status | createdAt | ALL | Review queue |
+| `Hash-index` | hash | - | KEYS_ONLY | Deduplication |
+| `JobId-Status-index` | jobId | status | ALL | Job questions |
+
+### S3 Bucket (PDF Uploads)
+
+Bucket for storing uploaded PDF files for question extraction.
+
+**Configuration:**
+- Versioning: Enabled
+- Encryption: AES256 (SSE-S3)
+- Public access: Blocked
+- CORS: Enabled for PUT/POST/GET from all origins
+
+**Event Trigger:**
+- On `s3:ObjectCreated:*` for `uploads/*.pdf`
+- Invokes `processPdf` Lambda function
+
+### Secrets Manager
+
+Secret for storing Claude API key used by the PDF extraction Lambda.
+
+**Secret Name:** `lotg-exams-prod-claude-api-key`
+
+**Expected Format:**
+```json
+{
+  "apiKey": "sk-ant-..."
+}
+```
+
+### Lambda Functions
+
+| Function | Role | Timeout | Memory | Purpose |
+|----------|------|---------|--------|---------|
+| getQuizzes | public | 10s | 256MB | List quizzes |
+| getQuiz | public | 10s | 256MB | Get quiz details |
+| getQuestions | public | 10s | 256MB | Get quiz questions |
+| generatePresignedUrl | admin | 10s | 256MB | Create S3 upload URL |
+| processPdf | admin | 300s | 1024MB | Extract questions from PDF |
+| getExtractionJobs | admin | 10s | 256MB | List/get extraction jobs |
+| getQuestionBank | admin | 10s | 256MB | Query question bank |
+| reviewQuestion | admin | 10s | 256MB | Approve/reject question |
+| bulkReviewQuestions | admin | 30s | 256MB | Bulk review questions |
+| publishQuiz | admin | 10s | 256MB | Publish job as quiz |
 
 ## Usage
 
@@ -50,6 +110,8 @@ Key outputs:
 - `cloudfront_url` - Frontend URL
 - `api_gateway_url` - API endpoint
 - `dynamodb_table_name` - Database table name
+- `lambda_function_names` - Map of all Lambda function names
+- `s3_bucket_name` - PDF uploads bucket name
 
 ### Destroy Infrastructure
 
@@ -144,6 +206,8 @@ cd ../backend
 npm run build
 ```
 
+**Note:** On initial deployment, you may need to build the backend before running `terraform apply` since Lambda resources require the zip files to exist.
+
 ### CloudFront distribution takes long to deploy
 
 Normal behavior. CloudFront distributions take 15-30 minutes to deploy.
@@ -158,3 +222,12 @@ terraform force-unlock <LOCK_ID>
 ### Plan shows unexpected changes
 
 Check for manual changes in AWS console. Terraform will revert them.
+
+### Secrets Manager secret empty
+
+The Terraform creates an empty secret. You must populate it with your Claude API key:
+```bash
+aws secretsmanager put-secret-value \
+  --secret-id lotg-exams-prod-claude-api-key \
+  --secret-string '{"apiKey":"sk-ant-..."}'
+```

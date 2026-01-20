@@ -25,6 +25,12 @@ Users → CloudFront → S3 (React SPA)
 - Responsive design optimized for desktop and mobile
 - Serverless architecture with automatic scaling
 - Cost-optimized for AWS free tier
+- **Admin Interface:** Upload PDFs for AI-powered question extraction
+- **Claude AI Integration:** Automatic question extraction with confidence scoring
+
+## Security Note
+
+This application is designed for single-user or trusted access scenarios. Admin routes (`/admin/*`) have no authentication - anyone with the API URL can access admin functionality including uploading PDFs and publishing quizzes. For production use with multiple users, implement authentication (e.g., Cognito, Auth0) on admin endpoints.
 
 ## Project Structure
 
@@ -174,14 +180,16 @@ npm test
 
 Automatic deployment via GitHub Actions on push to `main`:
 
-1. **Terraform Apply** - Updates infrastructure
-2. **Backend Deploy** - Updates Lambda functions
-3. **Frontend Deploy** - Syncs to S3 and invalidates CloudFront
+1. **changes** - Detects which folders have changes (path-based filtering)
+2. **terraform-plan/apply** - Updates infrastructure (only if `.infra/` changed, requires approval)
+3. **deploy-backend** - Updates Lambda functions (only if `backend/` changed)
+4. **deploy-frontend** - Syncs to S3 and invalidates CloudFront (only if `frontend/` changed)
 
-### Required GitHub Secrets
+### Required GitHub Setup
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
+- **Secret:** `AWS_ACCOUNT_ID` - Your 12-digit AWS account ID
+- **Environment:** Create "production" environment with approval required
+- **AWS:** OIDC identity provider configured (Terraform creates the IAM role)
 
 See `.github/workflows/README.md` for details.
 
@@ -214,8 +222,20 @@ Single-table DynamoDB design:
 
 | PK | SK | Type | Description |
 |----|-----|------|-------------|
-| `QUIZ#001` | `METADATA` | Quiz | Quiz metadata |
-| `QUIZ#001` | `QUESTION#001` | Question | Individual questions |
+| `QUIZ#{id}` | `METADATA` | Quiz | Quiz metadata |
+| `QUIZ#{id}` | `QUESTION#{id}` | Question | Individual questions |
+| `QUESTION#{ulid}` | `METADATA` | BankQuestion | Extracted question from PDF |
+| `JOB#{ulid}` | `METADATA` | ExtractionJob | PDF extraction job |
+
+### Global Secondary Indexes (GSIs)
+
+| Index | Hash Key | Range Key | Purpose |
+|-------|----------|-----------|---------|
+| `Type-createdAt-index` | Type | createdAt | Query all items by type |
+| `Law-Status-index` | law | status | Filter questions by law/status |
+| `Status-CreatedAt-index` | status | createdAt | Review queue (pending questions) |
+| `Hash-index` | hash | - | Question deduplication |
+| `JobId-Status-index` | jobId | status | Job questions by status |
 
 See `scripts/README.md` for data format details.
 

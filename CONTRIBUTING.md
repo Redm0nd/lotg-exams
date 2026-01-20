@@ -72,6 +72,28 @@ Thank you for considering contributing to LOTG Exams!
 
 ## Development Guidelines
 
+### Admin Feature Development
+
+The admin interface uses a PDF extraction pipeline powered by Claude AI.
+
+**Pipeline Flow:**
+1. PDF uploaded to S3 via presigned URL
+2. S3 event triggers `processPdf` Lambda
+3. Lambda uses Claude Vision API to extract questions
+4. Questions stored in DynamoDB with confidence scores
+5. Admin reviews and approves questions
+6. Approved questions can be published as a quiz
+
+**Key Files:**
+- `backend/src/handlers/processPdf.ts` - PDF extraction logic
+- `backend/src/handlers/publishQuiz.ts` - Quiz publishing
+- `frontend/src/pages/admin/*` - Admin UI components
+
+**Environment Variables for Admin Lambdas:**
+- `TABLE_NAME` - DynamoDB table
+- `BUCKET_NAME` - S3 bucket for uploads
+- `SECRET_NAME` - Secrets Manager for Claude API key
+
 ### Code Style
 
 **TypeScript/JavaScript:**
@@ -126,6 +148,18 @@ docs: update deployment instructions
 
 ### Adding New Quizzes
 
+There are two methods to add quizzes:
+
+#### Method 1: PDF Upload via Admin UI (Recommended)
+
+1. Navigate to `/admin/upload` in the application
+2. Upload a PDF containing exam questions
+3. Claude AI extracts questions automatically
+4. Review extracted questions at `/admin/review`
+5. Publish as a quiz from the job detail page
+
+#### Method 2: Manual JSON + Seed Script
+
 1. **Create quiz data file**
    - Follow format in `data/sample-quizzes.json`
    - Include accurate references to IFAB Laws
@@ -136,7 +170,13 @@ docs: update deployment instructions
    - Check spelling and grammar
    - Ensure questions are clear and unambiguous
 
-3. **Submit for review**
+3. **Run the seed script**
+   ```bash
+   cd scripts
+   node seed-database.js ../data/your-quiz.json
+   ```
+
+4. **Submit for review**
    - Create PR with quiz data
    - Include source references
    - Explain rationale for quiz topic

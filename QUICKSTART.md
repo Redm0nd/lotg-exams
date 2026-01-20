@@ -8,6 +8,7 @@ Get the LOTG Exams application running in 15 minutes.
 - [ ] AWS CLI installed and configured (`aws --version`)
 - [ ] Terraform 1.6+ installed (`terraform --version`)
 - [ ] AWS account with appropriate permissions
+- [ ] Claude API key from Anthropic (for PDF extraction feature)
 
 ## Step-by-Step Deployment
 
@@ -49,7 +50,23 @@ terraform output > outputs.txt
 
 **Note:** CloudFront distribution deployment takes 5-8 minutes.
 
-### 3. Build Backend (1 minute)
+### 3. Configure Claude API Key (Required for PDF extraction)
+
+The PDF extraction feature uses Claude AI. Store your API key in Secrets Manager:
+
+```bash
+# Get secret name from Terraform output
+SECRET_NAME=$(cd .infra && terraform output -raw claude_secret_name 2>/dev/null || echo "lotg-exams-prod-claude-api-key")
+
+# Store your Claude API key
+aws secretsmanager put-secret-value \
+  --secret-id $SECRET_NAME \
+  --secret-string '{"apiKey":"sk-ant-YOUR-API-KEY-HERE"}'
+```
+
+Get your API key from: https://console.anthropic.com/
+
+### 4. Build Backend (1 minute)
 
 ```bash
 cd ../backend
@@ -59,7 +76,7 @@ npm run build
 ls -lh dist/*.zip
 ```
 
-### 4. Deploy Lambda Functions (1 minute)
+### 5. Deploy Lambda Functions (1 minute)
 
 ```bash
 # Get function names from Terraform
@@ -83,7 +100,7 @@ aws lambda update-function-code \
   --zip-file fileb://dist/getQuestions.zip
 ```
 
-### 5. Seed Database (1 minute)
+### 6. Seed Database (1 minute)
 
 ```bash
 cd ../scripts
@@ -95,7 +112,7 @@ export TABLE_NAME=$(cd ../.infra && terraform output -raw dynamodb_table_name)
 npm run seed
 ```
 
-### 6. Build & Deploy Frontend (2 minutes)
+### 7. Build & Deploy Frontend (2 minutes)
 
 ```bash
 cd ../frontend
@@ -120,7 +137,7 @@ aws cloudfront create-invalidation \
   --paths "/*"
 ```
 
-### 7. Access Application
+### 8. Access Application
 
 ```bash
 # Get CloudFront URL
@@ -192,9 +209,13 @@ aws cloudfront create-invalidation --distribution-id $(terraform output -raw clo
 
 ## Next Steps
 
-- [ ] Set up GitHub Actions (see `.github/workflows/README.md`)
+- [ ] Set up GitHub Actions for CI/CD:
+  1. Add `AWS_ACCOUNT_ID` secret in GitHub (Settings → Secrets → Actions)
+  2. Create "production" environment (Settings → Environments)
+  3. Add yourself as required reviewer for the environment
+  4. See `.github/workflows/README.md` for details
 - [ ] Add custom domain with Route53
-- [ ] Create more quiz content
+- [ ] Create more quiz content via PDF upload
 - [ ] Enable monitoring and alarms
 - [ ] Set up backup strategy
 
