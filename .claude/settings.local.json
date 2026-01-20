@@ -15,7 +15,9 @@
       "Bash(aws lambda get-function:*)",
       "Bash(terraform force-unlock:*)",
       "Bash(curl:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)"
     ]
   }
 }

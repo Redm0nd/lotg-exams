@@ -52,32 +52,47 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -out=tfplan -detailed-exitcode -no-color 2>&1 | tee plan_output.txt || exit_code=$?
+          set +e
+          terraform plan -out=tfplan -detailed-exitcode -no-color 2>&1 | tee plan_output.txt
+          exit_code=$?
+          set -e
 
           # Exit code 0 = no changes, 1 = error, 2 = changes
-          if [ "${exit_code:-0}" -eq 2 ]; then
+          if [ "$exit_code" -eq 2 ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
-          elif [ "${exit_code:-0}" -eq 1 ]; then
+            exit 0
+          elif [ "$exit_code" -eq 1 ]; then
             echo "Plan failed"
+            cat plan_output.txt
             exit 1
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
       - name: Show Plan in Summary
+        if: always()
         run: |
-          echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
+          echo "## Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo '```hcl' >> $GITHUB_STEP_SUMMARY
           cat plan_output.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload Plan
+      - name: Upload Plan (binary)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
           path: .infra/tfplan
+          retention-days: 1
+
+      - name: Upload Plan (readable)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-output
+          path: .infra/plan_output.txt
           retention-days: 1
 
   # Terraform Apply - requires approval, uses saved plan
