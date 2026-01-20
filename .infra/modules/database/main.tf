@@ -40,6 +40,11 @@ resource "aws_dynamodb_table" "this" {
     type = "S"
   }
 
+  attribute {
+    name = "jobId"
+    type = "S"
+  }
+
   # Global Secondary Index for querying all quizzes
   global_secondary_index {
     name            = "Type-createdAt-index"
@@ -69,6 +74,14 @@ resource "aws_dynamodb_table" "this" {
     name            = "Hash-index"
     hash_key        = "hash"
     projection_type = "KEYS_ONLY"
+  }
+
+  # GSI for querying questions by jobId and status (for quiz questions)
+  global_secondary_index {
+    name            = "JobId-Status-index"
+    hash_key        = "jobId"
+    range_key       = "status"
+    projection_type = "ALL"
   }
 
   # Enable point-in-time recovery for data protection

@@ -17,7 +17,7 @@ variable "project_name" {
 variable "github_org" {
   description = "GitHub organization or username"
   type        = string
-  default     = "Redm0nd"  # Update this to your GitHub org/username
+  default     = "Redm0nd" # Update this to your GitHub org/username
 
   nullable = false
 }
