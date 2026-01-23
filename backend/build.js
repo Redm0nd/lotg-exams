@@ -14,6 +14,7 @@ const handlers = [
   'getQuizzes',
   'getQuiz',
   'getQuestions',
+  'submitAnswers',
   // Admin handlers
   'generatePresignedUrl',
   'processPdf',

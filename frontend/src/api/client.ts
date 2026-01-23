@@ -2,6 +2,7 @@ import type {
   QuizSummary,
   QuizDetail,
   Question,
+  Answer,
   PresignedUrlResponse,
   QuestionBankResponse,
   JobsResponse,
@@ -15,6 +16,7 @@ import type {
   CreateManualJobResponse,
   AddManualQuestionRequest,
   AddManualQuestionResponse,
+  SubmitAnswersResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -47,6 +49,16 @@ export async function getQuiz(quizId: string): Promise<QuizDetail> {
 
 export async function getQuestions(quizId: string, limit = 10): Promise<Question[]> {
   return fetchAPI<Question[]>(`/quizzes/${quizId}/questions?limit=${limit}`);
+}
+
+export async function submitAnswers(
+  quizId: string,
+  answers: Answer[]
+): Promise<SubmitAnswersResponse> {
+  return fetchAPI<SubmitAnswersResponse>(`/quizzes/${quizId}/submit`, {
+    method: 'POST',
+    body: JSON.stringify({ answers }),
+  });
 }
 
 // Admin endpoints

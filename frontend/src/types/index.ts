@@ -169,3 +169,28 @@ export interface AddManualQuestionResponse {
   questionId: string;
   message: string;
 }
+
+// Quiz submission types
+export interface SubmitAnswersRequest {
+  answers: Answer[];
+}
+
+export interface QuestionResultFromAPI {
+  questionId: string;
+  text: string;
+  options: string[];
+  selectedOption: number;
+  correctOption: number;
+  isCorrect: boolean;
+  explanation: string;
+  lawReference: string;
+}
+
+export interface SubmitAnswersResponse {
+  results: QuestionResultFromAPI[];
+  score: {
+    correct: number;
+    total: number;
+    percentage: number;
+  };
+}
