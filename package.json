@@ -1,0 +1,29 @@
+{
+  "name": "lotg-exams",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Laws of the Game Quiz Application - Development tooling",
+  "scripts": {
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.0.0",
+    "semantic-release": "^24.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md}": "prettier --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Redm0nd/lotg-exams.git"
+  },
+  "license": "MIT"
+}
