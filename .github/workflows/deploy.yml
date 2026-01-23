@@ -301,18 +301,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Update Lambda - getQuizzes
+        if: needs.get-outputs.outputs.lambda_get_quizzes != '' && needs.get-outputs.outputs.lambda_get_quizzes != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_quizzes }} \
             --zip-file fileb://backend/dist/getQuizzes.zip
 
       - name: Update Lambda - getQuiz
+        if: needs.get-outputs.outputs.lambda_get_quiz != '' && needs.get-outputs.outputs.lambda_get_quiz != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_quiz }} \
             --zip-file fileb://backend/dist/getQuiz.zip
 
       - name: Update Lambda - getQuestions
+        if: needs.get-outputs.outputs.lambda_get_questions != '' && needs.get-outputs.outputs.lambda_get_questions != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_questions }} \
@@ -326,42 +329,49 @@ jobs:
             --zip-file fileb://backend/dist/submitAnswers.zip
 
       - name: Update Lambda - generatePresignedUrl
+        if: needs.get-outputs.outputs.lambda_generate_presigned_url != '' && needs.get-outputs.outputs.lambda_generate_presigned_url != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_generate_presigned_url }} \
             --zip-file fileb://backend/dist/generatePresignedUrl.zip
 
       - name: Update Lambda - processPdf
+        if: needs.get-outputs.outputs.lambda_process_pdf != '' && needs.get-outputs.outputs.lambda_process_pdf != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_process_pdf }} \
             --zip-file fileb://backend/dist/processPdf.zip
 
       - name: Update Lambda - getQuestionBank
+        if: needs.get-outputs.outputs.lambda_get_question_bank != '' && needs.get-outputs.outputs.lambda_get_question_bank != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_question_bank }} \
             --zip-file fileb://backend/dist/getQuestionBank.zip
 
       - name: Update Lambda - reviewQuestion
+        if: needs.get-outputs.outputs.lambda_review_question != '' && needs.get-outputs.outputs.lambda_review_question != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_review_question }} \
             --zip-file fileb://backend/dist/reviewQuestion.zip
 
       - name: Update Lambda - bulkReviewQuestions
+        if: needs.get-outputs.outputs.lambda_bulk_review_questions != '' && needs.get-outputs.outputs.lambda_bulk_review_questions != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_bulk_review_questions }} \
             --zip-file fileb://backend/dist/bulkReviewQuestions.zip
 
       - name: Update Lambda - getExtractionJobs
+        if: needs.get-outputs.outputs.lambda_get_extraction_jobs != '' && needs.get-outputs.outputs.lambda_get_extraction_jobs != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_extraction_jobs }} \
             --zip-file fileb://backend/dist/getExtractionJobs.zip
 
       - name: Update Lambda - publishQuiz
+        if: needs.get-outputs.outputs.lambda_publish_quiz != '' && needs.get-outputs.outputs.lambda_publish_quiz != 'null'
         run: |
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_publish_quiz }} \
