@@ -19,6 +19,7 @@ output "lambda_function_names" {
     get_quizzes            = aws_lambda_function.get_quizzes.function_name
     get_quiz               = aws_lambda_function.get_quiz.function_name
     get_questions          = aws_lambda_function.get_questions.function_name
+    submit_answers         = aws_lambda_function.submit_answers.function_name
     generate_presigned_url = aws_lambda_function.generate_presigned_url.function_name
     process_pdf            = aws_lambda_function.process_pdf.function_name
     get_question_bank      = aws_lambda_function.get_question_bank.function_name
@@ -36,6 +37,7 @@ output "lambda_function_arns" {
     get_quizzes            = aws_lambda_function.get_quizzes.arn
     get_quiz               = aws_lambda_function.get_quiz.arn
     get_questions          = aws_lambda_function.get_questions.arn
+    submit_answers         = aws_lambda_function.submit_answers.arn
     generate_presigned_url = aws_lambda_function.generate_presigned_url.arn
     process_pdf            = aws_lambda_function.process_pdf.arn
     get_question_bank      = aws_lambda_function.get_question_bank.arn

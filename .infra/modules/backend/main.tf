@@ -119,6 +119,29 @@ resource "aws_lambda_function" "get_questions" {
   }
 }
 
+# Lambda function: submitAnswers
+resource "aws_lambda_function" "submit_answers" {
+  filename         = "${path.module}/../../../backend/dist/submitAnswers.zip"
+  function_name    = "${var.project_name}-${var.environment}-submitAnswers"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/submitAnswers.zip") ? filebase64sha256("${path.module}/../../../backend/dist/submitAnswers.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-submitAnswers"
+  }
+}
+
 # API Gateway REST API
 resource "aws_api_gateway_rest_api" "this" {
   name        = "${var.project_name}-${var.environment}-api"
@@ -152,6 +175,13 @@ resource "aws_api_gateway_resource" "questions" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   parent_id   = aws_api_gateway_resource.quiz_id.id
   path_part   = "questions"
+}
+
+# API Gateway resource: /quizzes/{id}/submit
+resource "aws_api_gateway_resource" "submit" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.quiz_id.id
+  path_part   = "submit"
 }
 
 # GET /quizzes
@@ -205,6 +235,23 @@ resource "aws_api_gateway_integration" "get_questions" {
   uri                     = aws_lambda_function.get_questions.invoke_arn
 }
 
+# POST /quizzes/{id}/submit
+resource "aws_api_gateway_method" "submit_answers" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.submit.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "submit_answers" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.submit.id
+  http_method             = aws_api_gateway_method.submit_answers.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.submit_answers.invoke_arn
+}
+
 # Enable CORS for all methods
 module "cors_quizzes" {
   source  = "squidfunk/api-gateway-enable-cors/aws"
@@ -230,6 +277,14 @@ module "cors_questions" {
   api_resource_id = aws_api_gateway_resource.questions.id
 }
 
+module "cors_submit" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.submit.id
+}
+
 # API Gateway deployment
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
@@ -238,6 +293,7 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.get_quizzes,
     aws_api_gateway_integration.get_quiz,
     aws_api_gateway_integration.get_questions,
+    aws_api_gateway_integration.submit_answers,
     aws_api_gateway_integration.post_presigned_url,
     aws_api_gateway_integration.get_jobs,
     aws_api_gateway_integration.get_job,
@@ -257,6 +313,7 @@ resource "aws_api_gateway_deployment" "this" {
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.quizzes.id,
+      aws_api_gateway_resource.submit.id,
       aws_api_gateway_resource.admin.id,
       aws_api_gateway_resource.admin_presigned_url.id,
       aws_api_gateway_resource.admin_jobs.id,
@@ -295,6 +352,14 @@ resource "aws_lambda_permission" "get_questions" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.get_questions.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "submit_answers" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.submit_answers.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }

@@ -1,67 +1,39 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import type { Question, Answer } from '../types';
-
-// Mock data for correct answers and explanations
-// In a real app, this would come from a POST /quizzes/{id}/submit endpoint
-const MOCK_ANSWERS: Record<string, { correctAnswer: number; explanation: string; lawReference: string }> = {
-  '001': { correctAnswer: 0, explanation: 'According to Law 1, the maximum length is 120m and the maximum width is 90m for international matches.', lawReference: 'Law 1.1' },
-  '002': { correctAnswer: 0, explanation: 'The minimum length is 90m and the minimum width is 45m according to Law 1.', lawReference: 'Law 1.1' },
-  '003': { correctAnswer: 0, explanation: 'The center circle has a radius of 9.15m (10 yards) from the center mark.', lawReference: 'Law 1.7' },
-  '004': { correctAnswer: 0, explanation: 'The corner arc has a radius of 1m (1 yard) from each corner flagpost.', lawReference: 'Law 1.9' },
-  '005': { correctAnswer: 0, explanation: 'The penalty mark is 11m (12 yards) from the midpoint of the goal line.', lawReference: 'Law 1.11' },
-  '006': { correctAnswer: 0, explanation: 'The distance between the goalposts is 7.32m (8 yards).', lawReference: 'Law 1.5' },
-  '007': { correctAnswer: 0, explanation: 'The distance from the lower edge of the crossbar to the ground is 2.44m (8 feet).', lawReference: 'Law 1.5' },
-  '008': { correctAnswer: 0, explanation: 'Two lines are drawn at right angles to the goal line, 16.5m (18 yards) from each goalpost.', lawReference: 'Law 1.11' },
-  '009': { correctAnswer: 0, explanation: 'All lines must be of the same width, which must not be more than 12cm (5 inches).', lawReference: 'Law 1.2' },
-  '010': { correctAnswer: 0, explanation: 'Artificial surfaces are allowed where competition rules permit, and they must be green.', lawReference: 'Law 1.3' },
-};
+import { submitAnswers } from '../api/client';
+import type { Answer, SubmitAnswersResponse } from '../types';
 
 export default function QuizResults() {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
 
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [results, setResults] = useState<SubmitAnswersResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedQuestions = sessionStorage.getItem('quizQuestions');
-    const storedAnswers = sessionStorage.getItem('quizAnswers');
+    async function loadResults() {
+      const storedAnswers = sessionStorage.getItem('quizAnswers');
 
-    if (!storedQuestions || !storedAnswers) {
-      navigate(`/quiz/${quizId}`);
-      return;
+      if (!storedAnswers || !quizId) {
+        navigate(`/quiz/${quizId}`);
+        return;
+      }
+
+      try {
+        const answers: Answer[] = JSON.parse(storedAnswers);
+        const response = await submitAnswers(quizId, answers);
+        setResults(response);
+      } catch (err) {
+        console.error('Error submitting answers:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load results');
+      } finally {
+        setLoading(false);
+      }
     }
 
-    setQuestions(JSON.parse(storedQuestions));
-    setAnswers(JSON.parse(storedAnswers));
+    loadResults();
   }, [quizId, navigate]);
-
-  if (questions.length === 0 || answers.length === 0) {
-    return null;
-  }
-
-  const results = questions.map((question) => {
-    const answer = answers.find((a) => a.questionId === question.questionId);
-    const mockAnswer = MOCK_ANSWERS[question.questionId] || {
-      correctAnswer: 0,
-      explanation: 'Explanation not available.',
-      lawReference: 'N/A',
-    };
-
-    return {
-      question,
-      selectedOption: answer?.selectedOption ?? -1,
-      correctOption: mockAnswer.correctAnswer,
-      isCorrect: answer?.selectedOption === mockAnswer.correctAnswer,
-      explanation: mockAnswer.explanation,
-      lawReference: mockAnswer.lawReference,
-    };
-  });
-
-  const correctCount = results.filter((r) => r.isCorrect).length;
-  const totalCount = results.length;
-  const percentage = Math.round((correctCount / totalCount) * 100);
 
   const handleRetry = () => {
     sessionStorage.removeItem('quizQuestions');
@@ -75,18 +47,50 @@ export default function QuizResults() {
     navigate('/');
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-gray-600">Calculating results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !results) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="card text-center">
+          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
+          <p className="text-gray-600 mb-4">{error || 'Failed to load results'}</p>
+          <div className="flex gap-4 justify-center">
+            <button onClick={handleRetry} className="btn-primary">
+              Retry Quiz
+            </button>
+            <button onClick={handleBackToQuizzes} className="btn-secondary">
+              Back to Quizzes
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { score } = results;
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="card mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Quiz Results</h1>
         <div className="flex items-center justify-center gap-8 mb-4">
           <div>
-            <div className="text-5xl font-bold text-primary-600">{percentage}%</div>
+            <div className="text-5xl font-bold text-primary-600">{score.percentage}%</div>
             <div className="text-gray-600 mt-1">Score</div>
           </div>
           <div>
             <div className="text-3xl font-semibold text-gray-900">
-              {correctCount}/{totalCount}
+              {score.correct}/{score.total}
             </div>
             <div className="text-gray-600 mt-1">Correct Answers</div>
           </div>
@@ -102,8 +106,8 @@ export default function QuizResults() {
       </div>
 
       <div className="space-y-6">
-        {results.map((result, index) => (
-          <div key={result.question.questionId} className="card">
+        {results.results.map((result, index) => (
+          <div key={result.questionId} className="card">
             <div className="flex items-start gap-4">
               <div
                 className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
@@ -114,11 +118,11 @@ export default function QuizResults() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 mb-3">
-                  {index + 1}. {result.question.text}
+                  {index + 1}. {result.text}
                 </h3>
 
                 <div className="space-y-2 mb-4">
-                  {result.question.options.map((option, optionIndex) => {
+                  {result.options.map((option, optionIndex) => {
                     const isCorrect = optionIndex === result.correctOption;
                     const isSelected = optionIndex === result.selectedOption;
 

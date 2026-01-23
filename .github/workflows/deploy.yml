@@ -227,6 +227,7 @@ jobs:
       lambda_get_quizzes: ${{ steps.tf-output.outputs.lambda_get_quizzes }}
       lambda_get_quiz: ${{ steps.tf-output.outputs.lambda_get_quiz }}
       lambda_get_questions: ${{ steps.tf-output.outputs.lambda_get_questions }}
+      lambda_submit_answers: ${{ steps.tf-output.outputs.lambda_submit_answers }}
       lambda_generate_presigned_url: ${{ steps.tf-output.outputs.lambda_generate_presigned_url }}
       lambda_process_pdf: ${{ steps.tf-output.outputs.lambda_process_pdf }}
       lambda_get_question_bank: ${{ steps.tf-output.outputs.lambda_get_question_bank }}
@@ -264,6 +265,7 @@ jobs:
           echo "lambda_get_quizzes=$(terraform output -json lambda_function_names | jq -r '.get_quizzes')" >> $GITHUB_OUTPUT
           echo "lambda_get_quiz=$(terraform output -json lambda_function_names | jq -r '.get_quiz')" >> $GITHUB_OUTPUT
           echo "lambda_get_questions=$(terraform output -json lambda_function_names | jq -r '.get_questions')" >> $GITHUB_OUTPUT
+          echo "lambda_submit_answers=$(terraform output -json lambda_function_names | jq -r '.submit_answers')" >> $GITHUB_OUTPUT
           echo "lambda_generate_presigned_url=$(terraform output -json lambda_function_names | jq -r '.generate_presigned_url')" >> $GITHUB_OUTPUT
           echo "lambda_process_pdf=$(terraform output -json lambda_function_names | jq -r '.process_pdf')" >> $GITHUB_OUTPUT
           echo "lambda_get_question_bank=$(terraform output -json lambda_function_names | jq -r '.get_question_bank')" >> $GITHUB_OUTPUT
@@ -315,6 +317,13 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_questions }} \
             --zip-file fileb://backend/dist/getQuestions.zip
+
+      - name: Update Lambda - submitAnswers
+        if: needs.get-outputs.outputs.lambda_submit_answers != '' && needs.get-outputs.outputs.lambda_submit_answers != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_submit_answers }} \
+            --zip-file fileb://backend/dist/submitAnswers.zip
 
       - name: Update Lambda - generatePresignedUrl
         run: |
