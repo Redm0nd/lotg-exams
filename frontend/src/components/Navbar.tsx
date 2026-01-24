@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useRoles } from '../hooks/useRoles';
 
 export default function Navbar() {
   const { isAuthenticated, isLoading, user, loginWithRedirect, logout } = useAuth0();
+  const { isAdmin } = useRoles();
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -20,12 +22,14 @@ export default function Navbar() {
               <div className="h-8 w-8 animate-pulse bg-gray-200 rounded-full" />
             ) : isAuthenticated ? (
               <>
-                <Link
-                  to="/admin"
-                  className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                >
-                  Admin
-                </Link>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <div className="flex items-center gap-3">
                   {user?.picture && (
                     <img
