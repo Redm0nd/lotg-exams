@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/Redm0nd/lotg-exams/compare/v1.1.1...v1.1.2) (2026-01-24)
+
+
+### Bug Fixes
+
+* **auth:** improve Auth0 config validation message ([a0a983e](https://github.com/Redm0nd/lotg-exams/commit/a0a983e374c07bf81d33840866971a9335bf171b))
+
 ## [1.1.1](https://github.com/Redm0nd/lotg-exams/compare/v1.1.0...v1.1.1) (2026-01-24)
 
 
