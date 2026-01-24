@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Redm0nd/lotg-exams/compare/v1.0.0...v1.1.0) (2026-01-24)
+
+
+### Features
+
+* **auth:** add Auth0 authentication to frontend ([78ae3e2](https://github.com/Redm0nd/lotg-exams/commit/78ae3e2ebd1b61b5c8b1f21574573b2fe776a980))
+
 # 1.0.0 (2026-01-23)
 
 
