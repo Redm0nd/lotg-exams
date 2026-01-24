@@ -1,5 +1,31 @@
 # Claude Instructions for LOTG Exams
 
+## Security - CRITICAL
+
+**This is a PUBLIC repository.** Never include sensitive information in:
+
+- Commit messages
+- PR titles or descriptions
+- Code comments
+- Documentation files
+- GitHub issue descriptions
+
+**Sensitive information includes:**
+
+- API keys, tokens, secrets
+- Passwords or credentials
+- Auth0 domain, client IDs, or any authentication config values
+- AWS account IDs, ARNs, or resource identifiers
+- Database connection strings
+- Any environment variable values
+
+**Instead:**
+
+- Reference secrets by name (e.g., "Add `AUTH0_DOMAIN` secret")
+- Use placeholders (e.g., `your-tenant.auth0.com`)
+- Direct users to add values in GitHub Secrets or `.env` files
+- Link to documentation rather than embedding config values
+
 ## Project Overview
 
 LOTG Exams is an AWS serverless quiz application for Laws of the Game (LOTG) referee training. It uses:
