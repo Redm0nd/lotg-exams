@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Redm0nd/lotg-exams/compare/v1.1.0...v1.1.1) (2026-01-24)
+
+
+### Bug Fixes
+
+* **ci:** add Auth0 environment variables to frontend build ([68e715d](https://github.com/Redm0nd/lotg-exams/commit/68e715d9301da15e568f07537c151421a60f2396))
+
 # [1.1.0](https://github.com/Redm0nd/lotg-exams/compare/v1.0.0...v1.1.0) (2026-01-24)
 
 
