@@ -8,9 +8,11 @@ import './styles/index.css';
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
 
+// Validate Auth0 configuration at startup
 if (!domain || !clientId) {
-  console.error('Auth0 configuration missing. Please check your .env file.');
-  console.error('Required: VITE_AUTH0_DOMAIN, VITE_AUTH0_CLIENT_ID');
+  console.error(
+    'Auth0 configuration missing. Ensure VITE_AUTH0_DOMAIN and VITE_AUTH0_CLIENT_ID are set.'
+  );
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
