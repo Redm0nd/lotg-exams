@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/Redm0nd/lotg-exams/compare/v1.3.1...v1.4.0) (2026-01-25)
+
+
+### Features
+
+* **auth:** add API Gateway JWT authorizer for admin routes ([921bddd](https://github.com/Redm0nd/lotg-exams/commit/921bddd399f8d42fcd55f37c75cf26089adbf91b)), closes [#9](https://github.com/Redm0nd/lotg-exams/issues/9)
+
 ## [1.3.1](https://github.com/Redm0nd/lotg-exams/compare/v1.3.0...v1.3.1) (2026-01-25)
 
 
