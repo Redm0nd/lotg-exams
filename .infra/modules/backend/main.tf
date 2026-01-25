@@ -17,6 +17,7 @@ locals {
     "getExtractionJobs",
     "createManualJob",
     "addManualQuestion",
+    "authorize",
   ]
 }
 
@@ -170,6 +171,30 @@ resource "aws_lambda_function" "submit_answers" {
   }
 }
 
+# Lambda function: authorize (JWT authorizer for admin routes)
+resource "aws_lambda_function" "authorize" {
+  filename         = "${path.module}/../../../backend/dist/authorize.zip"
+  function_name    = "${var.project_name}-${var.environment}-authorize"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/authorize.zip") ? filebase64sha256("${path.module}/../../../backend/dist/authorize.zip") : null
+
+  environment {
+    variables = {
+      AUTH0_DOMAIN   = var.auth0_domain
+      AUTH0_AUDIENCE = var.auth0_audience
+      NODE_ENV       = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-authorize"
+  }
+}
+
 # API Gateway REST API
 resource "aws_api_gateway_rest_api" "this" {
   name        = "${var.project_name}-${var.environment}-api"
@@ -182,6 +207,51 @@ resource "aws_api_gateway_rest_api" "this" {
   tags = {
     Name = "${var.project_name}-${var.environment}-api"
   }
+}
+
+# API Gateway Lambda Authorizer for admin routes
+resource "aws_api_gateway_authorizer" "jwt" {
+  name                   = "${var.project_name}-${var.environment}-jwt-authorizer"
+  rest_api_id            = aws_api_gateway_rest_api.this.id
+  authorizer_uri         = aws_lambda_function.authorize.invoke_arn
+  authorizer_credentials = aws_iam_role.api_gateway_authorizer.arn
+  type                   = "TOKEN"
+  identity_source        = "method.request.header.Authorization"
+  authorizer_result_ttl_in_seconds = 300
+}
+
+# IAM role for API Gateway to invoke authorizer Lambda
+resource "aws_iam_role" "api_gateway_authorizer" {
+  name = "${var.project_name}-${var.environment}-apigw-auth-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "apigateway.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "api_gateway_authorizer" {
+  name = "${var.project_name}-${var.environment}-apigw-auth-policy"
+  role = aws_iam_role.api_gateway_authorizer.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "lambda:InvokeFunction"
+        Resource = aws_lambda_function.authorize.arn
+      }
+    ]
+  })
 }
 
 # API Gateway resource: /quizzes
@@ -798,7 +868,8 @@ resource "aws_api_gateway_method" "post_presigned_url" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_presigned_url.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "post_presigned_url" {
@@ -822,7 +893,8 @@ resource "aws_api_gateway_method" "get_jobs" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_jobs.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "get_jobs" {
@@ -846,7 +918,8 @@ resource "aws_api_gateway_method" "get_job" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_job_id.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "get_job" {
@@ -870,7 +943,8 @@ resource "aws_api_gateway_method" "publish_quiz" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_job_publish.id
   http_method   = "PUT"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "publish_quiz" {
@@ -894,7 +968,8 @@ resource "aws_api_gateway_method" "get_question_bank" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_questions.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "get_question_bank" {
@@ -925,7 +1000,8 @@ resource "aws_api_gateway_method" "review_question" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_question_review.id
   http_method   = "PUT"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "review_question" {
@@ -949,7 +1025,8 @@ resource "aws_api_gateway_method" "bulk_review" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_bulk_review.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "bulk_review" {
@@ -1090,7 +1167,8 @@ resource "aws_api_gateway_method" "create_manual_job" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_jobs_manual.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "create_manual_job" {
@@ -1114,7 +1192,8 @@ resource "aws_api_gateway_method" "add_manual_question" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.admin_job_questions.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
 }
 
 resource "aws_api_gateway_integration" "add_manual_question" {

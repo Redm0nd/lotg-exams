@@ -1,12 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getQuestionBank } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 import type { BankQuestion, Law, QuestionStatus } from '../../types';
 
 const LAWS: Law[] = [
-  'Law 1', 'Law 2', 'Law 3', 'Law 4', 'Law 5',
-  'Law 6', 'Law 7', 'Law 8', 'Law 9', 'Law 10',
-  'Law 11', 'Law 12', 'Law 13', 'Law 14', 'Law 15',
-  'Law 16', 'Law 17',
+  'Law 1',
+  'Law 2',
+  'Law 3',
+  'Law 4',
+  'Law 5',
+  'Law 6',
+  'Law 7',
+  'Law 8',
+  'Law 9',
+  'Law 10',
+  'Law 11',
+  'Law 12',
+  'Law 13',
+  'Law 14',
+  'Law 15',
+  'Law 16',
+  'Law 17',
 ];
 
 const STATUSES: { value: QuestionStatus | ''; label: string }[] = [
@@ -23,15 +37,13 @@ export default function AdminQuestionBank() {
   const [lawFilter, setLawFilter] = useState<Law | ''>('');
   const [statusFilter, setStatusFilter] = useState<QuestionStatus | ''>('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { getToken } = useAccessToken();
 
-  useEffect(() => {
-    loadQuestions();
-  }, [lawFilter, statusFilter]);
-
-  async function loadQuestions() {
+  const loadQuestions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getQuestionBank({
+      const token = await getToken();
+      const res = await getQuestionBank(token, {
         law: lawFilter || undefined,
         status: statusFilter || undefined,
         limit: 100,
@@ -42,7 +54,11 @@ export default function AdminQuestionBank() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getToken, lawFilter, statusFilter]);
+
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
   const toggleExpand = (questionId: string) => {
     setExpandedId((prev) => (prev === questionId ? null : questionId));
@@ -58,18 +74,14 @@ export default function AdminQuestionBank() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Question Bank</h1>
-        <p className="text-gray-600">
-          Browse and filter all extracted questions
-        </p>
+        <p className="text-gray-600">Browse and filter all extracted questions</p>
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-wrap items-center gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filter by Law
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Law</label>
             <select
               value={lawFilter}
               onChange={(e) => setLawFilter(e.target.value as Law | '')}
@@ -84,9 +96,7 @@ export default function AdminQuestionBank() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filter by Status
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as QuestionStatus | '')}
@@ -147,9 +157,7 @@ export default function AdminQuestionBank() {
       ) : questions.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <p className="text-lg text-gray-600">No questions found</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Try adjusting your filters
-          </p>
+          <p className="text-sm text-gray-500 mt-2">Try adjusting your filters</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -198,10 +206,7 @@ function QuestionRow({
 }) {
   return (
     <>
-      <tr
-        className="hover:bg-gray-50 cursor-pointer"
-        onClick={onToggle}
-      >
+      <tr className="hover:bg-gray-50 cursor-pointer" onClick={onToggle}>
         <td className="px-6 py-4">
           <p className="text-sm text-gray-900 line-clamp-2">{question.text}</p>
         </td>
@@ -231,9 +236,7 @@ function QuestionRow({
                         : 'bg-white border border-gray-200 text-gray-700'
                     }`}
                   >
-                    <span className="font-medium mr-2">
-                      {String.fromCharCode(65 + index)}.
-                    </span>
+                    <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
                     {option}
                     {index === question.correctAnswer && (
                       <span className="ml-2 text-green-600 font-medium">✓</span>
@@ -243,8 +246,7 @@ function QuestionRow({
               </div>
               {question.explanation && (
                 <div className="p-3 bg-blue-50 rounded text-sm text-blue-800">
-                  <span className="font-medium">Explanation:</span>{' '}
-                  {question.explanation}
+                  <span className="font-medium">Explanation:</span> {question.explanation}
                 </div>
               )}
               <div className="flex items-center gap-4 text-xs text-gray-500">

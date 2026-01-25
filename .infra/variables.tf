@@ -36,3 +36,15 @@ variable "environment" {
 
   nullable = false
 }
+
+variable "auth0_domain" {
+  description = "Auth0 domain (e.g., your-tenant.auth0.com)"
+  type        = string
+  nullable    = false
+}
+
+variable "auth0_audience" {
+  description = "Auth0 API audience identifier"
+  type        = string
+  nullable    = false
+}

@@ -117,9 +117,16 @@ resource "aws_iam_role" "github_actions" {
   }
 }
 
-# Policy for GitHub Actions role
-resource "aws_iam_role_policy" "github_actions" {
-  name = "${var.project_name}-github-actions-policy"
+# Attach AdministratorAccess for full resource management
+# This simplifies permissions as the project grows
+resource "aws_iam_role_policy_attachment" "github_actions_admin" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+# Inline policy for Terraform state access (specific to state bucket)
+resource "aws_iam_role_policy" "github_actions_state" {
+  name = "${var.project_name}-github-actions-state"
   role = aws_iam_role.github_actions.id
 
   policy = jsonencode({
@@ -148,161 +155,6 @@ resource "aws_iam_role_policy" "github_actions" {
           "dynamodb:DeleteItem"
         ]
         Resource = aws_dynamodb_table.terraform_locks.arn
-      },
-      {
-        Sid    = "Lambda"
-        Effect = "Allow"
-        Action = [
-          "lambda:CreateFunction",
-          "lambda:UpdateFunctionCode",
-          "lambda:UpdateFunctionConfiguration",
-          "lambda:GetFunction",
-          "lambda:GetFunctionConfiguration",
-          "lambda:DeleteFunction",
-          "lambda:AddPermission",
-          "lambda:RemovePermission",
-          "lambda:GetPolicy",
-          "lambda:ListTags",
-          "lambda:TagResource",
-          "lambda:UntagResource",
-          "lambda:ListVersionsByFunction",
-          "lambda:PublishVersion",
-          "lambda:GetFunctionCodeSigningConfig"
-        ]
-        Resource = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${var.project_name}-*"
-      },
-      {
-        Sid    = "APIGateway"
-        Effect = "Allow"
-        Action = [
-          "apigateway:*"
-        ]
-        Resource = [
-          "arn:aws:apigateway:${var.aws_region}::/restapis",
-          "arn:aws:apigateway:${var.aws_region}::/restapis/*"
-        ]
-      },
-      {
-        Sid    = "DynamoDB"
-        Effect = "Allow"
-        Action = [
-          "dynamodb:CreateTable",
-          "dynamodb:DeleteTable",
-          "dynamodb:DescribeTable",
-          "dynamodb:DescribeContinuousBackups",
-          "dynamodb:DescribeTimeToLive",
-          "dynamodb:ListTagsOfResource",
-          "dynamodb:TagResource",
-          "dynamodb:UntagResource",
-          "dynamodb:UpdateTable",
-          "dynamodb:UpdateContinuousBackups",
-          "dynamodb:UpdateTimeToLive"
-        ]
-        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-*"
-      },
-      {
-        Sid    = "S3"
-        Effect = "Allow"
-        Action = [
-          "s3:CreateBucket",
-          "s3:DeleteBucket",
-          "s3:GetBucketAcl",
-          "s3:GetBucketCORS",
-          "s3:GetBucketLogging",
-          "s3:GetBucketNotification",
-          "s3:GetBucketObjectLockConfiguration",
-          "s3:GetBucketOwnershipControls",
-          "s3:GetBucketPolicy",
-          "s3:GetBucketPublicAccessBlock",
-          "s3:GetBucketRequestPayment",
-          "s3:GetBucketTagging",
-          "s3:GetBucketVersioning",
-          "s3:GetBucketWebsite",
-          "s3:GetEncryptionConfiguration",
-          "s3:GetLifecycleConfiguration",
-          "s3:GetReplicationConfiguration",
-          "s3:GetAccelerateConfiguration",
-          "s3:ListBucket",
-          "s3:PutBucketAcl",
-          "s3:PutBucketCORS",
-          "s3:PutBucketLogging",
-          "s3:PutBucketNotification",
-          "s3:PutBucketObjectLockConfiguration",
-          "s3:PutBucketOwnershipControls",
-          "s3:PutBucketPolicy",
-          "s3:PutBucketPublicAccessBlock",
-          "s3:PutBucketRequestPayment",
-          "s3:PutBucketTagging",
-          "s3:PutBucketVersioning",
-          "s3:PutBucketWebsite",
-          "s3:PutEncryptionConfiguration",
-          "s3:PutLifecycleConfiguration",
-          "s3:PutReplicationConfiguration",
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:DeleteObject"
-        ]
-        Resource = [
-          "arn:aws:s3:::${var.project_name}-*",
-          "arn:aws:s3:::${var.project_name}-*/*"
-        ]
-      },
-      {
-        Sid    = "CloudFront"
-        Effect = "Allow"
-        Action = [
-          "cloudfront:CreateDistribution",
-          "cloudfront:DeleteDistribution",
-          "cloudfront:GetDistribution",
-          "cloudfront:GetDistributionConfig",
-          "cloudfront:UpdateDistribution",
-          "cloudfront:TagResource",
-          "cloudfront:UntagResource",
-          "cloudfront:ListTagsForResource",
-          "cloudfront:CreateInvalidation",
-          "cloudfront:CreateOriginAccessControl",
-          "cloudfront:DeleteOriginAccessControl",
-          "cloudfront:GetOriginAccessControl",
-          "cloudfront:UpdateOriginAccessControl"
-        ]
-        Resource = "*"
-      },
-      {
-        Sid    = "IAM"
-        Effect = "Allow"
-        Action = [
-          "iam:CreateRole",
-          "iam:DeleteRole",
-          "iam:GetRole",
-          "iam:UpdateRole",
-          "iam:PassRole",
-          "iam:AttachRolePolicy",
-          "iam:DetachRolePolicy",
-          "iam:PutRolePolicy",
-          "iam:DeleteRolePolicy",
-          "iam:GetRolePolicy",
-          "iam:ListRolePolicies",
-          "iam:ListAttachedRolePolicies",
-          "iam:TagRole",
-          "iam:UntagRole",
-          "iam:ListInstanceProfilesForRole"
-        ]
-        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*"
-      },
-      {
-        Sid    = "SecretsManager"
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:CreateSecret",
-          "secretsmanager:DeleteSecret",
-          "secretsmanager:DescribeSecret",
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:PutSecretValue",
-          "secretsmanager:TagResource",
-          "secretsmanager:UntagResource",
-          "secretsmanager:GetResourcePolicy"
-        ]
-        Resource = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}-*"
       }
     ]
   })

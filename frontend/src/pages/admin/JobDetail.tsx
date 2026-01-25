@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getExtractionJob, reviewQuestion, publishQuiz } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 import type { JobDetailResponse, BankQuestion, QuestionStatus, Difficulty } from '../../types';
 
 export default function AdminJobDetail() {
   const { jobId } = useParams<{ jobId: string }>();
+  const { getToken } = useAccessToken();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +18,8 @@ export default function AdminJobDetail() {
       if (!jobId) return;
 
       try {
-        const data = await getExtractionJob(jobId);
+        const token = await getToken();
+        const data = await getExtractionJob(jobId, token);
         setJob(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load job');
@@ -26,15 +29,16 @@ export default function AdminJobDetail() {
     }
 
     loadJob();
-  }, [jobId]);
+  }, [jobId, getToken]);
 
   const handlePublish = async () => {
     if (!jobId || !job) return;
 
     setPublishing(true);
     try {
+      const token = await getToken();
       const newPublishedState = !job.published;
-      await publishQuiz(jobId, newPublishedState);
+      await publishQuiz(jobId, token, newPublishedState);
       setJob({ ...job, published: newPublishedState });
     } catch (err) {
       console.error('Publish failed:', err);
@@ -47,26 +51,34 @@ export default function AdminJobDetail() {
   const handleReview = async (questionId: string, status: QuestionStatus) => {
     setReviewing(questionId);
     try {
-      await reviewQuestion(questionId, status);
+      const token = await getToken();
+      await reviewQuestion(questionId, status, token);
       // Update local state
       if (job) {
         setJob({
           ...job,
-          questions: job.questions.map((q) =>
-            q.questionId === questionId ? { ...q, status } : q
-          ),
+          questions: job.questions.map((q) => (q.questionId === questionId ? { ...q, status } : q)),
           approvedCount:
             status === 'approved'
               ? job.approvedCount + 1
-              : job.approvedCount - (job.questions.find((q) => q.questionId === questionId)?.status === 'approved' ? 1 : 0),
+              : job.approvedCount -
+                (job.questions.find((q) => q.questionId === questionId)?.status === 'approved'
+                  ? 1
+                  : 0),
           pendingCount:
             status === 'pending_review'
               ? job.pendingCount + 1
-              : job.pendingCount - (job.questions.find((q) => q.questionId === questionId)?.status === 'pending_review' ? 1 : 0),
+              : job.pendingCount -
+                (job.questions.find((q) => q.questionId === questionId)?.status === 'pending_review'
+                  ? 1
+                  : 0),
           rejectedCount:
             status === 'rejected'
               ? job.rejectedCount + 1
-              : job.rejectedCount - (job.questions.find((q) => q.questionId === questionId)?.status === 'rejected' ? 1 : 0),
+              : job.rejectedCount -
+                (job.questions.find((q) => q.questionId === questionId)?.status === 'rejected'
+                  ? 1
+                  : 0),
         });
       }
     } catch (err) {
@@ -114,9 +126,7 @@ export default function AdminJobDetail() {
               <SourceBadge source={job.source} />
             </div>
             <p className="text-gray-500">Job ID: {job.jobId}</p>
-            {job.description && (
-              <p className="text-gray-600 mt-1">{job.description}</p>
-            )}
+            {job.description && <p className="text-gray-600 mt-1">{job.description}</p>}
           </div>
           <div className="flex items-center gap-3">
             <StatusBadge status={job.status} />
@@ -138,11 +148,7 @@ export default function AdminJobDetail() {
                     : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
               >
-                {publishing
-                  ? 'Updating...'
-                  : job.published
-                    ? 'Unpublish Quiz'
-                    : 'Publish Quiz'}
+                {publishing ? 'Updating...' : job.published ? 'Unpublish Quiz' : 'Publish Quiz'}
               </button>
             )}
             {job.published && (
@@ -231,12 +237,8 @@ function QuestionCard({
             </span>
             <ConfidenceBadge confidence={question.confidence} />
             <QuestionStatusBadge status={question.status} />
-            {question.source && (
-              <SourceBadge source={question.source} />
-            )}
-            {question.difficulty && (
-              <DifficultyBadge difficulty={question.difficulty} />
-            )}
+            {question.source && <SourceBadge source={question.source} />}
+            {question.difficulty && <DifficultyBadge difficulty={question.difficulty} />}
           </div>
           <p className="text-gray-900 mb-3">{question.text}</p>
           <div className="grid gap-2">
@@ -249,13 +251,9 @@ function QuestionCard({
                     : 'bg-gray-50 text-gray-700'
                 }`}
               >
-                <span className="font-medium mr-2">
-                  {String.fromCharCode(65 + index)}.
-                </span>
+                <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
                 {option}
-                {index === question.correctAnswer && (
-                  <span className="ml-2 text-green-600">✓</span>
-                )}
+                {index === question.correctAnswer && <span className="ml-2 text-green-600">✓</span>}
               </div>
             ))}
           </div>
@@ -267,10 +265,7 @@ function QuestionCard({
           {question.tags && question.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {question.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
-                >
+                <span key={index} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
                   {tag}
                 </span>
               ))}
@@ -347,11 +342,7 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
   if (confidence >= 0.95) bgColor = 'bg-green-100 text-green-700';
   else if (confidence >= 0.7) bgColor = 'bg-yellow-100 text-yellow-700';
 
-  return (
-    <span className={`px-2 py-0.5 text-xs font-medium rounded ${bgColor}`}>
-      {percent}%
-    </span>
-  );
+  return <span className={`px-2 py-0.5 text-xs font-medium rounded ${bgColor}`}>{percent}%</span>;
 }
 
 function SourceBadge({ source }: { source?: string }) {

@@ -2,11 +2,13 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
 import { getPresignedUrl, uploadPdfToS3 } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 
 type UploadState = 'idle' | 'getting-url' | 'uploading' | 'processing' | 'complete' | 'error';
 
 export default function AdminUpload() {
   const navigate = useNavigate();
+  const { getToken } = useAccessToken();
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<UploadState>('idle');
   const [progress, setProgress] = useState(0);
@@ -39,7 +41,8 @@ export default function AdminUpload() {
       setState('getting-url');
 
       // Get presigned URL
-      const { uploadUrl, jobId: newJobId } = await getPresignedUrl(file.name);
+      const token = await getToken();
+      const { uploadUrl, jobId: newJobId } = await getPresignedUrl(file.name, token);
       setJobId(newJobId);
 
       setState('uploading');
@@ -76,9 +79,7 @@ export default function AdminUpload() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Upload PDF</h1>
-        <p className="text-gray-600">
-          Upload an FAI LOTG exam PDF to extract quiz questions
-        </p>
+        <p className="text-gray-600">Upload an FAI LOTG exam PDF to extract quiz questions</p>
       </div>
 
       <div className="bg-white rounded-lg shadow p-8">
@@ -90,22 +91,30 @@ export default function AdminUpload() {
                 isDragActive
                   ? 'border-primary-500 bg-primary-50'
                   : file
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-300 hover:border-gray-400'
               }`}
             >
               <input {...getInputProps()} />
               {file ? (
                 <div>
                   <div className="text-4xl mb-4">
-                    <svg className="w-12 h-12 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <svg
+                      className="w-12 h-12 mx-auto text-green-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
                     </svg>
                   </div>
                   <p className="text-lg font-medium text-gray-900">{file.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+                  <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -120,8 +129,18 @@ export default function AdminUpload() {
               ) : (
                 <div>
                   <div className="text-4xl mb-4">
-                    <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <svg
+                      className="w-12 h-12 mx-auto text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
                     </svg>
                   </div>
                   {isDragActive ? (
@@ -131,9 +150,7 @@ export default function AdminUpload() {
                       <p className="text-lg text-gray-600">
                         Drag and drop a PDF here, or click to select
                       </p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Only PDF files are accepted
-                      </p>
+                      <p className="text-sm text-gray-500 mt-2">Only PDF files are accepted</p>
                     </>
                   )}
                 </div>
@@ -185,8 +202,18 @@ export default function AdminUpload() {
         {state === 'complete' && (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">
-              <svg className="w-12 h-12 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-12 h-12 mx-auto text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <p className="text-lg font-medium text-gray-900">Upload Complete!</p>
@@ -197,8 +224,18 @@ export default function AdminUpload() {
         {state === 'error' && (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">
-              <svg className="w-12 h-12 mx-auto text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-12 h-12 mx-auto text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
             <p className="text-lg font-medium text-gray-900">Upload Failed</p>

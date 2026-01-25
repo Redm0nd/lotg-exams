@@ -1,13 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { addManualQuestion, getExtractionJob } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 import type { Law, Difficulty, ExtractionJob } from '../../types';
 
 const LAWS: Law[] = [
-  'Law 1', 'Law 2', 'Law 3', 'Law 4', 'Law 5',
-  'Law 6', 'Law 7', 'Law 8', 'Law 9', 'Law 10',
-  'Law 11', 'Law 12', 'Law 13', 'Law 14', 'Law 15',
-  'Law 16', 'Law 17',
+  'Law 1',
+  'Law 2',
+  'Law 3',
+  'Law 4',
+  'Law 5',
+  'Law 6',
+  'Law 7',
+  'Law 8',
+  'Law 9',
+  'Law 10',
+  'Law 11',
+  'Law 12',
+  'Law 13',
+  'Law 14',
+  'Law 15',
+  'Law 16',
+  'Law 17',
 ];
 
 const DIFFICULTIES: { value: Difficulty; label: string }[] = [
@@ -19,6 +33,7 @@ const DIFFICULTIES: { value: Difficulty; label: string }[] = [
 export default function AddQuestion() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
+  const { getToken } = useAccessToken();
 
   const [job, setJob] = useState<ExtractionJob | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +56,8 @@ export default function AddQuestion() {
       if (!jobId) return;
 
       try {
-        const data = await getExtractionJob(jobId);
+        const token = await getToken();
+        const data = await getExtractionJob(jobId, token);
         setJob(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load job');
@@ -51,7 +67,7 @@ export default function AddQuestion() {
     }
 
     loadJob();
-  }, [jobId]);
+  }, [jobId, getToken]);
 
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
@@ -106,16 +122,21 @@ export default function AddQuestion() {
         .map((tag) => tag.trim())
         .filter((tag) => tag !== '');
 
-      await addManualQuestion(jobId, {
-        text: text.trim(),
-        options: options.map((opt) => opt.trim()),
-        correctAnswer,
-        explanation: explanation.trim(),
-        law,
-        lawReference: lawReference.trim(),
-        difficulty: difficulty || undefined,
-        tags: tags.length > 0 ? tags : undefined,
-      });
+      const token = await getToken();
+      await addManualQuestion(
+        jobId,
+        {
+          text: text.trim(),
+          options: options.map((opt) => opt.trim()),
+          correctAnswer,
+          explanation: explanation.trim(),
+          law,
+          lawReference: lawReference.trim(),
+          difficulty: difficulty || undefined,
+          tags: tags.length > 0 ? tags : undefined,
+        },
+        token
+      );
 
       setSuccess('Question added successfully!');
       resetForm();
@@ -169,9 +190,7 @@ export default function AddQuestion() {
         <h1 className="text-2xl font-bold text-gray-900">Add Question</h1>
         <p className="text-gray-600">
           Adding to: <span className="font-medium">{job.fileName}</span>
-          <span className="ml-2 text-sm">
-            ({job.totalQuestions} questions)
-          </span>
+          <span className="ml-2 text-sm">({job.totalQuestions} questions)</span>
         </p>
       </div>
 
@@ -191,10 +210,7 @@ export default function AddQuestion() {
 
           {/* Question Text */}
           <div>
-            <label
-              htmlFor="text"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="text" className="block text-sm font-medium text-gray-700 mb-1">
               Question Text *
             </label>
             <textarea
@@ -210,9 +226,7 @@ export default function AddQuestion() {
 
           {/* Options */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Answer Options *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options *</label>
             <div className="space-y-3">
               {options.map((option, index) => (
                 <div key={index} className="flex items-center gap-3">
@@ -233,16 +247,12 @@ export default function AddQuestion() {
                     onChange={(e) => handleOptionChange(index, e.target.value)}
                     placeholder={`Option ${String.fromCharCode(65 + index)}`}
                     className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                      correctAnswer === index
-                        ? 'border-green-300 bg-green-50'
-                        : 'border-gray-300'
+                      correctAnswer === index ? 'border-green-300 bg-green-50' : 'border-gray-300'
                     }`}
                     disabled={submitting}
                   />
                   {correctAnswer === index && (
-                    <span className="text-green-600 text-sm font-medium">
-                      Correct
-                    </span>
+                    <span className="text-green-600 text-sm font-medium">Correct</span>
                   )}
                 </div>
               ))}
@@ -254,10 +264,7 @@ export default function AddQuestion() {
 
           {/* Explanation */}
           <div>
-            <label
-              htmlFor="explanation"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="explanation" className="block text-sm font-medium text-gray-700 mb-1">
               Explanation *
             </label>
             <textarea
@@ -274,10 +281,7 @@ export default function AddQuestion() {
           {/* Law and Reference */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label
-                htmlFor="law"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="law" className="block text-sm font-medium text-gray-700 mb-1">
                 Law *
               </label>
               <select
@@ -316,10 +320,7 @@ export default function AddQuestion() {
           {/* Difficulty and Tags */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label
-                htmlFor="difficulty"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-1">
                 Difficulty (optional)
               </label>
               <select
@@ -338,10 +339,7 @@ export default function AddQuestion() {
               </select>
             </div>
             <div>
-              <label
-                htmlFor="tags"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
                 Tags (optional)
               </label>
               <input
@@ -353,18 +351,12 @@ export default function AddQuestion() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 disabled={submitting}
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Comma-separated list of tags
-              </p>
+              <p className="mt-1 text-xs text-gray-500">Comma-separated list of tags</p>
             </div>
           </div>
 
           <div className="flex gap-4 pt-4 border-t">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="btn-primary disabled:opacity-50"
-            >
+            <button type="submit" disabled={submitting} className="btn-primary disabled:opacity-50">
               {submitting ? 'Adding...' : 'Add Question'}
             </button>
             <Link to={`/admin/jobs/${jobId}`} className="btn-secondary">

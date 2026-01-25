@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createManualJob } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 
 const CATEGORIES = [
   'Laws of the Game',
@@ -13,6 +14,7 @@ const CATEGORIES = [
 
 export default function CreateQuiz() {
   const navigate = useNavigate();
+  const { getToken } = useAccessToken();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Laws of the Game');
@@ -31,11 +33,15 @@ export default function CreateQuiz() {
     setError(null);
 
     try {
-      const response = await createManualJob({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        category,
-      });
+      const token = await getToken();
+      const response = await createManualJob(
+        {
+          title: title.trim(),
+          description: description.trim() || undefined,
+          category,
+        },
+        token
+      );
 
       // Navigate to the job detail page to add questions
       navigate(`/admin/jobs/${response.jobId}`);
@@ -49,16 +55,11 @@ export default function CreateQuiz() {
   return (
     <div>
       <div className="mb-8">
-        <Link
-          to="/admin"
-          className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
-        >
+        <Link to="/admin" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
           ← Back to Dashboard
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">Create Manual Quiz</h1>
-        <p className="text-gray-600">
-          Create a new quiz and add questions manually
-        </p>
+        <p className="text-gray-600">Create a new quiz and add questions manually</p>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6 max-w-2xl">
@@ -70,10 +71,7 @@ export default function CreateQuiz() {
           )}
 
           <div>
-            <label
-              htmlFor="title"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
               Quiz Title *
             </label>
             <input
@@ -88,10 +86,7 @@ export default function CreateQuiz() {
           </div>
 
           <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               Description
             </label>
             <textarea
@@ -106,10 +101,7 @@ export default function CreateQuiz() {
           </div>
 
           <div>
-            <label
-              htmlFor="category"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
               Category
             </label>
             <select
@@ -128,11 +120,7 @@ export default function CreateQuiz() {
           </div>
 
           <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary disabled:opacity-50"
-            >
+            <button type="submit" disabled={loading} className="btn-primary disabled:opacity-50">
               {loading ? 'Creating...' : 'Create Quiz'}
             </button>
             <Link to="/admin" className="btn-secondary">
