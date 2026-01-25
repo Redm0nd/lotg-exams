@@ -21,13 +21,19 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+async function fetchAPI<T>(endpoint: string, options?: RequestInit, token?: string): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options?.headers as Record<string, string>) || {}),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -61,15 +67,22 @@ export async function submitAnswers(
   });
 }
 
-// Admin endpoints
-export async function getPresignedUrl(fileName: string): Promise<PresignedUrlResponse> {
-  return fetchAPI<PresignedUrlResponse>('/admin/upload/presigned-url', {
-    method: 'POST',
-    body: JSON.stringify({
-      fileName,
-      contentType: 'application/pdf',
-    }),
-  });
+// Admin endpoints (require auth token)
+export async function getPresignedUrl(
+  fileName: string,
+  token: string
+): Promise<PresignedUrlResponse> {
+  return fetchAPI<PresignedUrlResponse>(
+    '/admin/upload/presigned-url',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName,
+        contentType: 'application/pdf',
+      }),
+    },
+    token
+  );
 }
 
 export async function uploadPdfToS3(
@@ -105,76 +118,108 @@ export async function uploadPdfToS3(
   });
 }
 
-export async function getQuestionBank(params?: {
-  law?: Law;
-  status?: QuestionStatus;
-  limit?: number;
-}): Promise<QuestionBankResponse> {
+export async function getQuestionBank(
+  token: string,
+  params?: {
+    law?: Law;
+    status?: QuestionStatus;
+    limit?: number;
+  }
+): Promise<QuestionBankResponse> {
   const searchParams = new URLSearchParams();
   if (params?.law) searchParams.set('law', params.law);
   if (params?.status) searchParams.set('status', params.status);
   if (params?.limit) searchParams.set('limit', params.limit.toString());
 
   const query = searchParams.toString();
-  return fetchAPI<QuestionBankResponse>(`/admin/questions${query ? `?${query}` : ''}`);
+  return fetchAPI<QuestionBankResponse>(
+    `/admin/questions${query ? `?${query}` : ''}`,
+    undefined,
+    token
+  );
 }
 
-export async function getExtractionJobs(): Promise<JobsResponse> {
-  return fetchAPI<JobsResponse>('/admin/jobs');
+export async function getExtractionJobs(token: string): Promise<JobsResponse> {
+  return fetchAPI<JobsResponse>('/admin/jobs', undefined, token);
 }
 
-export async function getExtractionJob(jobId: string): Promise<JobDetailResponse> {
-  return fetchAPI<JobDetailResponse>(`/admin/jobs/${jobId}`);
+export async function getExtractionJob(jobId: string, token: string): Promise<JobDetailResponse> {
+  return fetchAPI<JobDetailResponse>(`/admin/jobs/${jobId}`, undefined, token);
 }
 
 export async function reviewQuestion(
   questionId: string,
   status: QuestionStatus,
+  token: string,
   reviewedBy?: string
 ): Promise<ReviewResponse> {
-  return fetchAPI<ReviewResponse>(`/admin/questions/${questionId}/review`, {
-    method: 'PUT',
-    body: JSON.stringify({ status, reviewedBy }),
-  });
+  return fetchAPI<ReviewResponse>(
+    `/admin/questions/${questionId}/review`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ status, reviewedBy }),
+    },
+    token
+  );
 }
 
 export async function bulkReviewQuestions(
   questionIds: string[],
   status: QuestionStatus,
+  token: string,
   reviewedBy?: string
 ): Promise<BulkReviewResponse> {
-  return fetchAPI<BulkReviewResponse>('/admin/questions/bulk-review', {
-    method: 'POST',
-    body: JSON.stringify({ questionIds, status, reviewedBy }),
-  });
+  return fetchAPI<BulkReviewResponse>(
+    '/admin/questions/bulk-review',
+    {
+      method: 'POST',
+      body: JSON.stringify({ questionIds, status, reviewedBy }),
+    },
+    token
+  );
 }
 
 export async function publishQuiz(
   jobId: string,
+  token: string,
   publish = true
 ): Promise<PublishResponse> {
-  return fetchAPI<PublishResponse>(`/admin/jobs/${jobId}/publish`, {
-    method: 'PUT',
-    body: JSON.stringify({ publish }),
-  });
+  return fetchAPI<PublishResponse>(
+    `/admin/jobs/${jobId}/publish`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ publish }),
+    },
+    token
+  );
 }
 
 // Manual quiz creation endpoints
 export async function createManualJob(
-  request: CreateManualJobRequest
+  request: CreateManualJobRequest,
+  token: string
 ): Promise<CreateManualJobResponse> {
-  return fetchAPI<CreateManualJobResponse>('/admin/jobs/manual', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  });
+  return fetchAPI<CreateManualJobResponse>(
+    '/admin/jobs/manual',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    token
+  );
 }
 
 export async function addManualQuestion(
   jobId: string,
-  request: AddManualQuestionRequest
+  request: AddManualQuestionRequest,
+  token: string
 ): Promise<AddManualQuestionResponse> {
-  return fetchAPI<AddManualQuestionResponse>(`/admin/jobs/${jobId}/questions`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-  });
+  return fetchAPI<AddManualQuestionResponse>(
+    `/admin/jobs/${jobId}/questions`,
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    token
+  );
 }

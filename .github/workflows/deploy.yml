@@ -16,6 +16,8 @@ env:
   AWS_ROLE_ARN: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/lotg-exams-github-actions
   TF_VERSION: 1.6.0
   NODE_VERSION: 20
+  TF_VAR_auth0_domain: ${{ secrets.AUTH0_DOMAIN }}
+  TF_VAR_auth0_audience: ${{ secrets.AUTH0_AUDIENCE }}
 
 jobs:
   # Detect which folders have changes

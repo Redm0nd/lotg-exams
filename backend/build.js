@@ -26,6 +26,8 @@ const handlers = [
   // Manual quiz creation handlers
   'createManualJob',
   'addManualQuestion',
+  // Auth
+  'authorize',
 ];
 
 async function buildHandler(handlerName) {
@@ -74,23 +76,21 @@ async function main() {
   await mkdir('dist', { recursive: true });
 
   // Build all handlers
-  const buildResults = await Promise.all(
-    handlers.map(handler => buildHandler(handler))
-  );
+  const buildResults = await Promise.all(handlers.map((handler) => buildHandler(handler)));
 
-  if (buildResults.some(result => !result)) {
+  if (buildResults.some((result) => !result)) {
     console.error('\n✗ Some builds failed');
     process.exit(1);
   }
 
   // Zip all handlers
   console.log('\nZipping Lambda functions...\n');
-  await Promise.all(handlers.map(handler => zipHandler(handler)));
+  await Promise.all(handlers.map((handler) => zipHandler(handler)));
 
   console.log('\n✓ All Lambda functions built and zipped successfully');
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Build failed:', error);
   process.exit(1);
 });

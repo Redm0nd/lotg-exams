@@ -29,6 +29,7 @@ output "lambda_function_names" {
     publish_quiz           = aws_lambda_function.publish_quiz.function_name
     create_manual_job      = aws_lambda_function.create_manual_job.function_name
     add_manual_question    = aws_lambda_function.add_manual_question.function_name
+    authorize              = aws_lambda_function.authorize.function_name
   }
 }
 
@@ -48,6 +49,7 @@ output "lambda_function_arns" {
     publish_quiz           = aws_lambda_function.publish_quiz.arn
     create_manual_job      = aws_lambda_function.create_manual_job.arn
     add_manual_question    = aws_lambda_function.add_manual_question.arn
+    authorize              = aws_lambda_function.authorize.arn
   }
 }
 

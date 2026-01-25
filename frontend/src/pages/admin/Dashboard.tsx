@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getExtractionJobs, getQuestionBank } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 import type { ExtractionJob, BankQuestion } from '../../types';
 
 interface Stats {
@@ -17,14 +18,16 @@ export default function AdminDashboard() {
   const [recentJobs, setRecentJobs] = useState<ExtractionJob[]>([]);
   const [pendingQuestions, setPendingQuestions] = useState<BankQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getToken } = useAccessToken();
 
   useEffect(() => {
     async function loadData() {
       try {
+        const token = await getToken();
         const [jobsRes, questionsRes, pendingRes] = await Promise.all([
-          getExtractionJobs(),
-          getQuestionBank({ limit: 200 }),
-          getQuestionBank({ status: 'pending_review', limit: 5 }),
+          getExtractionJobs(token),
+          getQuestionBank(token, { limit: 200 }),
+          getQuestionBank(token, { status: 'pending_review', limit: 5 }),
         ]);
 
         const questions = questionsRes.questions;
@@ -47,7 +50,7 @@ export default function AdminDashboard() {
     }
 
     loadData();
-  }, []);
+  }, [getToken]);
 
   if (loading) {
     return (
@@ -71,9 +74,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Total Questions</div>
-          <div className="mt-1 text-3xl font-bold text-gray-900">
-            {stats?.totalQuestions || 0}
-          </div>
+          <div className="mt-1 text-3xl font-bold text-gray-900">{stats?.totalQuestions || 0}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Approved</div>
@@ -100,10 +101,7 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Recent Jobs</h2>
-            <Link
-              to="/admin/jobs"
-              className="text-sm text-primary-600 hover:text-primary-700"
-            >
+            <Link to="/admin/jobs" className="text-sm text-primary-600 hover:text-primary-700">
               View all
             </Link>
           </div>
@@ -141,24 +139,17 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Pending Review</h2>
-            <Link
-              to="/admin/review"
-              className="text-sm text-primary-600 hover:text-primary-700"
-            >
+            <Link to="/admin/review" className="text-sm text-primary-600 hover:text-primary-700">
               Review all
             </Link>
           </div>
           <div className="divide-y divide-gray-200">
             {pendingQuestions.length === 0 ? (
-              <div className="px-6 py-8 text-center text-gray-500">
-                No questions pending review
-              </div>
+              <div className="px-6 py-8 text-center text-gray-500">No questions pending review</div>
             ) : (
               pendingQuestions.map((question) => (
                 <div key={question.questionId} className="px-6 py-4">
-                  <div className="text-sm text-gray-900 line-clamp-2">
-                    {question.text}
-                  </div>
+                  <div className="text-sm text-gray-900 line-clamp-2">{question.text}</div>
                   <div className="mt-1 flex items-center gap-2">
                     <span className="text-xs text-gray-500">{question.law}</span>
                     <span className="text-xs text-gray-400">|</span>
@@ -175,10 +166,7 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="flex flex-wrap gap-4">
-          <Link
-            to="/admin/upload"
-            className="btn-primary"
-          >
+          <Link to="/admin/upload" className="btn-primary">
             Upload New PDF
           </Link>
           <Link
@@ -187,16 +175,10 @@ export default function AdminDashboard() {
           >
             Create Manual Quiz
           </Link>
-          <Link
-            to="/admin/review"
-            className="btn-secondary"
-          >
+          <Link to="/admin/review" className="btn-secondary">
             Review Questions ({stats?.pendingQuestions || 0})
           </Link>
-          <Link
-            to="/admin/questions"
-            className="btn-secondary"
-          >
+          <Link to="/admin/questions" className="btn-secondary">
             Browse Question Bank
           </Link>
         </div>

@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getExtractionJobs } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 import type { ExtractionJob } from '../../types';
 
 export default function AdminJobs() {
   const [jobs, setJobs] = useState<ExtractionJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { getToken } = useAccessToken();
 
   useEffect(() => {
     async function loadJobs() {
       try {
-        const res = await getExtractionJobs();
+        const token = await getToken();
+        const res = await getExtractionJobs(token);
         setJobs(res.jobs);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load jobs');
@@ -21,7 +24,7 @@ export default function AdminJobs() {
     }
 
     loadJobs();
-  }, []);
+  }, [getToken]);
 
   if (loading) {
     return (
@@ -103,18 +106,14 @@ export default function AdminJobs() {
               {jobs.map((job) => (
                 <tr key={job.jobId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {job.fileName}
-                    </div>
+                    <div className="text-sm font-medium text-gray-900">{job.fileName}</div>
                     <div className="text-xs text-gray-500">{job.jobId}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusBadge status={job.status} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {job.totalQuestions} total
-                    </div>
+                    <div className="text-sm text-gray-900">{job.totalQuestions} total</div>
                     {job.duplicateCount > 0 && (
                       <div className="text-xs text-gray-500">
                         {job.duplicateCount} duplicates skipped
@@ -123,19 +122,13 @@ export default function AdminJobs() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="text-green-600">
-                        {job.approvedCount} approved
-                      </span>
+                      <span className="text-green-600">{job.approvedCount} approved</span>
                       <span className="text-gray-400">|</span>
-                      <span className="text-yellow-600">
-                        {job.pendingCount} pending
-                      </span>
+                      <span className="text-yellow-600">{job.pendingCount} pending</span>
                       {job.rejectedCount > 0 && (
                         <>
                           <span className="text-gray-400">|</span>
-                          <span className="text-red-600">
-                            {job.rejectedCount} rejected
-                          </span>
+                          <span className="text-red-600">{job.rejectedCount} rejected</span>
                         </>
                       )}
                     </div>

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getQuestionBank, reviewQuestion, bulkReviewQuestions } from '../../api/client';
+import { useAccessToken } from '../../hooks/useAccessToken';
 import type { BankQuestion, QuestionStatus } from '../../types';
 
 export default function AdminReview() {
@@ -9,14 +10,12 @@ export default function AdminReview() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [bulkReviewing, setBulkReviewing] = useState(false);
+  const { getToken } = useAccessToken();
 
-  useEffect(() => {
-    loadQuestions();
-  }, []);
-
-  async function loadQuestions() {
+  const loadQuestions = useCallback(async () => {
     try {
-      const res = await getQuestionBank({ status: 'pending_review', limit: 100 });
+      const token = await getToken();
+      const res = await getQuestionBank(token, { status: 'pending_review', limit: 100 });
       // Sort by confidence (lowest first)
       const sorted = [...res.questions].sort((a, b) => a.confidence - b.confidence);
       setQuestions(sorted);
@@ -25,12 +24,17 @@ export default function AdminReview() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getToken]);
+
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
   const handleReview = async (questionId: string, status: QuestionStatus) => {
     setReviewing(questionId);
     try {
-      await reviewQuestion(questionId, status);
+      const token = await getToken();
+      await reviewQuestion(questionId, status, token);
       setQuestions((prev) => prev.filter((q) => q.questionId !== questionId));
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -49,10 +53,9 @@ export default function AdminReview() {
 
     setBulkReviewing(true);
     try {
-      await bulkReviewQuestions(Array.from(selectedIds), status);
-      setQuestions((prev) =>
-        prev.filter((q) => !selectedIds.has(q.questionId))
-      );
+      const token = await getToken();
+      await bulkReviewQuestions(Array.from(selectedIds), status, token);
+      setQuestions((prev) => prev.filter((q) => !selectedIds.has(q.questionId)));
       setSelectedIds(new Set());
     } catch (err) {
       console.error('Bulk review failed:', err);
@@ -105,8 +108,8 @@ export default function AdminReview() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Review Queue</h1>
         <p className="text-gray-600">
-          {questions.length} question{questions.length !== 1 && 's'} pending review
-          (sorted by confidence, lowest first)
+          {questions.length} question{questions.length !== 1 && 's'} pending review (sorted by
+          confidence, lowest first)
         </p>
       </div>
 
@@ -120,14 +123,10 @@ export default function AdminReview() {
                 onChange={selectAll}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700">
-                Select all ({questions.length})
-              </span>
+              <span className="text-sm text-gray-700">Select all ({questions.length})</span>
             </label>
             {selectedIds.size > 0 && (
-              <span className="text-sm text-gray-500">
-                {selectedIds.size} selected
-              </span>
+              <span className="text-sm text-gray-500">{selectedIds.size} selected</span>
             )}
           </div>
           {selectedIds.size > 0 && (
@@ -159,17 +158,10 @@ export default function AdminReview() {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <p className="text-lg text-gray-600">All caught up!</p>
-          <p className="text-sm text-gray-500 mt-2">
-            No questions pending review
-          </p>
+          <p className="text-sm text-gray-500 mt-2">No questions pending review</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -203,11 +195,7 @@ function QuestionCard({
   reviewing: boolean;
 }) {
   return (
-    <div
-      className={`bg-white rounded-lg shadow p-6 ${
-        selected ? 'ring-2 ring-primary-500' : ''
-      }`}
-    >
+    <div className={`bg-white rounded-lg shadow p-6 ${selected ? 'ring-2 ring-primary-500' : ''}`}>
       <div className="flex items-start gap-4">
         <input
           type="checkbox"
@@ -221,9 +209,7 @@ function QuestionCard({
               {question.law}
             </span>
             <ConfidenceBadge confidence={question.confidence} />
-            <span className="text-xs text-gray-500">
-              {question.lawReference}
-            </span>
+            <span className="text-xs text-gray-500">{question.lawReference}</span>
           </div>
           <p className="text-gray-900 text-lg mb-4">{question.text}</p>
           <div className="grid gap-2 mb-4">
@@ -236,9 +222,7 @@ function QuestionCard({
                     : 'bg-gray-50 text-gray-700'
                 }`}
               >
-                <span className="font-medium mr-2">
-                  {String.fromCharCode(65 + index)}.
-                </span>
+                <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
                 {option}
                 {index === question.correctAnswer && (
                   <span className="ml-2 text-green-600 font-medium">✓ Correct</span>
