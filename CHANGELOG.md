@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/Redm0nd/lotg-exams/compare/v1.2.0...v1.3.0) (2026-01-25)
+
+
+### Features
+
+* **quiz:** add confetti celebration on quiz results ([755e270](https://github.com/Redm0nd/lotg-exams/commit/755e270132d2e5f76b045b31a89566223164616a)), closes [#13](https://github.com/Redm0nd/lotg-exams/issues/13)
+
 # [1.2.0](https://github.com/Redm0nd/lotg-exams/compare/v1.1.2...v1.2.0) (2026-01-24)
 
 
