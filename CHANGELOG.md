@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/Redm0nd/lotg-exams/compare/v1.3.0...v1.3.1) (2026-01-25)
+
+
+### Bug Fixes
+
+* **infra:** add 3-day retention to CloudWatch log groups ([219a23d](https://github.com/Redm0nd/lotg-exams/commit/219a23d189f01e7080aa3982fb96ca195cb23824))
+
 # [1.3.0](https://github.com/Redm0nd/lotg-exams/compare/v1.2.0...v1.3.0) (2026-01-25)
 
 
