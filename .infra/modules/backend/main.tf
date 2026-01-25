@@ -1,3 +1,31 @@
+# ============================================================================
+# CloudWatch Log Groups (3-day retention for cost optimization)
+# ============================================================================
+
+locals {
+  lambda_functions = [
+    "getQuizzes",
+    "getQuiz",
+    "getQuestions",
+    "submitAnswers",
+    "generatePresignedUrl",
+    "processPdf",
+    "getQuestionBank",
+    "reviewQuestion",
+    "bulkReviewQuestions",
+    "publishQuiz",
+    "getExtractionJobs",
+    "createManualJob",
+    "addManualQuestion",
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "lambda" {
+  for_each          = toset(local.lambda_functions)
+  name              = "/aws/lambda/${var.project_name}-${var.environment}-${each.value}"
+  retention_in_days = 3
+}
+
 # IAM role for Lambda execution
 resource "aws_iam_role" "lambda" {
   name = "${var.project_name}-${var.environment}-lambda-exec"
