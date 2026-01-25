@@ -1,7 +1,47 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import { submitAnswers } from '../api/client';
 import type { Answer, SubmitAnswersResponse } from '../types';
+
+function triggerConfetti(percentage: number) {
+  if (percentage >= 90) {
+    // Big celebration for 90%+
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 4,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#10b981', '#059669', '#047857', '#34d399'],
+      });
+      confetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#10b981', '#059669', '#047857', '#34d399'],
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+    frame();
+  } else if (percentage >= 70) {
+    // Medium celebration for 70-89%
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#3b82f6', '#2563eb', '#1d4ed8', '#60a5fa'],
+    });
+  }
+  // No confetti for below 70%
+}
 
 export default function QuizResults() {
   const { quizId } = useParams<{ quizId: string }>();
@@ -24,6 +64,7 @@ export default function QuizResults() {
         const answers: Answer[] = JSON.parse(storedAnswers);
         const response = await submitAnswers(quizId, answers);
         setResults(response);
+        triggerConfetti(response.score.percentage);
       } catch (err) {
         console.error('Error submitting answers:', err);
         setError(err instanceof Error ? err.message : 'Failed to load results');
@@ -79,10 +120,26 @@ export default function QuizResults() {
 
   const { score } = results;
 
+  const getMessage = () => {
+    if (score.percentage >= 90) {
+      return {
+        text: 'Excellent work! You really know the Laws of the Game!',
+        color: 'text-green-600',
+      };
+    } else if (score.percentage >= 70) {
+      return { text: 'Good job! Keep studying to master the Laws!', color: 'text-blue-600' };
+    } else {
+      return { text: 'Keep practicing! Review the Laws and try again.', color: 'text-amber-600' };
+    }
+  };
+
+  const message = getMessage();
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="card mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Quiz Results</h1>
+        <p className={`text-lg font-medium mb-4 ${message.color}`}>{message.text}</p>
         <div className="flex items-center justify-center gap-8 mb-4">
           <div>
             <div className="text-5xl font-bold text-primary-600">{score.percentage}%</div>
@@ -133,8 +190,8 @@ export default function QuizResults() {
                           isCorrect
                             ? 'border-green-500 bg-green-50'
                             : isSelected
-                            ? 'border-red-500 bg-red-50'
-                            : 'border-gray-200 bg-gray-50'
+                              ? 'border-red-500 bg-red-50'
+                              : 'border-gray-200 bg-gray-50'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -145,9 +202,7 @@ export default function QuizResults() {
                             </span>
                           )}
                           {isSelected && !isCorrect && (
-                            <span className="text-sm font-medium text-red-700">
-                              Your Answer
-                            </span>
+                            <span className="text-sm font-medium text-red-700">Your Answer</span>
                           )}
                         </div>
                       </div>
