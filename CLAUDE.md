@@ -87,6 +87,10 @@ Follow AWS Well-Architected Framework principles:
 - Use least-privilege IAM policies - only grant permissions needed
 - Enable encryption at rest for all data stores
 - Use `terraform fmt` before committing
+- **Keep Terraform DRY** - use `for_each`, `locals`, and modules to avoid repetition
+- **Lambda log groups**: Always create a corresponding `aws_cloudwatch_log_group` with
+  `retention_in_days = 3` when adding Lambda functions (add to `local.lambda_functions`
+  in `.infra/modules/backend/main.tf`)
 
 ### Naming Conventions
 
