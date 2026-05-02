@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getQuiz, getQuestions } from '../api/client';
 import type { QuizDetail, Question, Answer } from '../types';
@@ -40,43 +40,109 @@ export default function QuizTake() {
     (a) => a.questionId === currentQuestion?.questionId
   );
 
-  const handleSelectOption = (optionIndex: number) => {
-    if (!currentQuestion) return;
+  const handleSelectOption = useCallback(
+    (optionIndex: number) => {
+      if (!currentQuestion) return;
 
-    setAnswers((prev) => {
-      const existing = prev.find((a) => a.questionId === currentQuestion.questionId);
-      if (existing) {
-        return prev.map((a) =>
-          a.questionId === currentQuestion.questionId
-            ? { ...a, selectedOption: optionIndex }
-            : a
-        );
-      }
-      return [...prev, { questionId: currentQuestion.questionId, selectedOption: optionIndex }];
-    });
-  };
+      setAnswers((prev) => {
+        const existing = prev.find((a) => a.questionId === currentQuestion.questionId);
+        if (existing) {
+          return prev.map((a) =>
+            a.questionId === currentQuestion.questionId
+              ? { ...a, selectedOption: optionIndex }
+              : a
+          );
+        }
+        return [...prev, { questionId: currentQuestion.questionId, selectedOption: optionIndex }];
+      });
+    },
+    [currentQuestion]
+  );
 
-  const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
+  const handleNext = useCallback(() => {
+    setCurrentIndex((i) => (i < questions.length - 1 ? i + 1 : i));
+  }, [questions.length]);
 
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
+  const handlePrevious = useCallback(() => {
+    setCurrentIndex((i) => (i > 0 ? i - 1 : i));
+  }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (!quizId) return;
 
-    // Store answers in sessionStorage for results page
     sessionStorage.setItem('quizAnswers', JSON.stringify(answers));
     sessionStorage.setItem('quizQuestions', JSON.stringify(questions));
 
     navigate(`/quiz/${quizId}/results`);
-  };
+  }, [quizId, answers, questions, navigate]);
+
+  const isLast = currentIndex === questions.length - 1;
+  const canSubmit = answers.length === questions.length && questions.length > 0;
+
+  useEffect(() => {
+    if (loading || error || !currentQuestion) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Ignore if focus is in an editable element (defensive — none on this page today)
+      const target = e.target as HTMLElement | null;
+      if (target?.isContentEditable) return;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      // Number keys 1-9 select the matching option (when present)
+      if (e.key >= '1' && e.key <= '9') {
+        const idx = parseInt(e.key, 10) - 1;
+        if (idx < currentQuestion.options.length) {
+          e.preventDefault();
+          handleSelectOption(idx);
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowRight') {
+        if (!isLast) {
+          e.preventDefault();
+          handleNext();
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        if (currentIndex > 0) {
+          e.preventDefault();
+          handlePrevious();
+        }
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        if (isLast) {
+          if (canSubmit) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        } else {
+          e.preventDefault();
+          handleNext();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [
+    loading,
+    error,
+    currentQuestion,
+    currentIndex,
+    isLast,
+    canSubmit,
+    handleSelectOption,
+    handleNext,
+    handlePrevious,
+    handleSubmit,
+  ]);
 
   if (loading) {
     return (
@@ -105,7 +171,6 @@ export default function QuizTake() {
 
   const progress = ((currentIndex + 1) / questions.length) * 100;
   const answeredCount = answers.length;
-  const canSubmit = answeredCount === questions.length;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -158,6 +223,12 @@ export default function QuizTake() {
                     </svg>
                   )}
                 </div>
+                <span
+                  className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
+                  aria-hidden="true"
+                >
+                  {index + 1}
+                </span>
                 <span className="text-gray-900">{option}</span>
               </div>
             </button>
@@ -178,7 +249,7 @@ export default function QuizTake() {
           {answeredCount} of {questions.length} answered
         </div>
 
-        {currentIndex === questions.length - 1 ? (
+        {isLast ? (
           <button
             onClick={handleSubmit}
             disabled={!canSubmit}
@@ -192,6 +263,12 @@ export default function QuizTake() {
           </button>
         )}
       </div>
+
+      <p className="hidden sm:block text-center text-xs text-gray-400 mt-6">
+        Shortcuts: <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">1</kbd>–<kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">{currentQuestion.options.length}</kbd> select
+        · <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">←</kbd>/<kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">→</kbd> nav
+        · <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">Enter</kbd> {isLast ? 'submit' : 'next'}
+      </p>
     </div>
   );
 }
