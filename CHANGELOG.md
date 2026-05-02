@@ -1,3 +1,12 @@
+# [1.5.0](https://github.com/Redm0nd/lotg-exams/compare/v1.4.1...v1.5.0) (2026-05-02)
+
+
+### Features
+
+* **quiz-list:** add search, category filter, and result count ([7b80662](https://github.com/Redm0nd/lotg-exams/commit/7b806626e07302f5717e6b6612b09ea31030470b))
+* **quiz-results:** show duration, review-wrong toggle, respect reduced motion ([4c29baa](https://github.com/Redm0nd/lotg-exams/commit/4c29baaebacc94a9a221fcd994371ee5e519a4eb))
+* **quiz-take:** add keyboard shortcuts for answering and navigation ([8e77d0b](https://github.com/Redm0nd/lotg-exams/commit/8e77d0b0a7aad6222ca17128c66c0917cf87cc12))
+
 ## [1.4.1](https://github.com/Redm0nd/lotg-exams/compare/v1.4.0...v1.4.1) (2026-05-02)
 
 
