@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/Redm0nd/lotg-exams/compare/v1.5.1...v1.5.2) (2026-05-02)
+
+
+### Bug Fixes
+
+* **infra:** attach CORS headers to API Gateway error responses ([855b5c5](https://github.com/Redm0nd/lotg-exams/commit/855b5c5ea657ff9396ff1d1d36bdc7d50aba0110))
+
 ## [1.5.1](https://github.com/Redm0nd/lotg-exams/compare/v1.5.0...v1.5.1) (2026-05-02)
 
 
