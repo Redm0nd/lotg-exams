@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getQuizzes } from '../api/client';
 import type { QuizSummary } from '../types';
+
+const ALL_CATEGORIES = '__all__';
 
 export default function QuizList() {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState(ALL_CATEGORIES);
 
   useEffect(() => {
     async function loadQuizzes() {
@@ -22,6 +26,26 @@ export default function QuizList() {
 
     loadQuizzes();
   }, []);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const q of quizzes) {
+      if (q.category) set.add(q.category);
+    }
+    return Array.from(set).sort();
+  }, [quizzes]);
+
+  const filtered = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return quizzes.filter((q) => {
+      if (category !== ALL_CATEGORIES && q.category !== category) return false;
+      if (!needle) return true;
+      return (
+        q.title.toLowerCase().includes(needle) ||
+        q.description.toLowerCase().includes(needle)
+      );
+    });
+  }, [quizzes, search, category]);
 
   if (loading) {
     return (
@@ -45,9 +69,12 @@ export default function QuizList() {
     );
   }
 
+  const isFiltering = search.trim() !== '' || category !== ALL_CATEGORIES;
+  const hasQuizzes = quizzes.length > 0;
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <header className="mb-8">
+      <header className="mb-6">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
           Laws of the Game Quizzes
         </h1>
@@ -56,13 +83,72 @@ export default function QuizList() {
         </p>
       </header>
 
-      {quizzes.length === 0 ? (
+      {hasQuizzes && (
+        <div className="mb-6 flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <label htmlFor="quiz-search" className="sr-only">
+              Search quizzes
+            </label>
+            <input
+              id="quiz-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search quizzes..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+          {categories.length > 1 && (
+            <div className="sm:w-56">
+              <label htmlFor="quiz-category" className="sr-only">
+                Filter by category
+              </label>
+              <select
+                id="quiz-category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+              >
+                <option value={ALL_CATEGORIES}>All categories</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
+      {hasQuizzes && (
+        <p className="text-sm text-gray-500 mb-4" aria-live="polite">
+          Showing {filtered.length} of {quizzes.length} quizzes
+        </p>
+      )}
+
+      {!hasQuizzes ? (
         <div className="card text-center">
           <p className="text-gray-600">No quizzes available yet.</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="card text-center">
+          <p className="text-gray-600 mb-3">
+            No quizzes match {isFiltering ? 'your filters' : 'your search'}.
+          </p>
+          <button
+            onClick={() => {
+              setSearch('');
+              setCategory(ALL_CATEGORIES);
+            }}
+            className="text-primary-600 hover:underline text-sm font-medium"
+          >
+            Clear filters
+          </button>
+        </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {quizzes.map((quiz) => (
+          {filtered.map((quiz) => (
             <Link
               key={quiz.quizId}
               to={`/quiz/${quiz.quizId}`}
