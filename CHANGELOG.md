@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/Redm0nd/lotg-exams/compare/v1.4.0...v1.4.1) (2026-05-02)
+
+
+### Bug Fixes
+
+* **quiz:** shorten confetti celebration on high scores ([638d593](https://github.com/Redm0nd/lotg-exams/commit/638d593a49f385b38995ce47a7369288500c6f85))
+
 # [1.4.0](https://github.com/Redm0nd/lotg-exams/compare/v1.3.1...v1.4.0) (2026-01-25)
 
 
