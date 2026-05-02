@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/Redm0nd/lotg-exams/compare/v1.5.0...v1.5.1) (2026-05-02)
+
+
+### Bug Fixes
+
+* **frontend:** trigger fresh deployment to resolve stale asset mismatch ([4f0703c](https://github.com/Redm0nd/lotg-exams/commit/4f0703cb2ed0d9fc30bdb5065e8998e2eeaba584))
+
 # [1.5.0](https://github.com/Redm0nd/lotg-exams/compare/v1.4.1...v1.5.0) (2026-05-02)
 
 
