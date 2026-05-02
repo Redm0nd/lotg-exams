@@ -6,24 +6,24 @@ import type { Answer, SubmitAnswersResponse } from '../types';
 
 function triggerConfetti(percentage: number) {
   if (percentage >= 90) {
-    // Big celebration for 90%+
-    const duration = 3000;
+    const duration = 1200;
     const end = Date.now() + duration;
+    const colors = ['#10b981', '#059669', '#047857', '#34d399'];
 
     const frame = () => {
       confetti({
-        particleCount: 4,
+        particleCount: 3,
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#10b981', '#059669', '#047857', '#34d399'],
+        colors,
       });
       confetti({
-        particleCount: 4,
+        particleCount: 3,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#10b981', '#059669', '#047857', '#34d399'],
+        colors,
       });
 
       if (Date.now() < end) {
