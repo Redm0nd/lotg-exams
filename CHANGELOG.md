@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/Redm0nd/lotg-exams/compare/v1.5.2...v1.6.0) (2026-05-02)
+
+
+### Features
+
+* **quiz:** time limits, law filter, and per-quiz question count ([7540688](https://github.com/Redm0nd/lotg-exams/commit/75406882ef1abe386289fc716ef9c47aa49c7b14)), closes [#14](https://github.com/Redm0nd/lotg-exams/issues/14) [#14](https://github.com/Redm0nd/lotg-exams/issues/14)
+
 ## [1.5.2](https://github.com/Redm0nd/lotg-exams/compare/v1.5.1...v1.5.2) (2026-05-02)
 
 
