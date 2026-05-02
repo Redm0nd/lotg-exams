@@ -1,10 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { submitAnswers } from '../api/client';
 import type { Answer, SubmitAnswersResponse } from '../types';
 
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 function triggerConfetti(percentage: number) {
+  if (prefersReducedMotion()) return;
+
   if (percentage >= 90) {
     const duration = 1200;
     const end = Date.now() + duration;
@@ -43,6 +53,14 @@ function triggerConfetti(percentage: number) {
   // No confetti for below 70%
 }
 
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  if (m === 0) return `${s}s`;
+  return `${m}m ${s.toString().padStart(2, '0')}s`;
+}
+
 export default function QuizResults() {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
@@ -50,6 +68,8 @@ export default function QuizResults() {
   const [results, setResults] = useState<SubmitAnswersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [durationMs, setDurationMs] = useState<number | null>(null);
+  const [reviewWrongOnly, setReviewWrongOnly] = useState(false);
 
   useEffect(() => {
     async function loadResults() {
@@ -58,6 +78,12 @@ export default function QuizResults() {
       if (!storedAnswers || !quizId) {
         navigate(`/quiz/${quizId}`);
         return;
+      }
+
+      const startedAtRaw = sessionStorage.getItem('quizStartedAt');
+      const startedAt = startedAtRaw ? parseInt(startedAtRaw, 10) : NaN;
+      if (Number.isFinite(startedAt) && startedAt > 0) {
+        setDurationMs(Date.now() - startedAt);
       }
 
       try {
@@ -76,17 +102,31 @@ export default function QuizResults() {
     loadResults();
   }, [quizId, navigate]);
 
-  const handleRetry = () => {
+  const clearQuizSession = () => {
     sessionStorage.removeItem('quizQuestions');
     sessionStorage.removeItem('quizAnswers');
+    sessionStorage.removeItem('quizStartedAt');
+  };
+
+  const handleRetry = () => {
+    clearQuizSession();
     navigate(`/quiz/${quizId}`);
   };
 
   const handleBackToQuizzes = () => {
-    sessionStorage.removeItem('quizQuestions');
-    sessionStorage.removeItem('quizAnswers');
+    clearQuizSession();
     navigate('/');
   };
+
+  const visibleResults = useMemo(() => {
+    if (!results) return [];
+    const indexed = results.results.map((r, i) => ({ result: r, originalIndex: i }));
+    return reviewWrongOnly ? indexed.filter(({ result }) => !result.isCorrect) : indexed;
+  }, [results, reviewWrongOnly]);
+
+  const wrongCount = results
+    ? results.results.length - results.score.correct
+    : 0;
 
   if (loading) {
     return (
@@ -140,7 +180,7 @@ export default function QuizResults() {
       <div className="card mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Quiz Results</h1>
         <p className={`text-lg font-medium mb-4 ${message.color}`}>{message.text}</p>
-        <div className="flex items-center justify-center gap-8 mb-4">
+        <div className="flex items-center justify-center gap-8 mb-4 flex-wrap">
           <div>
             <div className="text-5xl font-bold text-primary-600">{score.percentage}%</div>
             <div className="text-gray-600 mt-1">Score</div>
@@ -151,6 +191,14 @@ export default function QuizResults() {
             </div>
             <div className="text-gray-600 mt-1">Correct Answers</div>
           </div>
+          {durationMs !== null && (
+            <div>
+              <div className="text-3xl font-semibold text-gray-900">
+                {formatDuration(durationMs)}
+              </div>
+              <div className="text-gray-600 mt-1">Time Taken</div>
+            </div>
+          )}
         </div>
         <div className="flex gap-4 justify-center mt-6">
           <button onClick={handleRetry} className="btn-primary">
@@ -162,8 +210,22 @@ export default function QuizResults() {
         </div>
       </div>
 
+      {wrongCount > 0 && (
+        <div className="flex items-center justify-end mb-4">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={reviewWrongOnly}
+              onChange={(e) => setReviewWrongOnly(e.target.checked)}
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            Review wrong answers only ({wrongCount})
+          </label>
+        </div>
+      )}
+
       <div className="space-y-6">
-        {results.results.map((result, index) => (
+        {visibleResults.map(({ result, originalIndex }) => (
           <div key={result.questionId} className="card">
             <div className="flex items-start gap-4">
               <div
@@ -175,7 +237,7 @@ export default function QuizResults() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 mb-3">
-                  {index + 1}. {result.text}
+                  {originalIndex + 1}. {result.text}
                 </h3>
 
                 <div className="space-y-2 mb-4">
