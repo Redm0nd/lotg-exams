@@ -220,6 +220,31 @@ resource "aws_api_gateway_authorizer" "jwt" {
   authorizer_result_ttl_in_seconds = 300
 }
 
+# Gateway responses
+#
+# Without these, 4xx/5xx responses (in particular UNAUTHORIZED and ACCESS_DENIED
+# from the Lambda authorizer) come back without CORS headers. The browser then
+# rejects them with an opaque "Failed to fetch" instead of letting JS see the
+# real status. Setting CORS headers here makes auth failures surface as proper
+# HTTP errors that the frontend can display.
+locals {
+  gateway_response_cors_headers = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+    "gatewayresponse.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+  }
+
+  gateway_response_types = ["UNAUTHORIZED", "ACCESS_DENIED", "DEFAULT_4XX", "DEFAULT_5XX"]
+}
+
+resource "aws_api_gateway_gateway_response" "cors" {
+  for_each = toset(local.gateway_response_types)
+
+  rest_api_id         = aws_api_gateway_rest_api.this.id
+  response_type       = each.key
+  response_parameters = local.gateway_response_cors_headers
+}
+
 # IAM role for API Gateway to invoke authorizer Lambda
 resource "aws_iam_role" "api_gateway_authorizer" {
   name = "${var.project_name}-${var.environment}-apigw-auth-role"
@@ -418,6 +443,7 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.admin_questions.id,
       aws_api_gateway_resource.admin_jobs_manual.id,
       aws_api_gateway_resource.admin_job_questions.id,
+      [for r in aws_api_gateway_gateway_response.cors : r.id],
     ]))
   }
 }
