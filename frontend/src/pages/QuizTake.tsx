@@ -25,6 +25,7 @@ export default function QuizTake() {
         ]);
         setQuiz(quizData);
         setQuestions(questionsData);
+        sessionStorage.setItem('quizStartedAt', Date.now().toString());
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load quiz');
       } finally {
