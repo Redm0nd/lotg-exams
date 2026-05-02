@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createManualJob } from '../../api/client';
 import { useAccessToken } from '../../hooks/useAccessToken';
+import type { Law } from '../../types';
 
 const CATEGORIES = [
   'Laws of the Game',
@@ -12,12 +13,21 @@ const CATEGORIES = [
   'General Knowledge',
 ];
 
+const LAWS: Law[] = [
+  'Law 1', 'Law 2', 'Law 3', 'Law 4', 'Law 5', 'Law 6', 'Law 7', 'Law 8',
+  'Law 9', 'Law 10', 'Law 11', 'Law 12', 'Law 13', 'Law 14', 'Law 15',
+  'Law 16', 'Law 17',
+];
+
 export default function CreateQuiz() {
   const navigate = useNavigate();
   const { getToken } = useAccessToken();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Laws of the Game');
+  const [timeLimit, setTimeLimit] = useState('');
+  const [lawFilter, setLawFilter] = useState<'' | Law>('');
+  const [questionsPerAttempt, setQuestionsPerAttempt] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,6 +37,26 @@ export default function CreateQuiz() {
     if (!title.trim()) {
       setError('Title is required');
       return;
+    }
+
+    let timeLimitMinutes: number | undefined;
+    if (timeLimit.trim()) {
+      const parsed = Number(timeLimit);
+      if (!Number.isFinite(parsed) || parsed < 1 || parsed > 240) {
+        setError('Time limit must be between 1 and 240 minutes');
+        return;
+      }
+      timeLimitMinutes = parsed;
+    }
+
+    let questionsPerAttemptNum: number | undefined;
+    if (questionsPerAttempt.trim()) {
+      const parsed = Number(questionsPerAttempt);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 50) {
+        setError('Questions per attempt must be a whole number between 1 and 50');
+        return;
+      }
+      questionsPerAttemptNum = parsed;
     }
 
     setLoading(true);
@@ -39,6 +69,9 @@ export default function CreateQuiz() {
           title: title.trim(),
           description: description.trim() || undefined,
           category,
+          timeLimitMinutes,
+          lawFilter: lawFilter || undefined,
+          questionsPerAttempt: questionsPerAttemptNum,
         },
         token
       );
@@ -117,6 +150,68 @@ export default function CreateQuiz() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="border-t pt-6">
+            <h2 className="text-sm font-semibold text-gray-900 mb-4">
+              Quiz Configuration <span className="font-normal text-gray-500">(optional)</span>
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="timeLimit" className="block text-sm font-medium text-gray-700 mb-1">
+                  Time Limit (minutes)
+                </label>
+                <input
+                  type="number"
+                  id="timeLimit"
+                  min={1}
+                  max={240}
+                  value={timeLimit}
+                  onChange={(e) => setTimeLimit(e.target.value)}
+                  placeholder="No limit"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="questionsPerAttempt" className="block text-sm font-medium text-gray-700 mb-1">
+                  Questions per Attempt
+                </label>
+                <input
+                  type="number"
+                  id="questionsPerAttempt"
+                  min={1}
+                  max={50}
+                  value={questionsPerAttempt}
+                  onChange={(e) => setQuestionsPerAttempt(e.target.value)}
+                  placeholder="Default: 10"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label htmlFor="lawFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                  Restrict to a Single Law
+                </label>
+                <select
+                  id="lawFilter"
+                  value={lawFilter}
+                  onChange={(e) => setLawFilter(e.target.value as '' | Law)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  disabled={loading}
+                >
+                  <option value="">All laws</option>
+                  {LAWS.map((law) => (
+                    <option key={law} value={law}>
+                      {law}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-4">

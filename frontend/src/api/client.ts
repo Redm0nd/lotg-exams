@@ -53,8 +53,9 @@ export async function getQuiz(quizId: string): Promise<QuizDetail> {
   return fetchAPI<QuizDetail>(`/quizzes/${quizId}`);
 }
 
-export async function getQuestions(quizId: string, limit = 10): Promise<Question[]> {
-  return fetchAPI<Question[]>(`/quizzes/${quizId}/questions?limit=${limit}`);
+export async function getQuestions(quizId: string, limit?: number): Promise<Question[]> {
+  const query = limit !== undefined ? `?limit=${limit}` : '';
+  return fetchAPI<Question[]>(`/quizzes/${quizId}/questions${query}`);
 }
 
 export async function submitAnswers(
