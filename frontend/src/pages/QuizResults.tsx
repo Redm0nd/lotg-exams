@@ -50,6 +50,7 @@ export default function QuizResults() {
   const [results, setResults] = useState<SubmitAnswersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [autoSubmitted, setAutoSubmitted] = useState(false);
 
   useEffect(() => {
     async function loadResults() {
@@ -59,6 +60,8 @@ export default function QuizResults() {
         navigate(`/quiz/${quizId}`);
         return;
       }
+
+      setAutoSubmitted(sessionStorage.getItem('quizAutoSubmitted') === 'true');
 
       try {
         const answers: Answer[] = JSON.parse(storedAnswers);
@@ -79,12 +82,14 @@ export default function QuizResults() {
   const handleRetry = () => {
     sessionStorage.removeItem('quizQuestions');
     sessionStorage.removeItem('quizAnswers');
+    sessionStorage.removeItem('quizAutoSubmitted');
     navigate(`/quiz/${quizId}`);
   };
 
   const handleBackToQuizzes = () => {
     sessionStorage.removeItem('quizQuestions');
     sessionStorage.removeItem('quizAnswers');
+    sessionStorage.removeItem('quizAutoSubmitted');
     navigate('/');
   };
 
@@ -139,6 +144,11 @@ export default function QuizResults() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="card mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Quiz Results</h1>
+        {autoSubmitted && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-3 mb-4">
+            Time ran out — your quiz was submitted automatically.
+          </div>
+        )}
         <p className={`text-lg font-medium mb-4 ${message.color}`}>{message.text}</p>
         <div className="flex items-center justify-center gap-8 mb-4">
           <div>
@@ -208,6 +218,9 @@ export default function QuizResults() {
                       </div>
                     );
                   })}
+                  {result.selectedOption < 0 && (
+                    <p className="text-sm font-medium text-amber-700">Not answered</p>
+                  )}
                 </div>
 
                 <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">

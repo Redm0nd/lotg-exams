@@ -42,11 +42,14 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const detail: QuizDetail = {
       quizId: job.jobId,
       title: formatTitle(job.fileName),
-      description: `Questions extracted from ${job.fileName}`,
-      category: 'Laws of the Game',
+      description: job.description?.trim() || `Questions extracted from ${job.fileName}`,
+      category: job.category || 'Laws of the Game',
       questionCount: job.approvedCount,
       createdAt: job.createdAt,
       updatedAt: job.updatedAt,
+      ...(job.timeLimitMinutes !== undefined && { timeLimitMinutes: job.timeLimitMinutes }),
+      ...(job.lawFilter !== undefined && { lawFilter: job.lawFilter }),
+      ...(job.questionsPerAttempt !== undefined && { questionsPerAttempt: job.questionsPerAttempt }),
     };
 
     return successResponse(detail);

@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getQuiz, getQuestions } from '../api/client';
 import type { QuizDetail, Question, Answer } from '../types';
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 export default function QuizTake() {
   const { quizId } = useParams<{ quizId: string }>();
@@ -13,18 +19,32 @@ export default function QuizTake() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+
+  const answersRef = useRef<Answer[]>([]);
+  const questionsRef = useRef<Question[]>([]);
+  const submittedRef = useRef(false);
+
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  useEffect(() => {
+    questionsRef.current = questions;
+  }, [questions]);
 
   useEffect(() => {
     async function loadQuiz() {
       if (!quizId) return;
 
       try {
-        const [quizData, questionsData] = await Promise.all([
-          getQuiz(quizId),
-          getQuestions(quizId, 10),
-        ]);
+        const quizData = await getQuiz(quizId);
+        const questionsData = await getQuestions(quizId);
         setQuiz(quizData);
         setQuestions(questionsData);
+        if (quizData.timeLimitMinutes && quizData.timeLimitMinutes > 0) {
+          setSecondsLeft(quizData.timeLimitMinutes * 60);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load quiz');
       } finally {
@@ -34,6 +54,34 @@ export default function QuizTake() {
 
     loadQuiz();
   }, [quizId]);
+
+  const submit = (auto: boolean) => {
+    if (!quizId || submittedRef.current) return;
+    submittedRef.current = true;
+
+    // Pad unanswered questions with -1 so the backend counts them in the total
+    const finalAnswers: Answer[] = questionsRef.current.map((q) => {
+      const existing = answersRef.current.find((a) => a.questionId === q.questionId);
+      return existing ?? { questionId: q.questionId, selectedOption: -1 };
+    });
+
+    sessionStorage.setItem('quizAnswers', JSON.stringify(finalAnswers));
+    sessionStorage.setItem('quizQuestions', JSON.stringify(questionsRef.current));
+    sessionStorage.setItem('quizAutoSubmitted', auto ? 'true' : 'false');
+
+    navigate(`/quiz/${quizId}/results`);
+  };
+
+  useEffect(() => {
+    if (secondsLeft === null) return;
+    if (secondsLeft <= 0) {
+      submit(true);
+      return;
+    }
+    const id = window.setTimeout(() => setSecondsLeft((s) => (s === null ? s : s - 1)), 1000);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsLeft]);
 
   const currentQuestion = questions[currentIndex];
   const currentAnswer = answers.find(
@@ -68,15 +116,7 @@ export default function QuizTake() {
     }
   };
 
-  const handleSubmit = () => {
-    if (!quizId) return;
-
-    // Store answers in sessionStorage for results page
-    sessionStorage.setItem('quizAnswers', JSON.stringify(answers));
-    sessionStorage.setItem('quizQuestions', JSON.stringify(questions));
-
-    navigate(`/quiz/${quizId}/results`);
-  };
+  const handleSubmit = () => submit(false);
 
   if (loading) {
     return (
@@ -104,17 +144,30 @@ export default function QuizTake() {
   }
 
   const progress = ((currentIndex + 1) / questions.length) * 100;
-  const answeredCount = answers.length;
+  const answeredCount = answers.filter((a) => a.selectedOption >= 0).length;
   const canSubmit = answeredCount === questions.length;
+  const lowTime = secondsLeft !== null && secondsLeft <= 60;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold text-gray-900">{quiz.title}</h1>
-          <span className="text-sm text-gray-600">
-            Question {currentIndex + 1} of {questions.length}
-          </span>
+          <div className="flex items-center gap-4">
+            {secondsLeft !== null && (
+              <span
+                className={`text-sm font-mono font-semibold px-3 py-1 rounded-full ${
+                  lowTime ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                }`}
+                aria-label="Time remaining"
+              >
+                {formatTime(Math.max(0, secondsLeft))}
+              </span>
+            )}
+            <span className="text-sm text-gray-600">
+              Question {currentIndex + 1} of {questions.length}
+            </span>
+          </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div

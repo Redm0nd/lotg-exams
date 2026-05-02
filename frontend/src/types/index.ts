@@ -4,6 +4,9 @@ export interface QuizSummary {
   description: string;
   category: string;
   questionCount: number;
+  timeLimitMinutes?: number;
+  lawFilter?: Law;
+  questionsPerAttempt?: number;
 }
 
 export interface QuizDetail extends QuizSummary {
@@ -86,6 +89,9 @@ export interface ExtractionJob {
   source?: JobSource;
   description?: string;
   category?: string;
+  timeLimitMinutes?: number;
+  lawFilter?: Law;
+  questionsPerAttempt?: number;
 }
 
 export interface PresignedUrlResponse {
@@ -147,6 +153,9 @@ export interface CreateManualJobRequest {
   title: string;
   description?: string;
   category?: string;
+  timeLimitMinutes?: number;
+  lawFilter?: Law;
+  questionsPerAttempt?: number;
 }
 
 export interface CreateManualJobResponse {
