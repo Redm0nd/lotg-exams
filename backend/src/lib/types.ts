@@ -92,6 +92,10 @@ export interface ExtractionJobItem {
   source?: JobSource; // 'pdf_extraction' | 'manual_entry'
   description?: string; // Quiz description (for manual jobs)
   category?: string; // Quiz category (default: 'Laws of the Game')
+  // Quiz configuration (issue #14)
+  timeLimitMinutes?: number;
+  lawFilter?: Law;
+  questionsPerAttempt?: number;
 }
 
 // API response types
@@ -101,6 +105,9 @@ export interface QuizSummary {
   description: string;
   category: string;
   questionCount: number;
+  timeLimitMinutes?: number;
+  lawFilter?: Law;
+  questionsPerAttempt?: number;
 }
 
 export interface QuizDetail extends QuizSummary {
@@ -159,6 +166,9 @@ export interface ExtractionJob {
   source?: JobSource;
   description?: string;
   category?: string;
+  timeLimitMinutes?: number;
+  lawFilter?: Law;
+  questionsPerAttempt?: number;
 }
 
 // Claude extraction types

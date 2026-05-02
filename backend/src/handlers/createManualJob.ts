@@ -1,12 +1,21 @@
 import { ulid } from 'ulid';
-import type { APIGatewayProxyEvent, APIGatewayProxyResult, ExtractionJobItem } from '../lib/types.js';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, ExtractionJobItem, Law } from '../lib/types.js';
 import { createExtractionJob } from '../lib/dynamodb.js';
 import { successResponse, errorResponse } from '../lib/response.js';
+
+const VALID_LAWS = new Set<Law>([
+  'Law 1', 'Law 2', 'Law 3', 'Law 4', 'Law 5', 'Law 6', 'Law 7', 'Law 8',
+  'Law 9', 'Law 10', 'Law 11', 'Law 12', 'Law 13', 'Law 14', 'Law 15',
+  'Law 16', 'Law 17',
+]);
 
 interface CreateManualJobRequest {
   title: string;
   description?: string;
   category?: string;
+  timeLimitMinutes?: number;
+  lawFilter?: Law;
+  questionsPerAttempt?: number;
 }
 
 /**
@@ -29,6 +38,32 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   if (!request.title || request.title.trim() === '') {
     return errorResponse('title is required', 400);
+  }
+
+  if (request.timeLimitMinutes !== undefined) {
+    if (
+      typeof request.timeLimitMinutes !== 'number' ||
+      !Number.isFinite(request.timeLimitMinutes) ||
+      request.timeLimitMinutes < 1 ||
+      request.timeLimitMinutes > 240
+    ) {
+      return errorResponse('timeLimitMinutes must be a number between 1 and 240', 400);
+    }
+  }
+
+  if (request.questionsPerAttempt !== undefined) {
+    if (
+      typeof request.questionsPerAttempt !== 'number' ||
+      !Number.isInteger(request.questionsPerAttempt) ||
+      request.questionsPerAttempt < 1 ||
+      request.questionsPerAttempt > 50
+    ) {
+      return errorResponse('questionsPerAttempt must be an integer between 1 and 50', 400);
+    }
+  }
+
+  if (request.lawFilter !== undefined && !VALID_LAWS.has(request.lawFilter)) {
+    return errorResponse('lawFilter must be a valid Law (e.g. "Law 12")', 400);
   }
 
   try {
@@ -55,6 +90,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       source: 'manual_entry',
       description: request.description?.trim() || '',
       category: request.category?.trim() || 'Laws of the Game',
+      ...(request.timeLimitMinutes !== undefined && { timeLimitMinutes: request.timeLimitMinutes }),
+      ...(request.lawFilter !== undefined && { lawFilter: request.lawFilter }),
+      ...(request.questionsPerAttempt !== undefined && { questionsPerAttempt: request.questionsPerAttempt }),
     };
 
     await createExtractionJob(job);

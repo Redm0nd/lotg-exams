@@ -11,14 +11,17 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const quizId = event.pathParameters?.id;
   const limitParam = event.queryStringParameters?.limit;
-  const limit = limitParam ? parseInt(limitParam, 10) : 10;
 
   if (!quizId) {
     return errorResponse('Missing quiz ID', 400);
   }
 
-  if (isNaN(limit) || limit < 1 || limit > 50) {
-    return errorResponse('Limit must be between 1 and 50', 400);
+  let limit: number | undefined;
+  if (limitParam) {
+    limit = parseInt(limitParam, 10);
+    if (isNaN(limit) || limit < 1 || limit > 50) {
+      return errorResponse('Limit must be between 1 and 50', 400);
+    }
   }
 
   try {
@@ -29,15 +32,18 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return errorResponse('Quiz not found', 404);
     }
 
-    // Get approved questions for this job
-    const questions = await getApprovedQuestionsByJobId(quizId);
+    // Get approved questions for this job, optionally narrowed by the quiz's law filter
+    const allQuestions = await getApprovedQuestionsByJobId(quizId);
+    const questions = job.lawFilter
+      ? allQuestions.filter((q) => q.law === job.lawFilter)
+      : allQuestions;
 
     if (questions.length === 0) {
       return errorResponse('No questions found for this quiz', 404);
     }
 
-    // Shuffle and limit questions
-    const shuffled = shuffleArray(questions).slice(0, limit);
+    const effectiveLimit = limit ?? job.questionsPerAttempt ?? 10;
+    const shuffled = shuffleArray(questions).slice(0, effectiveLimit);
 
     // Transform to response format (without correct answers)
     const response: Question[] = shuffled.map((q) => ({
