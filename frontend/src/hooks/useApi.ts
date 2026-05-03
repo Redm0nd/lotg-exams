@@ -23,7 +23,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
  * Use this for admin endpoints that require authentication.
  */
 export function useApi() {
-  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const { getIdTokenClaims, isAuthenticated } = useAuth0();
 
   const fetchWithAuth = useCallback(
     async <T>(endpoint: string, options?: RequestInit): Promise<T> => {
@@ -35,11 +35,10 @@ export function useApi() {
       // Add auth header if authenticated
       if (isAuthenticated) {
         try {
-          const token = await getAccessTokenSilently();
-          headers['Authorization'] = `Bearer ${token}`;
+          const claims = await getIdTokenClaims();
+          if (claims?.__raw) headers['Authorization'] = `Bearer ${claims.__raw}`;
         } catch {
-          // Token fetch failed, continue without auth
-          console.warn('Failed to get access token');
+          console.warn('Failed to get ID token');
         }
       }
 
@@ -55,7 +54,7 @@ export function useApi() {
 
       return response.json();
     },
-    [getAccessTokenSilently, isAuthenticated]
+    [getIdTokenClaims, isAuthenticated]
   );
 
   // Admin endpoints with authentication
