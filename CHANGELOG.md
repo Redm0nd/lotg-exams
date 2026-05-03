@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/Redm0nd/lotg-exams/compare/v1.6.1...v1.6.2) (2026-05-03)
+
+
+### Bug Fixes
+
+* **deploy:** eliminate SPA stale-asset race in frontend deploy ([a0c6d1a](https://github.com/Redm0nd/lotg-exams/commit/a0c6d1a0f602f13d263020f843a4172e8c9b323b))
+
 ## [1.6.1](https://github.com/Redm0nd/lotg-exams/compare/v1.6.0...v1.6.1) (2026-05-03)
 
 
