@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/Redm0nd/lotg-exams/compare/v1.8.0...v1.8.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* allow same question to be added to multiple quizzes ([8d2a93e](https://github.com/Redm0nd/lotg-exams/commit/8d2a93e11097771d2e0ad47a7c7bcdd52e46b0c0))
+
 # [1.8.0](https://github.com/Redm0nd/lotg-exams/compare/v1.7.0...v1.8.0) (2026-05-03)
 
 
