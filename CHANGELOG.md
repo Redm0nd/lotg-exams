@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/Redm0nd/lotg-exams/compare/v1.6.5...v1.7.0) (2026-05-03)
+
+
+### Features
+
+* **admin:** add question picker step to CreateQuiz ([b6a0dbf](https://github.com/Redm0nd/lotg-exams/commit/b6a0dbf3e1298277c9a1482dc5199333f47212f4)), closes [#14](https://github.com/Redm0nd/lotg-exams/issues/14)
+
 ## [1.6.5](https://github.com/Redm0nd/lotg-exams/compare/v1.6.4...v1.6.5) (2026-05-03)
 
 
