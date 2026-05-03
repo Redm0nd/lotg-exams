@@ -30,9 +30,12 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       description: job.description?.trim() || `Questions extracted from ${job.fileName}`,
       category: job.category || 'Laws of the Game',
       questionCount: job.approvedCount,
+      isPublic: job.isPublic ?? false,
       ...(job.timeLimitMinutes !== undefined && { timeLimitMinutes: job.timeLimitMinutes }),
       ...(job.lawFilter !== undefined && { lawFilter: job.lawFilter }),
-      ...(job.questionsPerAttempt !== undefined && { questionsPerAttempt: job.questionsPerAttempt }),
+      ...(job.questionsPerAttempt !== undefined && {
+        questionsPerAttempt: job.questionsPerAttempt,
+      }),
     }));
 
     return successResponse(summaries);

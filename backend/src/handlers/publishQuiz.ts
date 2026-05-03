@@ -4,6 +4,7 @@ import { successResponse, errorResponse } from '../lib/response.js';
 
 interface PublishRequest {
   publish: boolean;
+  isPublic?: boolean;
 }
 
 /**
@@ -49,7 +50,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     if (shouldPublish) {
-      await publishJob(jobId);
+      await publishJob(jobId, request.isPublic ?? false);
     } else {
       await unpublishJob(jobId);
     }
@@ -57,9 +58,8 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     return successResponse({
       jobId,
       published: shouldPublish,
-      message: shouldPublish
-        ? 'Quiz published successfully'
-        : 'Quiz unpublished successfully',
+      isPublic: shouldPublish ? (request.isPublic ?? false) : false,
+      message: shouldPublish ? 'Quiz published successfully' : 'Quiz unpublished successfully',
     });
   } catch (error) {
     console.error('Error publishing job:', error);
