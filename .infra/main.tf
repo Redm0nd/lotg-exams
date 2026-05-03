@@ -28,7 +28,6 @@ module "backend" {
   dynamodb_table_name = module.database.table_name
   dynamodb_table_arn  = module.database.table_arn
   auth0_domain        = var.auth0_domain
-  auth0_audience      = var.auth0_audience
 }
 
 # Frontend module - S3 + CloudFront

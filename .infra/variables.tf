@@ -43,8 +43,4 @@ variable "auth0_domain" {
   nullable    = false
 }
 
-variable "auth0_audience" {
-  description = "Auth0 API audience identifier"
-  type        = string
-  nullable    = false
-}
+

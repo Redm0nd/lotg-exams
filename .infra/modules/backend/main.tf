@@ -184,9 +184,8 @@ resource "aws_lambda_function" "authorize" {
 
   environment {
     variables = {
-      AUTH0_DOMAIN   = var.auth0_domain
-      AUTH0_AUDIENCE = var.auth0_audience
-      NODE_ENV       = var.environment
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
     }
   }
 

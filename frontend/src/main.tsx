@@ -7,7 +7,6 @@ import './styles/index.css';
 
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
-const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
 
 // Validate Auth0 configuration at startup
 if (!domain || !clientId) {
@@ -24,7 +23,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         clientId={clientId}
         authorizationParams={{
           redirect_uri: window.location.origin,
-          audience: audience,
         }}
       >
         <App />
