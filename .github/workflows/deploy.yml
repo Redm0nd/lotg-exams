@@ -443,15 +443,44 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Sync to S3
+      # Two-phase upload to avoid the SPA stale-asset race:
+      # Vite emits content-hashed files under dist/assets/ that are
+      # immutable, plus dist/index.html which references the latest
+      # hashes. If we did `aws s3 sync --delete` in one shot, old
+      # hashed assets would be removed before CloudFront finished
+      # invalidating, and any user with a cached index.html would 404
+      # on the asset they reference.
+      #
+      # Instead:
+      #   1. Upload assets first, no --delete, with a long immutable
+      #      cache header so the browser keeps them forever.
+      #   2. Upload everything else (incl. index.html) with no-cache
+      #      so the browser always re-validates the entry point.
+      #   3. Invalidate CloudFront for index.html and the root path,
+      #      not /*, since hashed assets are immutable and don't need
+      #      invalidation.
+      #
+      # Old hashed assets are intentionally not deleted - they cost
+      # very little and provide a grace window for users still on a
+      # cached index.html. Periodic cleanup can be a separate job.
+      - name: Sync hashed assets (immutable, 1 year)
         run: |
-          aws s3 sync dist/ s3://${{ needs.get-outputs.outputs.s3_bucket }} --delete
+          aws s3 sync dist/assets/ s3://${{ needs.get-outputs.outputs.s3_bucket }}/assets/ \
+            --cache-control "public, max-age=31536000, immutable" \
+            --no-progress
 
-      - name: Invalidate CloudFront Cache
+      - name: Sync entry point and root files (no cache)
+        run: |
+          aws s3 sync dist/ s3://${{ needs.get-outputs.outputs.s3_bucket }}/ \
+            --exclude "assets/*" \
+            --cache-control "no-cache, must-revalidate" \
+            --no-progress
+
+      - name: Invalidate CloudFront Cache (index.html only)
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ needs.get-outputs.outputs.cloudfront_id }} \
-            --paths "/*"
+            --paths "/" "/index.html"
 
   # Deployment Summary
   deployment-summary:
