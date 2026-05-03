@@ -1,3 +1,10 @@
+## [1.6.5](https://github.com/Redm0nd/lotg-exams/compare/v1.6.4...v1.6.5) (2026-05-03)
+
+
+### Bug Fixes
+
+* use ID token instead of access token for admin API auth ([a1587d3](https://github.com/Redm0nd/lotg-exams/commit/a1587d356bcba5a5af19b1205b5c2f627f4b98de))
+
 ## [1.6.4](https://github.com/Redm0nd/lotg-exams/compare/v1.6.3...v1.6.4) (2026-05-03)
 
 
