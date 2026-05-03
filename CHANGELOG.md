@@ -1,3 +1,10 @@
+## [1.6.4](https://github.com/Redm0nd/lotg-exams/compare/v1.6.3...v1.6.4) (2026-05-03)
+
+
+### Bug Fixes
+
+* remove Auth0 audience requirement (no API registered in Auth0) ([9651c49](https://github.com/Redm0nd/lotg-exams/commit/9651c49a31013edc70bd54f2f7ab818924cf17a7))
+
 ## [1.6.3](https://github.com/Redm0nd/lotg-exams/compare/v1.6.2...v1.6.3) (2026-05-03)
 
 
