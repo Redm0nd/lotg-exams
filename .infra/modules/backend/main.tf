@@ -411,11 +411,19 @@ resource "aws_api_gateway_deployment" "this" {
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.quizzes.id,
+      aws_api_gateway_resource.quiz_id.id,
+      aws_api_gateway_resource.questions.id,
       aws_api_gateway_resource.submit.id,
       aws_api_gateway_resource.admin.id,
+      aws_api_gateway_resource.admin_upload.id,
       aws_api_gateway_resource.admin_presigned_url.id,
       aws_api_gateway_resource.admin_jobs.id,
+      aws_api_gateway_resource.admin_job_id.id,
+      aws_api_gateway_resource.admin_job_publish.id,
       aws_api_gateway_resource.admin_questions.id,
+      aws_api_gateway_resource.admin_question_id.id,
+      aws_api_gateway_resource.admin_question_review.id,
+      aws_api_gateway_resource.admin_bulk_review.id,
       aws_api_gateway_resource.admin_jobs_manual.id,
       aws_api_gateway_resource.admin_job_questions.id,
     ]))
