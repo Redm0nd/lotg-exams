@@ -85,7 +85,7 @@ resource "aws_lambda_function" "get_quizzes" {
   function_name    = "${var.project_name}-${var.environment}-getQuizzes"
   role             = aws_iam_role.lambda.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/getQuizzes.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getQuizzes.zip") : null
@@ -108,7 +108,7 @@ resource "aws_lambda_function" "get_quiz" {
   function_name    = "${var.project_name}-${var.environment}-getQuiz"
   role             = aws_iam_role.lambda.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/getQuiz.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getQuiz.zip") : null
@@ -131,7 +131,7 @@ resource "aws_lambda_function" "get_questions" {
   function_name    = "${var.project_name}-${var.environment}-getQuestions"
   role             = aws_iam_role.lambda.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/getQuestions.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getQuestions.zip") : null
@@ -154,7 +154,7 @@ resource "aws_lambda_function" "submit_answers" {
   function_name    = "${var.project_name}-${var.environment}-submitAnswers"
   role             = aws_iam_role.lambda.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/submitAnswers.zip") ? filebase64sha256("${path.module}/../../../backend/dist/submitAnswers.zip") : null
@@ -177,7 +177,7 @@ resource "aws_lambda_function" "authorize" {
   function_name    = "${var.project_name}-${var.environment}-authorize"
   role             = aws_iam_role.lambda.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/authorize.zip") ? filebase64sha256("${path.module}/../../../backend/dist/authorize.zip") : null
@@ -666,7 +666,7 @@ resource "aws_lambda_function" "generate_presigned_url" {
   function_name    = "${var.project_name}-${var.environment}-generatePresignedUrl"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/generatePresignedUrl.zip") ? filebase64sha256("${path.module}/../../../backend/dist/generatePresignedUrl.zip") : null
@@ -693,7 +693,7 @@ resource "aws_lambda_function" "process_pdf" {
   function_name    = "${var.project_name}-${var.environment}-processPdf"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 300  # 5 minutes for PDF processing
   memory_size      = 1024 # More memory for PDF/image processing
   source_code_hash = fileexists("${path.module}/../../../backend/dist/processPdf.zip") ? filebase64sha256("${path.module}/../../../backend/dist/processPdf.zip") : null
@@ -743,7 +743,7 @@ resource "aws_lambda_function" "get_question_bank" {
   function_name    = "${var.project_name}-${var.environment}-getQuestionBank"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/getQuestionBank.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getQuestionBank.zip") : null
@@ -769,7 +769,7 @@ resource "aws_lambda_function" "review_question" {
   function_name    = "${var.project_name}-${var.environment}-reviewQuestion"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/reviewQuestion.zip") ? filebase64sha256("${path.module}/../../../backend/dist/reviewQuestion.zip") : null
@@ -795,7 +795,7 @@ resource "aws_lambda_function" "bulk_review_questions" {
   function_name    = "${var.project_name}-${var.environment}-bulkReviewQuestions"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 30 # Longer timeout for batch operations
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/bulkReviewQuestions.zip") ? filebase64sha256("${path.module}/../../../backend/dist/bulkReviewQuestions.zip") : null
@@ -821,7 +821,7 @@ resource "aws_lambda_function" "publish_quiz" {
   function_name    = "${var.project_name}-${var.environment}-publishQuiz"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/publishQuiz.zip") ? filebase64sha256("${path.module}/../../../backend/dist/publishQuiz.zip") : null
@@ -847,7 +847,7 @@ resource "aws_lambda_function" "get_extraction_jobs" {
   function_name    = "${var.project_name}-${var.environment}-getExtractionJobs"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/getExtractionJobs.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getExtractionJobs.zip") : null
@@ -1138,7 +1138,7 @@ resource "aws_lambda_function" "create_manual_job" {
   function_name    = "${var.project_name}-${var.environment}-createManualJob"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/createManualJob.zip") ? filebase64sha256("${path.module}/../../../backend/dist/createManualJob.zip") : null
@@ -1164,7 +1164,7 @@ resource "aws_lambda_function" "add_manual_question" {
   function_name    = "${var.project_name}-${var.environment}-addManualQuestion"
   role             = aws_iam_role.lambda_admin.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
   timeout          = 10
   memory_size      = 256
   source_code_hash = fileexists("${path.module}/../../../backend/dist/addManualQuestion.zip") ? filebase64sha256("${path.module}/../../../backend/dist/addManualQuestion.zip") : null

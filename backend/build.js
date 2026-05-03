@@ -38,7 +38,7 @@ async function buildHandler(handlerName) {
       entryPoints: [`src/handlers/${handlerName}.ts`],
       bundle: true,
       platform: 'node',
-      target: 'node20',
+      target: 'node24',
       outfile: `dist/${handlerName}/index.js`,
       external: ['@aws-sdk/*'],
       format: 'cjs',
