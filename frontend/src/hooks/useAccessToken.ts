@@ -15,7 +15,9 @@ export function useAccessToken() {
       }
 
       try {
-        const accessToken = await getAccessTokenSilently();
+        const accessToken = await getAccessTokenSilently({
+          authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+        });
         setToken(accessToken);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to get token'));
@@ -31,7 +33,9 @@ export function useAccessToken() {
     if (!isAuthenticated) {
       throw new Error('Not authenticated');
     }
-    return getAccessTokenSilently();
+    return getAccessTokenSilently({
+      authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE },
+    });
   }, [getAccessTokenSilently, isAuthenticated]);
 
   return { token, loading, error, getToken };
