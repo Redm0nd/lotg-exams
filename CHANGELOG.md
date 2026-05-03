@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/Redm0nd/lotg-exams/compare/v1.7.0...v1.8.0) (2026-05-03)
+
+
+### Features
+
+* add isPublic flag for freemium quiz access ([e03dec5](https://github.com/Redm0nd/lotg-exams/commit/e03dec573c5467a4cf876bfd912ab7305a3df9e2)), closes [#10](https://github.com/Redm0nd/lotg-exams/issues/10)
+
 # [1.7.0](https://github.com/Redm0nd/lotg-exams/compare/v1.6.5...v1.7.0) (2026-05-03)
 
 
