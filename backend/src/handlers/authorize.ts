@@ -9,7 +9,29 @@ import jwksClient from 'jwks-rsa';
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
-const ROLES_NAMESPACE = 'https://lotg-exams.com/roles';
+
+// Auth0 custom claims must be namespaced; the project standard is
+// https://lotg-exams.com/roles, but other commonly-seen forms are also
+// checked so a mis-configured Action / Rule still works while we observe
+// what the deployed setup actually puts in the token.
+const PRIMARY_ROLES_NAMESPACE = 'https://lotg-exams.com/roles';
+const FALLBACK_ROLES_CLAIMS = [
+  'https://lotg-exams.com/roles',
+  'https://lotg-exams.com/permissions',
+  'permissions',
+  'roles',
+  'https://schemas.quickconnect.com/identity/claims/role',
+];
+
+function extractRoles(verified: DecodedToken): { roles: string[]; sourceClaim: string | null } {
+  for (const claim of FALLBACK_ROLES_CLAIMS) {
+    const value = verified[claim];
+    if (Array.isArray(value) && value.length > 0) {
+      return { roles: value as string[], sourceClaim: claim };
+    }
+  }
+  return { roles: [], sourceClaim: null };
+}
 
 interface DecodedToken {
   iss: string;
@@ -107,19 +129,24 @@ export async function handler(
       algorithms: ['RS256'],
     }) as DecodedToken;
 
-    // Extract roles from token
-    const roles = (verified[ROLES_NAMESPACE] as string[]) || [];
+    const { roles, sourceClaim } = extractRoles(verified);
     const isAdmin = roles.includes('admin');
 
-    console.log(`Token verified for user: ${verified.sub}, isAdmin: ${isAdmin}`);
+    // Diagnostic logging - prints once per cache miss (5min TTL on the
+    // authorizer). Lets us see what the Auth0 token actually contains
+    // when 401s/403s are reported, without needing to attach a debugger.
+    const claimKeys = Object.keys(verified).filter((k) => k.includes('://') || k === 'permissions' || k === 'roles');
+    console.log(
+      `Token verified sub=${verified.sub} aud=${Array.isArray(verified.aud) ? verified.aud.join(',') : verified.aud} expected_namespace=${PRIMARY_ROLES_NAMESPACE} found_namespace=${sourceClaim ?? '<none>'} roles=${JSON.stringify(roles)} candidate_claims=${JSON.stringify(claimKeys)} isAdmin=${isAdmin}`
+    );
 
-    // For admin routes, require admin role
-    // The methodArn format: arn:aws:execute-api:region:account:api-id/stage/method/resource
     const methodArn = event.methodArn;
     const isAdminRoute = methodArn.includes('/admin/');
 
     if (isAdminRoute && !isAdmin) {
-      console.log('User attempted to access admin route without admin role');
+      console.log(
+        `Denying admin route access: methodArn=${methodArn} sub=${verified.sub} roles=${JSON.stringify(roles)}`
+      );
       return generatePolicy(verified.sub, 'Deny', event.methodArn);
     }
 
@@ -138,7 +165,8 @@ export async function handler(
       roles: roles.join(','),
     });
   } catch (error) {
-    console.error('Token verification failed:', error);
+    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error(`Token verification failed: ${message}`);
     throw new Error('Unauthorized');
   }
 }
