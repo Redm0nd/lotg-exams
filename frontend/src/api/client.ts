@@ -183,13 +183,14 @@ export async function bulkReviewQuestions(
 export async function publishQuiz(
   jobId: string,
   token: string,
-  publish = true
+  publish = true,
+  isPublic = false
 ): Promise<PublishResponse> {
   return fetchAPI<PublishResponse>(
     `/admin/jobs/${jobId}/publish`,
     {
       method: 'PUT',
-      body: JSON.stringify({ publish }),
+      body: JSON.stringify({ publish, isPublic }),
     },
     token
   );

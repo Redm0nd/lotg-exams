@@ -35,10 +35,23 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 export type JobSource = 'pdf_extraction' | 'manual_entry';
 
 export type Law =
-  | 'Law 1' | 'Law 2' | 'Law 3' | 'Law 4' | 'Law 5'
-  | 'Law 6' | 'Law 7' | 'Law 8' | 'Law 9' | 'Law 10'
-  | 'Law 11' | 'Law 12' | 'Law 13' | 'Law 14' | 'Law 15'
-  | 'Law 16' | 'Law 17';
+  | 'Law 1'
+  | 'Law 2'
+  | 'Law 3'
+  | 'Law 4'
+  | 'Law 5'
+  | 'Law 6'
+  | 'Law 7'
+  | 'Law 8'
+  | 'Law 9'
+  | 'Law 10'
+  | 'Law 11'
+  | 'Law 12'
+  | 'Law 13'
+  | 'Law 14'
+  | 'Law 15'
+  | 'Law 16'
+  | 'Law 17';
 
 export interface BankQuestionItem {
   PK: string; // QUESTION#{questionId}
@@ -84,6 +97,7 @@ export interface ExtractionJobItem {
   rejectedCount: number;
   duplicateCount: number;
   published?: boolean;
+  isPublic?: boolean; // true = unauthenticated users can take this quiz
   errorMessage?: string;
   createdAt: string;
   updatedAt: string;
@@ -105,6 +119,7 @@ export interface QuizSummary {
   description: string;
   category: string;
   questionCount: number;
+  isPublic?: boolean;
   timeLimitMinutes?: number;
   lawFilter?: Law;
   questionsPerAttempt?: number;

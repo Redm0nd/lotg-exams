@@ -38,11 +38,28 @@ export default function AdminJobDetail() {
     try {
       const token = await getToken();
       const newPublishedState = !job.published;
-      await publishQuiz(jobId, token, newPublishedState);
+      await publishQuiz(jobId, token, newPublishedState, job.isPublic ?? false);
       setJob({ ...job, published: newPublishedState });
     } catch (err) {
       console.error('Publish failed:', err);
       alert(err instanceof Error ? err.message : 'Failed to update publish status');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleTogglePublic = async () => {
+    if (!jobId || !job || !job.published) return;
+
+    setPublishing(true);
+    try {
+      const token = await getToken();
+      const newIsPublic = !job.isPublic;
+      await publishQuiz(jobId, token, true, newIsPublic);
+      setJob({ ...job, isPublic: newIsPublic });
+    } catch (err) {
+      console.error('Toggle public failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to update visibility');
     } finally {
       setPublishing(false);
     }
@@ -149,6 +166,22 @@ export default function AdminJobDetail() {
                 }`}
               >
                 {publishing ? 'Updating...' : job.published ? 'Unpublish Quiz' : 'Publish Quiz'}
+              </button>
+            )}
+            {job.published && (
+              <button
+                onClick={handleTogglePublic}
+                disabled={publishing}
+                title={
+                  job.isPublic ? 'Click to make login required' : 'Click to allow public access'
+                }
+                className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                  job.isPublic
+                    ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {job.isPublic ? '🌐 Public' : '🔒 Login Required'}
               </button>
             )}
             {job.published && (

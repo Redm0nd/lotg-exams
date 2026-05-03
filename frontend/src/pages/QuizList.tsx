@@ -40,10 +40,7 @@ export default function QuizList() {
     return quizzes.filter((q) => {
       if (category !== ALL_CATEGORIES && q.category !== category) return false;
       if (!needle) return true;
-      return (
-        q.title.toLowerCase().includes(needle) ||
-        q.description.toLowerCase().includes(needle)
-      );
+      return q.title.toLowerCase().includes(needle) || q.description.toLowerCase().includes(needle);
     });
   }, [quizzes, search, category]);
 
@@ -75,9 +72,7 @@ export default function QuizList() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <header className="mb-6">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          Laws of the Game Quizzes
-        </h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Laws of the Game Quizzes</h1>
         <p className="text-lg text-gray-600">
           Test your knowledge of football's Laws of the Game (IFAB)
         </p>
@@ -149,18 +144,21 @@ export default function QuizList() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {filtered.map((quiz) => (
-            <Link
-              key={quiz.quizId}
-              to={`/quiz/${quiz.quizId}`}
-              className="card-hover group"
-            >
+            <Link key={quiz.quizId} to={`/quiz/${quiz.quizId}`} className="card-hover group">
               <div className="flex items-start justify-between mb-3">
                 <h2 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
                   {quiz.title}
                 </h2>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
-                  {quiz.questionCount} questions
-                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {!quiz.isPublic && (
+                    <span title="Login required" className="text-gray-400">
+                      🔒
+                    </span>
+                  )}
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                    {quiz.questionCount} questions
+                  </span>
+                </div>
               </div>
               <p className="text-gray-600 mb-4">{quiz.description}</p>
               <div className="flex items-center justify-between">

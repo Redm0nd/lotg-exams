@@ -239,7 +239,8 @@ export async function updateBankQuestionStatus(
       PK: `QUESTION#${questionId}`,
       SK: 'METADATA',
     },
-    UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt, reviewedAt = :reviewedAt, reviewedBy = :reviewedBy',
+    UpdateExpression:
+      'SET #status = :status, updatedAt = :updatedAt, reviewedAt = :reviewedAt, reviewedBy = :reviewedBy',
     ExpressionAttributeNames: {
       '#status': 'status',
     },
@@ -297,9 +298,7 @@ export async function getQuestionsByLaw(
   } = {
     TableName: TABLE_NAME,
     IndexName: 'Law-Status-index',
-    KeyConditionExpression: status
-      ? '#law = :law AND #status = :status'
-      : '#law = :law',
+    KeyConditionExpression: status ? '#law = :law AND #status = :status' : '#law = :law',
     ExpressionAttributeNames: {
       '#law': 'law',
       ...(status && { '#status': 'status' }),
@@ -428,16 +427,17 @@ export async function getPublishedJobs(): Promise<ExtractionJobItem[]> {
 /**
  * Publish a job (make it visible as a quiz on the homepage)
  */
-export async function publishJob(jobId: string): Promise<void> {
+export async function publishJob(jobId: string, isPublic = false): Promise<void> {
   const params = {
     TableName: TABLE_NAME,
     Key: {
       PK: `JOB#${jobId}`,
       SK: 'METADATA',
     },
-    UpdateExpression: 'SET published = :published, updatedAt = :updatedAt',
+    UpdateExpression: 'SET published = :published, isPublic = :isPublic, updatedAt = :updatedAt',
     ExpressionAttributeValues: {
       ':published': true,
+      ':isPublic': isPublic,
       ':updatedAt': new Date().toISOString(),
     },
   };
@@ -481,7 +481,8 @@ export async function updateQuestionUsage(questionIds: string[]): Promise<void> 
             PK: `QUESTION#${questionId}`,
             SK: 'METADATA',
           },
-          UpdateExpression: 'SET usageCount = if_not_exists(usageCount, :zero) + :inc, lastUsedAt = :now',
+          UpdateExpression:
+            'SET usageCount = if_not_exists(usageCount, :zero) + :inc, lastUsedAt = :now',
           ExpressionAttributeValues: {
             ':zero': 0,
             ':inc': 1,
