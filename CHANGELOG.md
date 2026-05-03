@@ -1,3 +1,10 @@
+## [1.6.3](https://github.com/Redm0nd/lotg-exams/compare/v1.6.2...v1.6.3) (2026-05-03)
+
+
+### Bug Fixes
+
+* add Auth0 audience to fix admin endpoint 404s ([eac06eb](https://github.com/Redm0nd/lotg-exams/commit/eac06eb840a7d22a8a540c8b1f7f99336697ba4d))
+
 ## [1.6.2](https://github.com/Redm0nd/lotg-exams/compare/v1.6.1...v1.6.2) (2026-05-03)
 
 
