@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/Redm0nd/lotg-exams/compare/v1.6.0...v1.6.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* **auth:** diagnostic logging on authorizer + ship through deploy-backend ([4f49662](https://github.com/Redm0nd/lotg-exams/commit/4f49662d2741cde0499057fe4c02b84802ec080f)), closes [#33](https://github.com/Redm0nd/lotg-exams/issues/33)
+
 # [1.6.0](https://github.com/Redm0nd/lotg-exams/compare/v1.5.2...v1.6.0) (2026-05-02)
 
 
