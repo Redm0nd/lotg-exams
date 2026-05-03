@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { createManualJob } from '../../api/client';
+import { createManualJob, getQuestionBank, addManualQuestion } from '../../api/client';
 import { useAccessToken } from '../../hooks/useAccessToken';
-import type { Law } from '../../types';
+import type { Law, BankQuestion } from '../../types';
 
 const CATEGORIES = [
   'Laws of the Game',
@@ -14,14 +14,30 @@ const CATEGORIES = [
 ];
 
 const LAWS: Law[] = [
-  'Law 1', 'Law 2', 'Law 3', 'Law 4', 'Law 5', 'Law 6', 'Law 7', 'Law 8',
-  'Law 9', 'Law 10', 'Law 11', 'Law 12', 'Law 13', 'Law 14', 'Law 15',
-  'Law 16', 'Law 17',
+  'Law 1',
+  'Law 2',
+  'Law 3',
+  'Law 4',
+  'Law 5',
+  'Law 6',
+  'Law 7',
+  'Law 8',
+  'Law 9',
+  'Law 10',
+  'Law 11',
+  'Law 12',
+  'Law 13',
+  'Law 14',
+  'Law 15',
+  'Law 16',
+  'Law 17',
 ];
 
 export default function CreateQuiz() {
   const navigate = useNavigate();
   const { getToken } = useAccessToken();
+
+  // Step 1: quiz metadata
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Laws of the Game');
@@ -31,9 +47,34 @@ export default function CreateQuiz() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Step 2: question picker
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [bankQuestions, setBankQuestions] = useState<BankQuestion[]>([]);
+  const [bankLoading, setBankLoading] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [lawPickerFilter, setLawPickerFilter] = useState<'' | Law>('');
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+
+  // Load approved questions from bank once quiz is created
+  useEffect(() => {
+    if (!jobId) return;
+    setBankLoading(true);
+    getToken()
+      .then((token) =>
+        getQuestionBank(token, {
+          status: 'approved',
+          limit: 200,
+          law: lawPickerFilter || undefined,
+        })
+      )
+      .then((res) => setBankQuestions(res.questions))
+      .catch(() => setBankQuestions([]))
+      .finally(() => setBankLoading(false));
+  }, [jobId, lawPickerFilter, getToken]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!title.trim()) {
       setError('Title is required');
       return;
@@ -61,7 +102,6 @@ export default function CreateQuiz() {
 
     setLoading(true);
     setError(null);
-
     try {
       const token = await getToken();
       const response = await createManualJob(
@@ -75,9 +115,7 @@ export default function CreateQuiz() {
         },
         token
       );
-
-      // Navigate to the job detail page to add questions
-      navigate(`/admin/jobs/${response.jobId}`);
+      setJobId(response.jobId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create quiz');
     } finally {
@@ -85,6 +123,144 @@ export default function CreateQuiz() {
     }
   };
 
+  const toggleQuestion = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleAddSelected = async () => {
+    if (!jobId || selected.size === 0) return;
+    setAdding(true);
+    setAddError(null);
+    try {
+      const token = await getToken();
+      const toAdd = bankQuestions.filter((q) => selected.has(q.questionId));
+      await Promise.all(
+        toAdd.map((q) =>
+          addManualQuestion(
+            jobId,
+            {
+              text: q.text,
+              options: q.options,
+              correctAnswer: q.correctAnswer,
+              explanation: q.explanation,
+              law: q.law,
+              lawReference: q.lawReference,
+              difficulty: q.difficulty,
+              tags: q.tags,
+            },
+            token
+          )
+        )
+      );
+      navigate(`/admin/jobs/${jobId}`);
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : 'Failed to add questions');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  // ── Step 2: question picker ──────────────────────────────────────────────
+  if (jobId) {
+    const filtered = lawPickerFilter
+      ? bankQuestions.filter((q) => q.law === lawPickerFilter)
+      : bankQuestions;
+
+    return (
+      <div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Add Questions to "{title}"</h1>
+          <p className="text-gray-600 mt-1">
+            Select approved questions from the bank, or skip to add them manually later.
+          </p>
+        </div>
+
+        {addError && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700">{addError}</p>
+          </div>
+        )}
+
+        <div className="mb-4 flex items-center gap-4 flex-wrap">
+          <select
+            value={lawPickerFilter}
+            onChange={(e) => setLawPickerFilter(e.target.value as '' | Law)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="">All Laws</option>
+            {LAWS.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+          </select>
+          <span className="text-sm text-gray-500">
+            {selected.size} selected · {filtered.length} available
+          </span>
+        </div>
+
+        <div className="bg-white rounded-lg shadow divide-y divide-gray-200 mb-6 max-h-[60vh] overflow-y-auto">
+          {bankLoading ? (
+            <div className="p-8 text-center text-gray-500">Loading questions...</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              No approved questions found{lawPickerFilter ? ` for ${lawPickerFilter}` : ''}.
+            </div>
+          ) : (
+            filtered.map((q) => (
+              <label
+                key={q.questionId}
+                className={`flex items-start gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50 ${
+                  selected.has(q.questionId) ? 'bg-primary-50' : ''
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.has(q.questionId)}
+                  onChange={() => toggleQuestion(q.questionId)}
+                  className="mt-1 w-4 h-4 text-primary-600 rounded"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                      {q.law}
+                    </span>
+                    {q.difficulty && (
+                      <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">
+                        {q.difficulty}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-900">{q.text}</p>
+                </div>
+              </label>
+            ))
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={handleAddSelected}
+            disabled={adding || selected.size === 0}
+            className="btn-primary disabled:opacity-50"
+          >
+            {adding
+              ? 'Adding...'
+              : `Add ${selected.size} Question${selected.size !== 1 ? 's' : ''}`}
+          </button>
+          <button onClick={() => navigate(`/admin/jobs/${jobId}`)} className="btn-secondary">
+            Skip — Add Manually Later
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 1: quiz metadata form ───────────────────────────────────────────
   return (
     <div>
       <div className="mb-8">
@@ -156,7 +332,6 @@ export default function CreateQuiz() {
             <h2 className="text-sm font-semibold text-gray-900 mb-4">
               Quiz Configuration <span className="font-normal text-gray-500">(optional)</span>
             </h2>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="timeLimit" className="block text-sm font-medium text-gray-700 mb-1">
@@ -174,9 +349,11 @@ export default function CreateQuiz() {
                   disabled={loading}
                 />
               </div>
-
               <div>
-                <label htmlFor="questionsPerAttempt" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="questionsPerAttempt"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Questions per Attempt
                 </label>
                 <input
@@ -191,7 +368,6 @@ export default function CreateQuiz() {
                   disabled={loading}
                 />
               </div>
-
               <div className="sm:col-span-2">
                 <label htmlFor="lawFilter" className="block text-sm font-medium text-gray-700 mb-1">
                   Restrict to a Single Law
@@ -216,7 +392,7 @@ export default function CreateQuiz() {
 
           <div className="flex gap-4">
             <button type="submit" disabled={loading} className="btn-primary disabled:opacity-50">
-              {loading ? 'Creating...' : 'Create Quiz'}
+              {loading ? 'Creating...' : 'Create Quiz & Pick Questions'}
             </button>
             <Link to="/admin" className="btn-secondary">
               Cancel
