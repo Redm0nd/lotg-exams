@@ -8,7 +8,6 @@ import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
-const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 
 // Auth0 custom claims must be namespaced; the project standard is
 // https://lotg-exams.com/roles, but other commonly-seen forms are also
@@ -99,8 +98,8 @@ export async function handler(
 ): Promise<APIGatewayAuthorizerResult> {
   console.log('Authorizer invoked');
 
-  if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
-    console.error('Missing AUTH0_DOMAIN or AUTH0_AUDIENCE environment variables');
+  if (!AUTH0_DOMAIN) {
+    console.error('Missing AUTH0_DOMAIN environment variable');
     throw new Error('Unauthorized');
   }
 
@@ -124,7 +123,6 @@ export async function handler(
 
     // Verify token
     const verified = jwt.verify(token, signingKey, {
-      audience: AUTH0_AUDIENCE,
       issuer: `https://${AUTH0_DOMAIN}/`,
       algorithms: ['RS256'],
     }) as DecodedToken;
@@ -135,7 +133,9 @@ export async function handler(
     // Diagnostic logging - prints once per cache miss (5min TTL on the
     // authorizer). Lets us see what the Auth0 token actually contains
     // when 401s/403s are reported, without needing to attach a debugger.
-    const claimKeys = Object.keys(verified).filter((k) => k.includes('://') || k === 'permissions' || k === 'roles');
+    const claimKeys = Object.keys(verified).filter(
+      (k) => k.includes('://') || k === 'permissions' || k === 'roles'
+    );
     console.log(
       `Token verified sub=${verified.sub} aud=${Array.isArray(verified.aud) ? verified.aud.join(',') : verified.aud} expected_namespace=${PRIMARY_ROLES_NAMESPACE} found_namespace=${sourceClaim ?? '<none>'} roles=${JSON.stringify(roles)} candidate_claims=${JSON.stringify(claimKeys)} isAdmin=${isAdmin}`
     );
