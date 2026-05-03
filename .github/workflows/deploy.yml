@@ -239,6 +239,7 @@ jobs:
       lambda_publish_quiz: ${{ steps.tf-output.outputs.lambda_publish_quiz }}
       lambda_create_manual_job: ${{ steps.tf-output.outputs.lambda_create_manual_job }}
       lambda_add_manual_question: ${{ steps.tf-output.outputs.lambda_add_manual_question }}
+      lambda_authorize: ${{ steps.tf-output.outputs.lambda_authorize }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -277,6 +278,7 @@ jobs:
           echo "lambda_publish_quiz=$(terraform output -json lambda_function_names | jq -r '.publish_quiz')" >> $GITHUB_OUTPUT
           echo "lambda_create_manual_job=$(terraform output -json lambda_function_names | jq -r '.create_manual_job')" >> $GITHUB_OUTPUT
           echo "lambda_add_manual_question=$(terraform output -json lambda_function_names | jq -r '.add_manual_question')" >> $GITHUB_OUTPUT
+          echo "lambda_authorize=$(terraform output -json lambda_function_names | jq -r '.authorize')" >> $GITHUB_OUTPUT
 
   # Deploy Backend - uses pre-built artifacts
   deploy-backend:
@@ -392,6 +394,13 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_add_manual_question }} \
             --zip-file fileb://backend/dist/addManualQuestion.zip
+
+      - name: Update Lambda - authorize
+        if: needs.get-outputs.outputs.lambda_authorize != '' && needs.get-outputs.outputs.lambda_authorize != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_authorize }} \
+            --zip-file fileb://backend/dist/authorize.zip
 
   # Build and Deploy Frontend
   deploy-frontend:
