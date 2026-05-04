@@ -110,6 +110,7 @@ export interface ExtractionJobItem {
   timeLimitMinutes?: number;
   lawFilter?: Law;
   questionsPerAttempt?: number;
+  shuffleOptions?: boolean;
 }
 
 // API response types
@@ -123,6 +124,7 @@ export interface QuizSummary {
   timeLimitMinutes?: number;
   lawFilter?: Law;
   questionsPerAttempt?: number;
+  shuffleOptions?: boolean;
 }
 
 export interface QuizDetail extends QuizSummary {

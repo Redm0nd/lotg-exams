@@ -36,6 +36,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       ...(job.questionsPerAttempt !== undefined && {
         questionsPerAttempt: job.questionsPerAttempt,
       }),
+      ...(job.shuffleOptions !== undefined && { shuffleOptions: job.shuffleOptions }),
     }));
 
     return successResponse(summaries);

@@ -1,10 +1,33 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getQuiz, getQuestions } from '../api/client';
 import type { QuizDetail, Question, Answer } from '../types';
 
 const OPTION_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+/** Fisher-Yates shuffle returning a new array */
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * For each question, build a shuffled index order.
+ * shuffleMap[questionId][displayIndex] = originalIndex
+ */
+function buildShuffleMap(questions: Question[]): Record<string, number[]> {
+  const map: Record<string, number[]> = {};
+  for (const q of questions) {
+    const indices = q.options.map((_, i) => i);
+    map[q.questionId] = shuffleArray(indices);
+  }
+  return map;
+}
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -24,6 +47,7 @@ export default function QuizTake() {
 
   const [quiz, setQuiz] = useState<QuizDetail | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [shuffleMap, setShuffleMap] = useState<Record<string, number[]>>({});
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -65,6 +89,8 @@ export default function QuizTake() {
         const questionsData = await getQuestions(quizId, undefined, token);
         setQuiz(quizData);
         setQuestions(questionsData);
+        const shouldShuffle = quizData.shuffleOptions !== false;
+        setShuffleMap(shouldShuffle ? buildShuffleMap(questionsData) : {});
         sessionStorage.setItem('quizStartedAt', Date.now().toString());
         if (quizData.timeLimitMinutes && quizData.timeLimitMinutes > 0) {
           setSecondsLeft(quizData.timeLimitMinutes * 60);
@@ -112,21 +138,32 @@ export default function QuizTake() {
   const currentQuestion = questions[currentIndex];
   const currentAnswer = answers.find((a) => a.questionId === currentQuestion?.questionId);
 
+  const currentShuffledOptions = useMemo(() => {
+    if (!currentQuestion) return [];
+    const order = shuffleMap[currentQuestion.questionId];
+    if (!order) return currentQuestion.options;
+    return order.map((origIdx) => currentQuestion.options[origIdx]);
+  }, [currentQuestion, shuffleMap]);
+
   const handleSelectOption = useCallback(
-    (optionIndex: number) => {
+    (displayIndex: number) => {
       if (!currentQuestion) return;
+      const order = shuffleMap[currentQuestion.questionId];
+      const originalIndex = order ? order[displayIndex] : displayIndex;
 
       setAnswers((prev) => {
         const existing = prev.find((a) => a.questionId === currentQuestion.questionId);
         if (existing) {
           return prev.map((a) =>
-            a.questionId === currentQuestion.questionId ? { ...a, selectedOption: optionIndex } : a
+            a.questionId === currentQuestion.questionId
+              ? { ...a, selectedOption: originalIndex }
+              : a
           );
         }
-        return [...prev, { questionId: currentQuestion.questionId, selectedOption: optionIndex }];
+        return [...prev, { questionId: currentQuestion.questionId, selectedOption: originalIndex }];
       });
     },
-    [currentQuestion]
+    [currentQuestion, shuffleMap]
   );
 
   const handleNext = useCallback(() => {
@@ -289,44 +326,47 @@ export default function QuizTake() {
         <h2 className="text-xl font-semibold text-gray-900 mb-6">{currentQuestion.text}</h2>
 
         <div className="space-y-3">
-          {currentQuestion.options.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => handleSelectOption(index)}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                currentAnswer?.selectedOption === index
-                  ? 'border-primary-600 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              <div className="flex items-center">
-                <div
-                  className={`flex-shrink-0 w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${
-                    currentAnswer?.selectedOption === index
-                      ? 'border-primary-600 bg-primary-600'
-                      : 'border-gray-300'
-                  }`}
-                >
-                  {currentAnswer?.selectedOption === index && (
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
+          {currentShuffledOptions.map((option, displayIndex) => {
+            const originalIndex =
+              shuffleMap[currentQuestion.questionId]?.[displayIndex] ?? displayIndex;
+            const isSelected = currentAnswer?.selectedOption === originalIndex;
+            return (
+              <button
+                key={displayIndex}
+                onClick={() => handleSelectOption(displayIndex)}
+                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                  isSelected
+                    ? 'border-primary-600 bg-primary-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="flex items-center">
+                  <div
+                    className={`flex-shrink-0 w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${
+                      isSelected ? 'border-primary-600 bg-primary-600' : 'border-gray-300'
+                    }`}
+                  >
+                    {isSelected && (
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <span
+                    className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
+                    aria-hidden="true"
+                  >
+                    {OPTION_LABELS[displayIndex]}
+                  </span>
+                  <span className="text-gray-900">{option}</span>
                 </div>
-                <span
-                  className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
-                  aria-hidden="true"
-                >
-                  {OPTION_LABELS[index]}
-                </span>
-                <span className="text-gray-900">{option}</span>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </div>
 

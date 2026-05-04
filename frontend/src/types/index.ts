@@ -8,6 +8,7 @@ export interface QuizSummary {
   timeLimitMinutes?: number;
   lawFilter?: Law;
   questionsPerAttempt?: number;
+  shuffleOptions?: boolean;
 }
 
 export interface QuizDetail extends QuizSummary {
@@ -107,6 +108,7 @@ export interface ExtractionJob {
   timeLimitMinutes?: number;
   lawFilter?: Law;
   questionsPerAttempt?: number;
+  shuffleOptions?: boolean;
 }
 
 export interface PresignedUrlResponse {
@@ -172,6 +174,7 @@ export interface CreateManualJobRequest {
   timeLimitMinutes?: number;
   lawFilter?: Law;
   questionsPerAttempt?: number;
+  shuffleOptions?: boolean;
 }
 
 export interface CreateManualJobResponse {
