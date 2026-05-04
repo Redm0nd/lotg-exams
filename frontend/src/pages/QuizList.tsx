@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import { getQuizzes } from '../api/client';
 import type { QuizSummary } from '../types';
 
 const ALL_CATEGORIES = '__all__';
 
 export default function QuizList() {
+  const { isAuthenticated } = useAuth0();
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -143,32 +145,45 @@ export default function QuizList() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {filtered.map((quiz) => (
-            <Link key={quiz.quizId} to={`/quiz/${quiz.quizId}`} className="card-hover group">
-              <div className="flex items-start justify-between mb-3">
-                <h2 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-                  {quiz.title}
-                </h2>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {!quiz.isPublic && (
-                    <span title="Login required" className="text-gray-400">
-                      🔒
+          {filtered.map((quiz) => {
+            const locked = !quiz.isPublic && !isAuthenticated;
+            return (
+              <Link
+                key={quiz.quizId}
+                to={locked ? '#' : `/quiz/${quiz.quizId}`}
+                onClick={locked ? (e) => e.preventDefault() : undefined}
+                className={`card-hover group ${locked ? 'opacity-50 grayscale pointer-events-auto cursor-not-allowed' : ''}`}
+                aria-disabled={locked}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h2 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                    {quiz.title}
+                  </h2>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {!quiz.isPublic && (
+                      <span title="Login required" className="text-gray-400">
+                        🔒
+                      </span>
+                    )}
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                      {quiz.questionCount} questions
+                    </span>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-4">{quiz.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">{quiz.category}</span>
+                  {locked ? (
+                    <span className="text-gray-400 text-sm">Login to access</span>
+                  ) : (
+                    <span className="text-primary-600 group-hover:translate-x-1 transition-transform">
+                      Start Quiz →
                     </span>
                   )}
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
-                    {quiz.questionCount} questions
-                  </span>
                 </div>
-              </div>
-              <p className="text-gray-600 mb-4">{quiz.description}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{quiz.category}</span>
-                <span className="text-primary-600 group-hover:translate-x-1 transition-transform">
-                  Start Quiz →
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

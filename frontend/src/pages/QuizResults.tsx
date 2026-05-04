@@ -128,9 +128,7 @@ export default function QuizResults() {
     return reviewWrongOnly ? indexed.filter(({ result }) => !result.isCorrect) : indexed;
   }, [results, reviewWrongOnly]);
 
-  const wrongCount = results
-    ? results.results.length - results.score.correct
-    : 0;
+  const wrongCount = results ? results.results.length - results.score.correct : 0;
 
   if (loading) {
     return (
@@ -253,6 +251,7 @@ export default function QuizResults() {
                   {result.options.map((option, optionIndex) => {
                     const isCorrect = optionIndex === result.correctOption;
                     const isSelected = optionIndex === result.selectedOption;
+                    const label = String.fromCharCode(65 + optionIndex);
 
                     return (
                       <div
@@ -266,7 +265,15 @@ export default function QuizResults() {
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-900">{option}</span>
+                          <div className="flex items-center">
+                            <span
+                              className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
+                              aria-hidden="true"
+                            >
+                              {label}
+                            </span>
+                            <span className="text-gray-900">{option}</span>
+                          </div>
                           {isCorrect && (
                             <span className="text-sm font-medium text-green-700">
                               Correct Answer
