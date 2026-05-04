@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/Redm0nd/lotg-exams/compare/v1.8.1...v1.8.2) (2026-05-04)
+
+
+### Bug Fixes
+
+* improve locked quiz UX and change MCQ labels to A-D ([4e8d3ba](https://github.com/Redm0nd/lotg-exams/commit/4e8d3bab2dd0744088c9ab95d8195899400460d0))
+
 ## [1.8.1](https://github.com/Redm0nd/lotg-exams/compare/v1.8.0...v1.8.1) (2026-05-03)
 
 
