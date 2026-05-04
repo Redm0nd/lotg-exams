@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/Redm0nd/lotg-exams/compare/v1.9.0...v1.9.1) (2026-05-04)
+
+
+### Bug Fixes
+
+* return isPublic flag from getQuiz endpoint ([cf6e4ac](https://github.com/Redm0nd/lotg-exams/commit/cf6e4ac2ddec77cae74a47d9f5c81d83da6a3ed3))
+
 # [1.9.0](https://github.com/Redm0nd/lotg-exams/compare/v1.8.3...v1.9.0) (2026-05-04)
 
 
