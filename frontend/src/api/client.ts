@@ -17,6 +17,7 @@ import type {
   AddManualQuestionRequest,
   AddManualQuestionResponse,
   SubmitAnswersResponse,
+  UpdateQuizMetadataRequest,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -233,4 +234,24 @@ export async function addManualQuestion(
     },
     token
   );
+}
+
+export async function updateQuizMetadata(
+  jobId: string,
+  updates: UpdateQuizMetadataRequest,
+  token: string
+): Promise<{ jobId: string; message: string }> {
+  return fetchAPI(
+    `/admin/jobs/${jobId}/metadata`,
+    { method: 'PUT', body: JSON.stringify(updates) },
+    token
+  );
+}
+
+export async function removeQuizQuestion(
+  jobId: string,
+  questionId: string,
+  token: string
+): Promise<{ questionId: string; message: string; approvedCount: number }> {
+  return fetchAPI(`/admin/jobs/${jobId}/questions/${questionId}`, { method: 'DELETE' }, token);
 }

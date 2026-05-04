@@ -26,6 +26,9 @@ const handlers = [
   // Manual quiz creation handlers
   'createManualJob',
   'addManualQuestion',
+  // Quiz management handlers
+  'updateJobMetadata',
+  'removeJobQuestion',
   // Auth
   'authorize',
 ];

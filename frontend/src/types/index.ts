@@ -198,6 +198,17 @@ export interface AddManualQuestionResponse {
   message: string;
 }
 
+export interface UpdateQuizMetadataRequest {
+  title?: string;
+  description?: string;
+  category?: string;
+  timeLimitMinutes?: number | null;
+  questionsPerAttempt?: number | null;
+  lawFilter?: Law | null;
+  shuffleOptions?: boolean;
+  isPublic?: boolean;
+}
+
 // Quiz submission types
 export interface SubmitAnswersRequest {
   answers: Answer[];
