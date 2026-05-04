@@ -1,6 +1,12 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Question } from '../lib/types.js';
-import { getApprovedQuestionsByJobId, getExtractionJob, shuffleArray, updateQuestionUsage } from '../lib/dynamodb.js';
+import {
+  getApprovedQuestionsByJobId,
+  getExtractionJob,
+  shuffleArray,
+  updateQuestionUsage,
+} from '../lib/dynamodb.js';
 import { successResponse, errorResponse } from '../lib/response.js';
+import { verifyToken } from '../lib/verifyToken.js';
 
 /**
  * GET /quizzes/{id}/questions
@@ -30,6 +36,16 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     if (!job || !job.published || job.approvedCount === 0) {
       return errorResponse('Quiz not found', 404);
+    }
+
+    // Enforce auth for non-public quizzes
+    if (!job.isPublic) {
+      const userId = await verifyToken(
+        event.headers?.Authorization || event.headers?.authorization
+      );
+      if (!userId) {
+        return errorResponse('Authentication required', 401);
+      }
     }
 
     // Get approved questions for this job, optionally narrowed by the quiz's law filter

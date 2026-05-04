@@ -1,6 +1,11 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult, BankQuestionItem } from '../lib/types.js';
+import type {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  BankQuestionItem,
+} from '../lib/types.js';
 import { getExtractionJob, getBankQuestion } from '../lib/dynamodb.js';
 import { successResponse, errorResponse } from '../lib/response.js';
+import { verifyToken } from '../lib/verifyToken.js';
 
 interface SubmitAnswersRequest {
   answers: Array<{
@@ -63,6 +68,16 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     if (!job || !job.published) {
       return errorResponse('Quiz not found', 404);
+    }
+
+    // Enforce auth for non-public quizzes
+    if (!job.isPublic) {
+      const userId = await verifyToken(
+        event.headers?.Authorization || event.headers?.authorization
+      );
+      if (!userId) {
+        return errorResponse('Authentication required', 401);
+      }
     }
 
     // Fetch each question and build results

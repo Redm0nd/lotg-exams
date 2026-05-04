@@ -53,19 +53,28 @@ export async function getQuiz(quizId: string): Promise<QuizDetail> {
   return fetchAPI<QuizDetail>(`/quizzes/${quizId}`);
 }
 
-export async function getQuestions(quizId: string, limit?: number): Promise<Question[]> {
+export async function getQuestions(
+  quizId: string,
+  limit?: number,
+  token?: string
+): Promise<Question[]> {
   const query = limit !== undefined ? `?limit=${limit}` : '';
-  return fetchAPI<Question[]>(`/quizzes/${quizId}/questions${query}`);
+  return fetchAPI<Question[]>(`/quizzes/${quizId}/questions${query}`, undefined, token);
 }
 
 export async function submitAnswers(
   quizId: string,
-  answers: Answer[]
+  answers: Answer[],
+  token?: string
 ): Promise<SubmitAnswersResponse> {
-  return fetchAPI<SubmitAnswersResponse>(`/quizzes/${quizId}/submit`, {
-    method: 'POST',
-    body: JSON.stringify({ answers }),
-  });
+  return fetchAPI<SubmitAnswersResponse>(
+    `/quizzes/${quizId}/submit`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    },
+    token
+  );
 }
 
 // Admin endpoints (require auth token)

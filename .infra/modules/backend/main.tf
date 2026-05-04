@@ -139,6 +139,7 @@ resource "aws_lambda_function" "get_questions" {
   environment {
     variables = {
       TABLE_NAME = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
       NODE_ENV   = var.environment
     }
   }
@@ -162,6 +163,7 @@ resource "aws_lambda_function" "submit_answers" {
   environment {
     variables = {
       TABLE_NAME = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
       NODE_ENV   = var.environment
     }
   }
