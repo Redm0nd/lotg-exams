@@ -57,10 +57,18 @@ export async function getQuiz(quizId: string): Promise<QuizDetail> {
 export async function getQuestions(
   quizId: string,
   limit?: number,
-  token?: string
+  token?: string,
+  mode?: 'exam' | 'study'
 ): Promise<Question[]> {
-  const query = limit !== undefined ? `?limit=${limit}` : '';
-  return fetchAPI<Question[]>(`/quizzes/${quizId}/questions${query}`, undefined, token);
+  const params = new URLSearchParams();
+  if (limit !== undefined) params.set('limit', limit.toString());
+  if (mode === 'study') params.set('mode', 'study');
+  const query = params.toString();
+  return fetchAPI<Question[]>(
+    `/quizzes/${quizId}/questions${query ? `?${query}` : ''}`,
+    undefined,
+    token
+  );
 }
 
 export async function submitAnswers(

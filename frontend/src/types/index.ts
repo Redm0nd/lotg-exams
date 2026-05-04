@@ -22,6 +22,12 @@ export interface Question {
   options: string[];
 }
 
+export interface StudyQuestion extends Question {
+  correctAnswer: number;
+  explanation: string;
+  lawReference: string;
+}
+
 export interface Answer {
   questionId: string;
   selectedOption: number;
