@@ -49,7 +49,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       updatedAt: job.updatedAt,
       ...(job.timeLimitMinutes !== undefined && { timeLimitMinutes: job.timeLimitMinutes }),
       ...(job.lawFilter !== undefined && { lawFilter: job.lawFilter }),
-      ...(job.questionsPerAttempt !== undefined && { questionsPerAttempt: job.questionsPerAttempt }),
+      ...(job.questionsPerAttempt !== undefined && {
+        questionsPerAttempt: job.questionsPerAttempt,
+      }),
+      ...(job.shuffleOptions !== undefined && { shuffleOptions: job.shuffleOptions }),
     };
 
     return successResponse(detail);

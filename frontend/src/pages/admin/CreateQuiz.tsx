@@ -44,6 +44,7 @@ export default function CreateQuiz() {
   const [timeLimit, setTimeLimit] = useState('');
   const [lawFilter, setLawFilter] = useState<'' | Law>('');
   const [questionsPerAttempt, setQuestionsPerAttempt] = useState('');
+  const [shuffleOptions, setShuffleOptions] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -112,6 +113,7 @@ export default function CreateQuiz() {
           timeLimitMinutes,
           lawFilter: lawFilter || undefined,
           questionsPerAttempt: questionsPerAttemptNum,
+          shuffleOptions,
         },
         token
       );
@@ -386,6 +388,22 @@ export default function CreateQuiz() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={shuffleOptions}
+                    onChange={(e) => setShuffleOptions(e.target.checked)}
+                    className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                    disabled={loading}
+                  />
+                  <span className="text-sm font-medium text-gray-700">Shuffle answer options</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-6">
+                  Randomise the order of answer options on each attempt. Disable for quizzes where
+                  option order matters.
+                </p>
               </div>
             </div>
           </div>
