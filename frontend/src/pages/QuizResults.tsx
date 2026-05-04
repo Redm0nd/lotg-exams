@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { submitAnswers } from '../api/client';
@@ -64,6 +65,7 @@ function formatDuration(ms: number): string {
 export default function QuizResults() {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated, getIdTokenClaims } = useAuth0();
 
   const [results, setResults] = useState<SubmitAnswersResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,12 @@ export default function QuizResults() {
 
       try {
         const answers: Answer[] = JSON.parse(storedAnswers);
-        const response = await submitAnswers(quizId, answers);
+        let token: string | undefined;
+        if (isAuthenticated) {
+          const claims = await getIdTokenClaims();
+          token = claims?.__raw;
+        }
+        const response = await submitAnswers(quizId, answers, token);
         setResults(response);
         triggerConfetti(response.score.percentage);
       } catch (err) {

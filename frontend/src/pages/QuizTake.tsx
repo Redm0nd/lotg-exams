@@ -15,7 +15,12 @@ function formatTime(seconds: number): string {
 export default function QuizTake() {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, loginWithRedirect, isLoading: authLoading } = useAuth0();
+  const {
+    isAuthenticated,
+    loginWithRedirect,
+    isLoading: authLoading,
+    getIdTokenClaims,
+  } = useAuth0();
 
   const [quiz, setQuiz] = useState<QuizDetail | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -52,7 +57,12 @@ export default function QuizTake() {
           return;
         }
 
-        const questionsData = await getQuestions(quizId);
+        let token: string | undefined;
+        if (isAuthenticated) {
+          const claims = await getIdTokenClaims();
+          token = claims?.__raw;
+        }
+        const questionsData = await getQuestions(quizId, undefined, token);
         setQuiz(quizData);
         setQuestions(questionsData);
         sessionStorage.setItem('quizStartedAt', Date.now().toString());
