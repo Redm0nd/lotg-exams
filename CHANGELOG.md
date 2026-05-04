@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/Redm0nd/lotg-exams/compare/v1.10.0...v1.10.1) (2026-05-04)
+
+
+### Bug Fixes
+
+* include published and metadata fields in jobs endpoint response ([f9fe34d](https://github.com/Redm0nd/lotg-exams/commit/f9fe34d5d99d85cadb8af34e4b3a95100516f315))
+
 # [1.10.0](https://github.com/Redm0nd/lotg-exams/compare/v1.9.1...v1.10.0) (2026-05-04)
 
 
