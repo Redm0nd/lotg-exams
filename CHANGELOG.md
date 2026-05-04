@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/Redm0nd/lotg-exams/compare/v1.8.2...v1.8.3) (2026-05-04)
+
+
+### Bug Fixes
+
+* enforce isPublic access control on backend quiz endpoints ([b95cd20](https://github.com/Redm0nd/lotg-exams/commit/b95cd2037826e7c2ef22fa31c85c88b1e2e9de43)), closes [#50](https://github.com/Redm0nd/lotg-exams/issues/50)
+
 ## [1.8.2](https://github.com/Redm0nd/lotg-exams/compare/v1.8.1...v1.8.2) (2026-05-04)
 
 
