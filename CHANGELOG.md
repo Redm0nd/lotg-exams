@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/Redm0nd/lotg-exams/compare/v1.8.3...v1.9.0) (2026-05-04)
+
+
+### Features
+
+* shuffle MCQ options on each quiz attempt ([bb25828](https://github.com/Redm0nd/lotg-exams/commit/bb258286a5e245513f15d7a56a7662bade86a37d)), closes [#49](https://github.com/Redm0nd/lotg-exams/issues/49)
+
 ## [1.8.3](https://github.com/Redm0nd/lotg-exams/compare/v1.8.2...v1.8.3) (2026-05-04)
 
 
