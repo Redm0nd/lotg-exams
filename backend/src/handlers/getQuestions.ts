@@ -1,4 +1,9 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult, Question } from '../lib/types.js';
+import type {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  Question,
+  QuestionWithAnswer,
+} from '../lib/types.js';
 import {
   getApprovedQuestionsByJobId,
   getExtractionJob,
@@ -10,13 +15,16 @@ import { verifyToken } from '../lib/verifyToken.js';
 
 /**
  * GET /quizzes/{id}/questions
- * Returns randomized questions for a quiz (without correct answers)
+ * Returns randomized questions for a quiz.
+ * ?mode=study requires auth and includes correct answers + explanations.
  */
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   console.log('Event:', JSON.stringify(event, null, 2));
 
   const quizId = event.pathParameters?.id;
   const limitParam = event.queryStringParameters?.limit;
+  const mode = event.queryStringParameters?.mode;
+  const isStudyMode = mode === 'study';
 
   if (!quizId) {
     return errorResponse('Missing quiz ID', 400);
@@ -31,15 +39,14 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   }
 
   try {
-    // Verify the job exists and is published
     const job = await getExtractionJob(quizId);
 
     if (!job || !job.published || job.approvedCount === 0) {
       return errorResponse('Quiz not found', 404);
     }
 
-    // Enforce auth for non-public quizzes
-    if (!job.isPublic) {
+    // Study mode always requires auth; non-public quizzes also require auth
+    if (isStudyMode || !job.isPublic) {
       const userId = await verifyToken(
         event.headers?.Authorization || event.headers?.authorization
       );
@@ -48,7 +55,6 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       }
     }
 
-    // Get approved questions for this job, optionally narrowed by the quiz's law filter
     const allQuestions = await getApprovedQuestionsByJobId(quizId);
     const questions = job.lawFilter
       ? allQuestions.filter((q) => q.law === job.lawFilter)
@@ -61,14 +67,19 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const effectiveLimit = limit ?? job.questionsPerAttempt ?? 10;
     const shuffled = shuffleArray(questions).slice(0, effectiveLimit);
 
-    // Transform to response format (without correct answers)
-    const response: Question[] = shuffled.map((q) => ({
-      questionId: q.questionId,
-      text: q.text,
-      options: q.options,
-    }));
+    const response: (Question | QuestionWithAnswer)[] = shuffled.map((q) =>
+      isStudyMode
+        ? {
+            questionId: q.questionId,
+            text: q.text,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation || 'No explanation available.',
+            lawReference: q.lawReference || q.law || 'N/A',
+          }
+        : { questionId: q.questionId, text: q.text, options: q.options }
+    );
 
-    // Track usage for the selected questions (fire and forget)
     const questionIds = shuffled.map((q) => q.questionId);
     updateQuestionUsage(questionIds).catch((err) => {
       console.error('Error updating question usage:', err);
