@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/Redm0nd/lotg-exams/compare/v1.9.1...v1.10.0) (2026-05-04)
+
+
+### Features
+
+* **admin:** add Manage Quizzes section with edit, add/remove questions ([ac5da41](https://github.com/Redm0nd/lotg-exams/commit/ac5da41c5dc53102bdb94359bccd12fb9dfd1592)), closes [#61](https://github.com/Redm0nd/lotg-exams/issues/61)
+
 ## [1.9.1](https://github.com/Redm0nd/lotg-exams/compare/v1.9.0...v1.9.1) (2026-05-04)
 
 
