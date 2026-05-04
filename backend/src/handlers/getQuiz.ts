@@ -45,6 +45,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       description: job.description?.trim() || `Questions extracted from ${job.fileName}`,
       category: job.category || 'Laws of the Game',
       questionCount: job.approvedCount,
+      isPublic: job.isPublic ?? false,
       createdAt: job.createdAt,
       updatedAt: job.updatedAt,
       ...(job.timeLimitMinutes !== undefined && { timeLimitMinutes: job.timeLimitMinutes }),
