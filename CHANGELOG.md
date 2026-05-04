@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/Redm0nd/lotg-exams/compare/v1.10.1...v1.11.0) (2026-05-04)
+
+
+### Features
+
+* add study mode with instant feedback after each question ([02a9ead](https://github.com/Redm0nd/lotg-exams/commit/02a9ead9083ebbcbb5dae6e4763e168e31a1b023)), closes [#57](https://github.com/Redm0nd/lotg-exams/issues/57)
+
 ## [1.10.1](https://github.com/Redm0nd/lotg-exams/compare/v1.10.0...v1.10.1) (2026-05-04)
 
 
