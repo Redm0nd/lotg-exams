@@ -17,6 +17,8 @@ locals {
     "getExtractionJobs",
     "createManualJob",
     "addManualQuestion",
+    "updateJobMetadata",
+    "removeJobQuestion",
     "authorize",
   ]
 }
@@ -427,6 +429,8 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.publish_quiz,
     aws_api_gateway_integration.create_manual_job,
     aws_api_gateway_integration.add_manual_question,
+    aws_api_gateway_integration.update_job_metadata,
+    aws_api_gateway_integration.remove_job_question,
   ]
 
   lifecycle {
@@ -452,6 +456,8 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.admin_bulk_review.id,
       aws_api_gateway_resource.admin_jobs_manual.id,
       aws_api_gateway_resource.admin_job_questions.id,
+      aws_api_gateway_resource.admin_job_metadata.id,
+      aws_api_gateway_resource.admin_job_question_id.id,
       [for r in aws_api_gateway_gateway_response.cors : r.id],
     ]))
   }
@@ -1270,6 +1276,142 @@ resource "aws_lambda_permission" "add_manual_question" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.add_manual_question.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+# ============================================================================
+# Lambda Function: updateJobMetadata
+# ============================================================================
+
+resource "aws_lambda_function" "update_job_metadata" {
+  filename         = "${path.module}/../../../backend/dist/updateJobMetadata.zip"
+  function_name    = "${var.project_name}-${var.environment}-updateJobMetadata"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/updateJobMetadata.zip") ? filebase64sha256("${path.module}/../../../backend/dist/updateJobMetadata.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-updateJobMetadata"
+  }
+}
+
+# ============================================================================
+# Lambda Function: removeJobQuestion
+# ============================================================================
+
+resource "aws_lambda_function" "remove_job_question" {
+  filename         = "${path.module}/../../../backend/dist/removeJobQuestion.zip"
+  function_name    = "${var.project_name}-${var.environment}-removeJobQuestion"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/removeJobQuestion.zip") ? filebase64sha256("${path.module}/../../../backend/dist/removeJobQuestion.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-removeJobQuestion"
+  }
+}
+
+# /admin/jobs/{id}/metadata resource
+resource "aws_api_gateway_resource" "admin_job_metadata" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_job_id.id
+  path_part   = "metadata"
+}
+
+# PUT /admin/jobs/{id}/metadata
+resource "aws_api_gateway_method" "update_job_metadata" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_job_metadata.id
+  http_method   = "PUT"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
+}
+
+resource "aws_api_gateway_integration" "update_job_metadata" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_job_metadata.id
+  http_method             = aws_api_gateway_method.update_job_metadata.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.update_job_metadata.invoke_arn
+}
+
+# /admin/jobs/{id}/questions/{questionId} resource
+resource "aws_api_gateway_resource" "admin_job_question_id" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_job_questions.id
+  path_part   = "{questionId}"
+}
+
+# DELETE /admin/jobs/{id}/questions/{questionId}
+resource "aws_api_gateway_method" "remove_job_question" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_job_question_id.id
+  http_method   = "DELETE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
+}
+
+resource "aws_api_gateway_integration" "remove_job_question" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_job_question_id.id
+  http_method             = aws_api_gateway_method.remove_job_question.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.remove_job_question.invoke_arn
+}
+
+# CORS for new routes
+module "cors_admin_job_metadata" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_job_metadata.id
+}
+
+module "cors_admin_job_question_id" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_job_question_id.id
+}
+
+# Lambda permissions
+resource "aws_lambda_permission" "update_job_metadata" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.update_job_metadata.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "remove_job_question" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.remove_job_question.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }

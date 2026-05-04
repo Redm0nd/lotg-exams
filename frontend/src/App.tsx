@@ -13,6 +13,9 @@ import AdminReview from './pages/admin/Review';
 import AdminQuestionBank from './pages/admin/QuestionBank';
 import AdminCreateQuiz from './pages/admin/CreateQuiz';
 import AdminAddQuestion from './pages/admin/AddQuestion';
+import AdminManageQuizzes from './pages/admin/ManageQuizzes';
+import AdminEditQuiz from './pages/admin/EditQuiz';
+import AdminQuizQuestions from './pages/admin/QuizQuestions';
 
 export default function App() {
   return (
@@ -34,6 +37,9 @@ export default function App() {
         }
       >
         <Route index element={<AdminDashboard />} />
+        <Route path="quizzes" element={<AdminManageQuizzes />} />
+        <Route path="quizzes/:jobId" element={<AdminQuizQuestions />} />
+        <Route path="quizzes/:jobId/edit" element={<AdminEditQuiz />} />
         <Route path="upload" element={<AdminUpload />} />
         <Route path="create" element={<AdminCreateQuiz />} />
         <Route path="jobs" element={<AdminJobs />} />

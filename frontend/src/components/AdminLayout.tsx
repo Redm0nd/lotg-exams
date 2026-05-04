@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', end: true },
+  { to: '/admin/quizzes', label: 'Quizzes' },
   { to: '/admin/upload', label: 'Upload PDF' },
   { to: '/admin/jobs', label: 'Jobs' },
   { to: '/admin/review', label: 'Review Queue' },
