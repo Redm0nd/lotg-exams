@@ -13,8 +13,8 @@ const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 // https://lotg-exams.com/roles, but other commonly-seen forms are also
 // checked so a mis-configured Action / Rule still works while we observe
 // what the deployed setup actually puts in the token.
-const PRIMARY_ROLES_NAMESPACE = 'https://lotg-exams.com/roles';
-const FALLBACK_ROLES_CLAIMS = [
+export const PRIMARY_ROLES_NAMESPACE = 'https://lotg-exams.com/roles';
+export const FALLBACK_ROLES_CLAIMS = [
   'https://lotg-exams.com/roles',
   'https://lotg-exams.com/permissions',
   'permissions',
@@ -22,7 +22,18 @@ const FALLBACK_ROLES_CLAIMS = [
   'https://schemas.quickconnect.com/identity/claims/role',
 ];
 
-function extractRoles(verified: DecodedToken): { roles: string[]; sourceClaim: string | null } {
+export interface DecodedToken {
+  iss: string;
+  sub: string;
+  aud: string | string[];
+  exp: number;
+  iat: number;
+  [key: string]: unknown;
+}
+
+export function extractRoles(
+  verified: Pick<DecodedToken, string>
+): { roles: string[]; sourceClaim: string | null } {
   for (const claim of FALLBACK_ROLES_CLAIMS) {
     const value = verified[claim];
     if (Array.isArray(value) && value.length > 0) {
@@ -30,15 +41,6 @@ function extractRoles(verified: DecodedToken): { roles: string[]; sourceClaim: s
     }
   }
   return { roles: [], sourceClaim: null };
-}
-
-interface DecodedToken {
-  iss: string;
-  sub: string;
-  aud: string | string[];
-  exp: number;
-  iat: number;
-  [key: string]: unknown;
 }
 
 const client = jwksClient({
