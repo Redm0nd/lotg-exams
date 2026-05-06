@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getQuizzes } from '../api/client';
 import Hero from '../components/Hero';
+import ScrollReveal from '../components/ScrollReveal';
 import type { QuizSummary } from '../types';
 
 const ALL_CATEGORIES = '__all__';
@@ -75,10 +76,12 @@ export default function QuizList() {
         id="quizzes"
         className="container mx-auto px-4 py-12 max-w-4xl scroll-mt-16"
       >
-        <header className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Available Quizzes</h2>
-          <p className="text-gray-600">Pick one to start practising.</p>
-        </header>
+        <ScrollReveal>
+          <header className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Available Quizzes</h2>
+            <p className="text-gray-600">Pick one to start practising.</p>
+          </header>
+        </ScrollReveal>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
@@ -154,43 +157,44 @@ export default function QuizList() {
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
-                {filtered.map((quiz) => {
+                {filtered.map((quiz, index) => {
                   const locked = !quiz.isPublic && !isAuthenticated;
                   return (
-                    <Link
-                      key={quiz.quizId}
-                      to={locked ? '#' : `/quiz/${quiz.quizId}`}
-                      onClick={locked ? (e) => e.preventDefault() : undefined}
-                      className={`card-hover group ${locked ? 'opacity-50 grayscale pointer-events-auto cursor-not-allowed' : ''}`}
-                      aria-disabled={locked}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-                          {quiz.title}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {!quiz.isPublic && (
-                            <span title="Login required" className="text-gray-400">
-                              🔒
+                    <ScrollReveal key={quiz.quizId} delayMs={Math.min(index * 60, 360)}>
+                      <Link
+                        to={locked ? '#' : `/quiz/${quiz.quizId}`}
+                        onClick={locked ? (e) => e.preventDefault() : undefined}
+                        className={`card-hover group block ${locked ? 'opacity-50 grayscale pointer-events-auto cursor-not-allowed' : ''}`}
+                        aria-disabled={locked}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                            {quiz.title}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {!quiz.isPublic && (
+                              <span title="Login required" className="text-gray-400">
+                                🔒
+                              </span>
+                            )}
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                              {quiz.questionCount} questions
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-gray-600 mb-4">{quiz.description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">{quiz.category}</span>
+                          {locked ? (
+                            <span className="text-gray-400 text-sm">Login to access</span>
+                          ) : (
+                            <span className="text-primary-600 group-hover:translate-x-1 transition-transform">
+                              Start Quiz →
                             </span>
                           )}
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
-                            {quiz.questionCount} questions
-                          </span>
                         </div>
-                      </div>
-                      <p className="text-gray-600 mb-4">{quiz.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">{quiz.category}</span>
-                        {locked ? (
-                          <span className="text-gray-400 text-sm">Login to access</span>
-                        ) : (
-                          <span className="text-primary-600 group-hover:translate-x-1 transition-transform">
-                            Start Quiz →
-                          </span>
-                        )}
-                      </div>
-                    </Link>
+                      </Link>
+                    </ScrollReveal>
                   );
                 })}
               </div>
