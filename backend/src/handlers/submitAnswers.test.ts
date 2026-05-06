@@ -2,14 +2,19 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildApiGatewayEvent } from '../lib/test-utils.js';
 import type { BankQuestionItem, ExtractionJobItem } from '../lib/types.js';
 
-const { getExtractionJob, getBankQuestion } = vi.hoisted(() => ({
+const { getExtractionJob, getBankQuestion, verifyToken } = vi.hoisted(() => ({
   getExtractionJob: vi.fn(),
   getBankQuestion: vi.fn(),
+  verifyToken: vi.fn(),
 }));
 
 vi.mock('../lib/dynamodb.js', () => ({
   getExtractionJob,
   getBankQuestion,
+}));
+
+vi.mock('../lib/verifyToken.js', () => ({
+  verifyToken,
 }));
 
 import { handler } from './submitAnswers.js';
@@ -29,6 +34,7 @@ function publishedJob(overrides: Partial<ExtractionJobItem> = {}): ExtractionJob
     rejectedCount: 0,
     duplicateCount: 0,
     published: true,
+    isPublic: true,
     createdAt: '2026-05-01T00:00:00.000Z',
     updatedAt: '2026-05-01T00:00:00.000Z',
     ...overrides,
@@ -114,6 +120,22 @@ describe('submitAnswers', () => {
       getExtractionJob.mockResolvedValue(publishedJob({ published: false }));
       const res = await handler(event('quiz-1', { answers: [] }));
       expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('auth gate for non-public quizzes', () => {
+    it('returns 401 when no auth token is provided', async () => {
+      getExtractionJob.mockResolvedValue(publishedJob({ isPublic: false }));
+      verifyToken.mockResolvedValue(null);
+      const res = await handler(event('quiz-1', { answers: [] }));
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('proceeds when a valid auth token is provided', async () => {
+      getExtractionJob.mockResolvedValue(publishedJob({ isPublic: false }));
+      verifyToken.mockResolvedValue('auth0|123');
+      const res = await handler(event('quiz-1', { answers: [] }));
+      expect(res.statusCode).toBe(200);
     });
   });
 
