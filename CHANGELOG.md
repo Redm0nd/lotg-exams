@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/Redm0nd/lotg-exams/compare/v1.12.1...v1.13.0) (2026-05-06)
+
+
+### Features
+
+* **landing:** live sample question + scroll-reveal sections ([5196f69](https://github.com/Redm0nd/lotg-exams/commit/5196f69f11bc9e037e597358c2b428d58cf62f2d))
+
 ## [1.12.1](https://github.com/Redm0nd/lotg-exams/compare/v1.12.0...v1.12.1) (2026-05-06)
 
 
