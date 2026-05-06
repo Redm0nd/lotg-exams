@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/Redm0nd/lotg-exams/compare/v1.12.0...v1.12.1) (2026-05-06)
+
+
+### Bug Fixes
+
+* **backend:** sync package-lock.json so npm ci passes ([7572f03](https://github.com/Redm0nd/lotg-exams/commit/7572f03d41c040ec2c2fbd25327d3ff07ee8fbdc))
+
 # [1.12.0](https://github.com/Redm0nd/lotg-exams/compare/v1.11.0...v1.12.0) (2026-05-06)
 
 
