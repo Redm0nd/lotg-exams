@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/Redm0nd/lotg-exams/compare/v1.11.0...v1.12.0) (2026-05-06)
+
+
+### Features
+
+* **landing:** add hero and value props above the quiz list ([7a5b599](https://github.com/Redm0nd/lotg-exams/commit/7a5b59994c425ecf15a145a8bfd6039e8542e793)), closes [#51](https://github.com/Redm0nd/lotg-exams/issues/51)
+
 # [1.11.0](https://github.com/Redm0nd/lotg-exams/compare/v1.10.1...v1.11.0) (2026-05-04)
 
 
