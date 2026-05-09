@@ -16,6 +16,8 @@ import AdminAddQuestion from './pages/admin/AddQuestion';
 import AdminManageQuizzes from './pages/admin/ManageQuizzes';
 import AdminEditQuiz from './pages/admin/EditQuiz';
 import AdminQuizQuestions from './pages/admin/QuizQuestions';
+import ProfilePage from './pages/ProfilePage';
+import HistoryPage from './pages/HistoryPage';
 
 export default function App() {
   return (
@@ -25,6 +27,8 @@ export default function App() {
         <Route path="/" element={<QuizList />} />
         <Route path="/quiz/:quizId" element={<QuizTake />} />
         <Route path="/quiz/:quizId/results" element={<QuizResults />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/history" element={<HistoryPage />} />
       </Route>
 
       {/* Protected admin routes */}

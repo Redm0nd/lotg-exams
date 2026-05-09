@@ -18,6 +18,8 @@ import type {
   AddManualQuestionResponse,
   SubmitAnswersResponse,
   UpdateQuizMetadataRequest,
+  UserAttemptsResponse,
+  UserStats,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -254,6 +256,27 @@ export async function updateQuizMetadata(
     { method: 'PUT', body: JSON.stringify(updates) },
     token
   );
+}
+
+// User progress endpoints
+export async function getMyAttempts(
+  token: string,
+  limit?: number,
+  cursor?: string
+): Promise<UserAttemptsResponse> {
+  const params = new URLSearchParams();
+  if (limit !== undefined) params.set('limit', limit.toString());
+  if (cursor) params.set('cursor', cursor);
+  const query = params.toString();
+  return fetchAPI<UserAttemptsResponse>(
+    `/me/attempts${query ? `?${query}` : ''}`,
+    undefined,
+    token
+  );
+}
+
+export async function getMyStats(token: string): Promise<UserStats> {
+  return fetchAPI<UserStats>('/me/stats', undefined, token);
 }
 
 export async function removeQuizQuestion(
