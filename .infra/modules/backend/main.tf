@@ -20,6 +20,8 @@ locals {
     "updateJobMetadata",
     "removeJobQuestion",
     "authorize",
+    "getMyAttempts",
+    "getMyStats",
   ]
 }
 
@@ -69,6 +71,8 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
         Effect = "Allow"
         Action = [
           "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
           "dynamodb:Query",
           "dynamodb:Scan"
         ]
@@ -431,6 +435,8 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.add_manual_question,
     aws_api_gateway_integration.update_job_metadata,
     aws_api_gateway_integration.remove_job_question,
+    aws_api_gateway_integration.get_my_attempts,
+    aws_api_gateway_integration.get_my_stats,
   ]
 
   lifecycle {
@@ -458,6 +464,9 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.admin_job_questions.id,
       aws_api_gateway_resource.admin_job_metadata.id,
       aws_api_gateway_resource.admin_job_question_id.id,
+      aws_api_gateway_resource.me.id,
+      aws_api_gateway_resource.me_attempts.id,
+      aws_api_gateway_resource.me_stats.id,
       [for r in aws_api_gateway_gateway_response.cors : r.id],
     ]))
   }
@@ -1461,6 +1470,153 @@ resource "aws_lambda_permission" "publish_quiz" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.publish_quiz.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+# ============================================================================
+# User Progress Tracking (Issue #47)
+# Lambda functions: getMyAttempts, getMyStats
+# Routes: GET /me/attempts, GET /me/stats
+# ============================================================================
+
+resource "aws_lambda_function" "get_my_attempts" {
+  filename         = "${path.module}/../../../backend/dist/getMyAttempts.zip"
+  function_name    = "${var.project_name}-${var.environment}-getMyAttempts"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/getMyAttempts.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getMyAttempts.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME   = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-getMyAttempts"
+  }
+}
+
+resource "aws_lambda_function" "get_my_stats" {
+  filename         = "${path.module}/../../../backend/dist/getMyStats.zip"
+  function_name    = "${var.project_name}-${var.environment}-getMyStats"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/getMyStats.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getMyStats.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME   = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-getMyStats"
+  }
+}
+
+# /me resource
+resource "aws_api_gateway_resource" "me" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_rest_api.this.root_resource_id
+  path_part   = "me"
+}
+
+# /me/attempts resource
+resource "aws_api_gateway_resource" "me_attempts" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.me.id
+  path_part   = "attempts"
+}
+
+# /me/stats resource
+resource "aws_api_gateway_resource" "me_stats" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.me.id
+  path_part   = "stats"
+}
+
+# GET /me/attempts
+resource "aws_api_gateway_method" "get_my_attempts" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_attempts.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_my_attempts" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_attempts.id
+  http_method             = aws_api_gateway_method.get_my_attempts.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_my_attempts.invoke_arn
+}
+
+# GET /me/stats
+resource "aws_api_gateway_method" "get_my_stats" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_stats.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_my_stats" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_stats.id
+  http_method             = aws_api_gateway_method.get_my_stats.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_my_stats.invoke_arn
+}
+
+module "cors_me" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.me.id
+}
+
+module "cors_me_attempts" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.me_attempts.id
+}
+
+module "cors_me_stats" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.me_stats.id
+}
+
+resource "aws_lambda_permission" "get_my_attempts" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.get_my_attempts.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "get_my_stats" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.get_my_stats.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }

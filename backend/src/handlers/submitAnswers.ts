@@ -1,9 +1,16 @@
+import { ulid } from 'ulid';
 import type {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   BankQuestionItem,
+  PerQuestionResult,
 } from '../lib/types.js';
-import { getExtractionJob, getBankQuestion } from '../lib/dynamodb.js';
+import {
+  getExtractionJob,
+  getBankQuestion,
+  saveUserAttempt,
+  updateUserStats,
+} from '../lib/dynamodb.js';
 import { successResponse, errorResponse } from '../lib/response.js';
 import { verifyToken } from '../lib/verifyToken.js';
 
@@ -36,7 +43,9 @@ interface SubmitAnswersResponse {
 
 /**
  * POST /quizzes/{id}/submit
- * Submits quiz answers and returns results with correct answers
+ * Submits quiz answers and returns results with correct answers.
+ * If the request carries a valid auth token, the attempt is persisted for
+ * the user's progress history.
  */
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   console.log('Event:', JSON.stringify(event, null, 2));
@@ -70,29 +79,27 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return errorResponse('Quiz not found', 404);
     }
 
-    // Enforce auth for non-public quizzes
-    if (!job.isPublic) {
-      const userId = await verifyToken(
-        event.headers?.Authorization || event.headers?.authorization
-      );
-      if (!userId) {
-        return errorResponse('Authentication required', 401);
-      }
+    // Try to identify the caller — required for private quizzes, optional for public
+    const userId = await verifyToken(
+      event.headers?.Authorization || event.headers?.authorization
+    );
+
+    if (!job.isPublic && !userId) {
+      return errorResponse('Authentication required', 401);
     }
 
     // Fetch each question and build results
     const results: QuestionResult[] = [];
+    const perQuestionResults: PerQuestionResult[] = [];
 
     for (const answer of request.answers) {
       const question = await getBankQuestion(answer.questionId);
 
       if (!question) {
-        // Skip questions that don't exist
         console.warn(`Question not found: ${answer.questionId}`);
         continue;
       }
 
-      // Verify question belongs to this quiz
       if (question.jobId !== quizId) {
         console.warn(`Question ${answer.questionId} does not belong to quiz ${quizId}`);
         continue;
@@ -110,6 +117,13 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         explanation: question.explanation || 'No explanation available.',
         lawReference: question.lawReference || question.law || 'N/A',
       });
+
+      perQuestionResults.push({
+        questionId: question.questionId,
+        selectedOption: answer.selectedOption,
+        isCorrect,
+        law: question.law,
+      });
     }
 
     const correctCount = results.filter((r) => r.isCorrect).length;
@@ -124,6 +138,29 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         percentage,
       },
     };
+
+    // Persist the attempt for authenticated users (fire-and-forget — do not delay response)
+    if (userId && totalCount > 0) {
+      const now = new Date().toISOString();
+      const attemptSK = `ATTEMPT#${now}#${quizId}`;
+      Promise.all([
+        saveUserAttempt({
+          PK: `USER#${userId}`,
+          SK: attemptSK,
+          Type: 'UserAttempt',
+          userId,
+          quizId,
+          score: correctCount,
+          total: totalCount,
+          percentage,
+          questionResults: perQuestionResults,
+          createdAt: now,
+        }),
+        updateUserStats(userId, percentage, perQuestionResults),
+      ]).catch((err) => {
+        console.error('Error persisting user attempt:', err);
+      });
+    }
 
     return successResponse(response);
   } catch (error) {

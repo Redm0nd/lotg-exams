@@ -14,6 +14,10 @@ import type {
   ExtractionJobItem,
   QuestionStatus,
   Law,
+  UserAttemptItem,
+  UserStatsItem,
+  PerQuestionResult,
+  LawStats,
 } from './types.js';
 
 const client = new DynamoDBClient({});
@@ -493,3 +497,104 @@ export async function updateQuestionUsage(questionIds: string[]): Promise<void> 
     )
   );
 }
+
+// ============================================================================
+// User Progress Tracking
+// ============================================================================
+
+/**
+ * Save a quiz attempt for a user
+ */
+export async function saveUserAttempt(attempt: UserAttemptItem): Promise<void> {
+  await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: attempt }));
+}
+
+/**
+ * Get paginated quiz attempts for a user, most recent first
+ */
+export async function getUserAttempts(
+  userId: string,
+  limit = 20,
+  lastEvaluatedKey?: Record<string, unknown>
+): Promise<{ items: UserAttemptItem[]; lastEvaluatedKey?: Record<string, unknown> }> {
+  const result = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+      ExpressionAttributeValues: {
+        ':pk': `USER#${userId}`,
+        ':prefix': 'ATTEMPT#',
+      },
+      ScanIndexForward: false,
+      Limit: limit,
+      ...(lastEvaluatedKey && { ExclusiveStartKey: lastEvaluatedKey }),
+    })
+  );
+
+  return {
+    items: (result.Items || []) as UserAttemptItem[],
+    lastEvaluatedKey: result.LastEvaluatedKey as Record<string, unknown> | undefined,
+  };
+}
+
+/**
+ * Get aggregated stats for a user
+ */
+export async function getUserStats(userId: string): Promise<UserStatsItem | null> {
+  const result = await docClient.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `USER#${userId}`, SK: 'STATS' },
+    })
+  );
+  return (result.Item as UserStatsItem) || null;
+}
+
+/**
+ * Update (or create) aggregated stats for a user after a new attempt.
+ * Reads the existing stats, merges in the new attempt, then writes back.
+ */
+export async function updateUserStats(
+  userId: string,
+  percentage: number,
+  questionResults: PerQuestionResult[]
+): Promise<void> {
+  const now = new Date().toISOString();
+  const existing = await getUserStats(userId);
+
+  const totalAttempts = (existing?.totalAttempts ?? 0) + 1;
+  const prevAvg = existing?.averageScore ?? 0;
+  const averageScore = Math.round(
+    (prevAvg * (totalAttempts - 1) + percentage) / totalAttempts
+  );
+  const bestScore = Math.max(existing?.bestScore ?? 0, percentage);
+
+  const byLaw: Partial<Record<string, LawStats>> = { ...(existing?.byLaw ?? {}) };
+  for (const qr of questionResults) {
+    const key = qr.law;
+    const prev = byLaw[key];
+    const attempts = (prev?.attempts ?? 0) + 1;
+    const totalCorrect = (prev?.totalCorrect ?? 0) + (qr.isCorrect ? 1 : 0);
+    byLaw[key] = {
+      attempts,
+      totalCorrect,
+      avgScore: Math.round((totalCorrect / attempts) * 100),
+      lastAttempt: now,
+    };
+  }
+
+  const stats: UserStatsItem = {
+    PK: `USER#${userId}`,
+    SK: 'STATS',
+    Type: 'UserStats',
+    userId,
+    totalAttempts,
+    averageScore,
+    bestScore,
+    byLaw: byLaw as UserStatsItem['byLaw'],
+    updatedAt: now,
+  };
+
+  await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: stats }));
+}
+
