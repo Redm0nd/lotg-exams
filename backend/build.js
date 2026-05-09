@@ -31,6 +31,9 @@ const handlers = [
   'removeJobQuestion',
   // Auth
   'authorize',
+  // User progress
+  'getMyAttempts',
+  'getMyStats',
 ];
 
 async function buildHandler(handlerName) {
