@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/Redm0nd/lotg-exams/compare/v1.13.0...v1.14.0) (2026-05-09)
+
+
+### Bug Fixes
+
+* **test:** update submitAnswers mock to include user-progress DynamoDB functions ([48c3b5b](https://github.com/Redm0nd/lotg-exams/commit/48c3b5b40b82c1535e973096c022a953d3c924fa))
+
+
+### Features
+
+* **backend:** user progress tracking — store attempts and aggregate stats ([8110c5e](https://github.com/Redm0nd/lotg-exams/commit/8110c5ef7fc74e5871af014557786f37307e27fb))
+
 # [1.13.0](https://github.com/Redm0nd/lotg-exams/compare/v1.12.1...v1.13.0) (2026-05-06)
 
 
