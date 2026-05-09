@@ -80,17 +80,15 @@ jobs:
           path: backend/dist/*.zip
           retention-days: 1
 
-  # Terraform Plan - only runs if infra changed
-  terraform-plan:
-    name: Terraform Plan
+  # Terraform - plan on PRs, plan + apply on pushes to main
+  terraform:
+    name: Terraform
     runs-on: ubuntu-latest
     needs: [changes, build-backend]
     if: needs.changes.outputs.infra == 'true'
     defaults:
       run:
         working-directory: .infra
-    outputs:
-      has_changes: ${{ steps.plan.outputs.has_changes }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -120,25 +118,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        id: plan
-        run: |
-          set +e
-          terraform plan -out=tfplan -detailed-exitcode -no-color 2>&1 | tee plan_output.txt
-          exit_code=$?
-          set -e
-
-          # Exit code 0 = no changes, 1 = error, 2 = changes
-          if [ "$exit_code" -eq 2 ]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            exit 0
-          elif [ "$exit_code" -eq 1 ]; then
-            echo "Plan failed"
-            cat plan_output.txt
-            exit 1
-          else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+        run: terraform plan -no-color 2>&1 | tee plan_output.txt
 
       - name: Show Plan in Summary
         if: always()
@@ -149,78 +129,22 @@ jobs:
           cat plan_output.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload Plan (binary)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/upload-artifact@v6
-        with:
-          name: tfplan
-          path: .infra/tfplan
-          retention-days: 1
-
-      - name: Upload Plan (readable)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/upload-artifact@v6
-        with:
-          name: plan-output
-          path: .infra/plan_output.txt
-          retention-days: 1
-
-  # Terraform Apply - requires approval, uses saved plan
-  terraform-apply:
-    name: Terraform Apply
-    runs-on: ubuntu-latest
-    needs: [changes, build-backend, terraform-plan]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.infra == 'true'
-    environment: production
-    defaults:
-      run:
-        working-directory: .infra
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Download Lambda Artifacts
-        uses: actions/download-artifact@v6
-        with:
-          name: lambda-zips
-          path: backend/dist
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Download Plan
-        uses: actions/download-artifact@v6
-        with:
-          name: tfplan
-          path: .infra
-
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
 
-  # Get Terraform outputs - runs after apply (if infra changed) or independently
+  # Get Terraform outputs - runs after terraform (if infra changed) or independently
   get-outputs:
     name: Get Terraform Outputs
     runs-on: ubuntu-latest
-    needs: [changes, terraform-apply]
-    # Run if: (infra changed AND apply succeeded) OR (infra didn't change but backend/frontend changed)
+    needs: [changes, terraform]
+    # Run if: (infra changed AND terraform succeeded) OR (infra didn't change but backend/frontend changed)
     if: |
       always() &&
       github.ref == 'refs/heads/main' &&
       github.event_name == 'push' &&
       (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true') &&
-      (needs.terraform-apply.result == 'success' || needs.terraform-apply.result == 'skipped')
+      (needs.terraform.result == 'success' || needs.terraform.result == 'skipped')
     defaults:
       run:
         working-directory: .infra
