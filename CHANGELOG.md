@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/Redm0nd/lotg-exams/compare/v1.15.0...v1.15.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* **infra:** trigger terraform apply for getMyAttempts and getMyStats ([84578a3](https://github.com/Redm0nd/lotg-exams/commit/84578a3b3fab9b658017da453e21e3f5d1ddec41)), closes [#70](https://github.com/Redm0nd/lotg-exams/issues/70) [#72](https://github.com/Redm0nd/lotg-exams/issues/72)
+
 # [1.15.0](https://github.com/Redm0nd/lotg-exams/compare/v1.14.0...v1.15.0) (2026-05-09)
 
 
