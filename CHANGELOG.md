@@ -1,3 +1,15 @@
+# [1.15.0](https://github.com/Redm0nd/lotg-exams/compare/v1.14.0...v1.15.0) (2026-05-09)
+
+
+### Bug Fixes
+
+* **ci:** add getMyAttempts and getMyStats to build and deploy pipeline ([c9fde62](https://github.com/Redm0nd/lotg-exams/commit/c9fde629b5d235e4efad3b2e62b523f930f9d057)), closes [#69](https://github.com/Redm0nd/lotg-exams/issues/69)
+
+
+### Features
+
+* **frontend:** user profile and quiz history pages ([1e5524d](https://github.com/Redm0nd/lotg-exams/commit/1e5524deae91b92ab34b906759bf5f6fee5179c7))
+
 # [1.14.0](https://github.com/Redm0nd/lotg-exams/compare/v1.13.0...v1.14.0) (2026-05-09)
 
 
