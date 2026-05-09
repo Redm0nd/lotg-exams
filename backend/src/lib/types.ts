@@ -199,6 +199,67 @@ export interface ExtractedQuestion {
   confidence: number;
 }
 
+// ============================================================================
+// User Progress Tracking (Issue #47)
+// ============================================================================
+
+export interface PerQuestionResult {
+  questionId: string;
+  selectedOption: number;
+  isCorrect: boolean;
+  law: Law;
+}
+
+export interface UserAttemptItem {
+  PK: string; // USER#{userId}
+  SK: string; // ATTEMPT#{createdAt}#{quizId}
+  Type: 'UserAttempt';
+  userId: string;
+  quizId: string;
+  score: number;
+  total: number;
+  percentage: number;
+  questionResults: PerQuestionResult[];
+  createdAt: string;
+}
+
+export interface LawStats {
+  attempts: number;
+  totalCorrect: number;
+  avgScore: number;
+  lastAttempt: string;
+}
+
+export interface UserStatsItem {
+  PK: string; // USER#{userId}
+  SK: string; // STATS
+  Type: 'UserStats';
+  userId: string;
+  totalAttempts: number;
+  averageScore: number;
+  bestScore: number;
+  byLaw: Partial<Record<Law, LawStats>>;
+  updatedAt: string;
+}
+
+// API response types for user progress
+export interface UserAttempt {
+  attemptId: string;
+  quizId: string;
+  score: number;
+  total: number;
+  percentage: number;
+  questionResults: PerQuestionResult[];
+  createdAt: string;
+}
+
+export interface UserStats {
+  totalAttempts: number;
+  averageScore: number;
+  bestScore: number;
+  byLaw: Partial<Record<Law, LawStats>>;
+}
+
 // Lambda event types
 export interface APIGatewayProxyEvent {
   httpMethod: string;
