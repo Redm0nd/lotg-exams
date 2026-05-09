@@ -32,6 +32,8 @@ output "lambda_function_names" {
     update_job_metadata    = aws_lambda_function.update_job_metadata.function_name
     remove_job_question    = aws_lambda_function.remove_job_question.function_name
     authorize              = aws_lambda_function.authorize.function_name
+    get_my_attempts        = aws_lambda_function.get_my_attempts.function_name
+    get_my_stats           = aws_lambda_function.get_my_stats.function_name
   }
 }
 
@@ -54,6 +56,8 @@ output "lambda_function_arns" {
     update_job_metadata    = aws_lambda_function.update_job_metadata.arn
     remove_job_question    = aws_lambda_function.remove_job_question.arn
     authorize              = aws_lambda_function.authorize.arn
+    get_my_attempts        = aws_lambda_function.get_my_attempts.arn
+    get_my_stats           = aws_lambda_function.get_my_stats.arn
   }
 }
 

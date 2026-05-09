@@ -242,6 +242,8 @@ jobs:
       lambda_create_manual_job: ${{ steps.tf-output.outputs.lambda_create_manual_job }}
       lambda_add_manual_question: ${{ steps.tf-output.outputs.lambda_add_manual_question }}
       lambda_authorize: ${{ steps.tf-output.outputs.lambda_authorize }}
+      lambda_get_my_attempts: ${{ steps.tf-output.outputs.lambda_get_my_attempts }}
+      lambda_get_my_stats: ${{ steps.tf-output.outputs.lambda_get_my_stats }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -281,6 +283,8 @@ jobs:
           echo "lambda_create_manual_job=$(terraform output -json lambda_function_names | jq -r '.create_manual_job')" >> $GITHUB_OUTPUT
           echo "lambda_add_manual_question=$(terraform output -json lambda_function_names | jq -r '.add_manual_question')" >> $GITHUB_OUTPUT
           echo "lambda_authorize=$(terraform output -json lambda_function_names | jq -r '.authorize')" >> $GITHUB_OUTPUT
+          echo "lambda_get_my_attempts=$(terraform output -json lambda_function_names | jq -r '.get_my_attempts')" >> $GITHUB_OUTPUT
+          echo "lambda_get_my_stats=$(terraform output -json lambda_function_names | jq -r '.get_my_stats')" >> $GITHUB_OUTPUT
 
   # Deploy Backend - uses pre-built artifacts
   deploy-backend:
@@ -403,6 +407,20 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_authorize }} \
             --zip-file fileb://backend/dist/authorize.zip
+
+      - name: Update Lambda - getMyAttempts
+        if: needs.get-outputs.outputs.lambda_get_my_attempts != '' && needs.get-outputs.outputs.lambda_get_my_attempts != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_my_attempts }} \
+            --zip-file fileb://backend/dist/getMyAttempts.zip
+
+      - name: Update Lambda - getMyStats
+        if: needs.get-outputs.outputs.lambda_get_my_stats != '' && needs.get-outputs.outputs.lambda_get_my_stats != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_my_stats }} \
+            --zip-file fileb://backend/dist/getMyStats.zip
 
   # Build and Deploy Frontend
   deploy-frontend:
