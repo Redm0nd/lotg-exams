@@ -2,15 +2,20 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildApiGatewayEvent } from '../lib/test-utils.js';
 import type { BankQuestionItem, ExtractionJobItem } from '../lib/types.js';
 
-const { getExtractionJob, getBankQuestion, verifyToken } = vi.hoisted(() => ({
-  getExtractionJob: vi.fn(),
-  getBankQuestion: vi.fn(),
-  verifyToken: vi.fn(),
-}));
+const { getExtractionJob, getBankQuestion, saveUserAttempt, updateUserStats, verifyToken } =
+  vi.hoisted(() => ({
+    getExtractionJob: vi.fn(),
+    getBankQuestion: vi.fn(),
+    saveUserAttempt: vi.fn().mockResolvedValue(undefined),
+    updateUserStats: vi.fn().mockResolvedValue(undefined),
+    verifyToken: vi.fn(),
+  }));
 
 vi.mock('../lib/dynamodb.js', () => ({
   getExtractionJob,
   getBankQuestion,
+  saveUserAttempt,
+  updateUserStats,
 }));
 
 vi.mock('../lib/verifyToken.js', () => ({
