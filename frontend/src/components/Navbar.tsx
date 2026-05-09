@@ -22,6 +22,12 @@ export default function Navbar() {
               <div className="h-8 w-8 animate-pulse bg-gray-200 rounded-full" />
             ) : isAuthenticated ? (
               <>
+                <Link
+                  to="/profile"
+                  className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  My Progress
+                </Link>
                 {isAdmin && (
                   <Link
                     to="/admin"

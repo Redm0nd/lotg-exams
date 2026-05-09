@@ -239,3 +239,40 @@ export interface SubmitAnswersResponse {
     percentage: number;
   };
 }
+
+// User progress types (mirrors backend UserAttempt / UserStats)
+export interface PerQuestionResult {
+  questionId: string;
+  selectedOption: number;
+  isCorrect: boolean;
+  law: Law;
+}
+
+export interface LawStats {
+  attempts: number;
+  totalCorrect: number;
+  avgScore: number;
+  lastAttempt: string;
+}
+
+export interface UserAttempt {
+  attemptId: string;
+  quizId: string;
+  score: number;
+  total: number;
+  percentage: number;
+  questionResults: PerQuestionResult[];
+  createdAt: string;
+}
+
+export interface UserStats {
+  totalAttempts: number;
+  averageScore: number;
+  bestScore: number;
+  byLaw: Partial<Record<Law, LawStats>>;
+}
+
+export interface UserAttemptsResponse {
+  attempts: UserAttempt[];
+  nextCursor?: string;
+}
