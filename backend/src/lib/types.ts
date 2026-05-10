@@ -239,6 +239,7 @@ export interface UserStatsItem {
   averageScore: number;
   bestScore: number;
   byLaw: Partial<Record<Law, LawStats>>;
+  createdAt: string;
   updatedAt: string;
 }
 
