@@ -178,12 +178,13 @@ export default function PracticeTake() {
           <div className="text-4xl mb-4">🎯</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Practice Mode</h2>
           <p className="text-gray-600 mb-6">
-            {questions.length} questions selected based on your performance. Get instant feedback
-            after each answer.
+            {questions.length} questions across all laws, weighted towards your weakest areas.
+            Get instant feedback after each answer.
           </p>
           {focusLaws.length > 0 && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-left">
-              <p className="text-sm font-semibold text-amber-800 mb-2">Focus areas this session:</p>
+              <p className="text-sm font-semibold text-amber-800 mb-1">Needs most improvement:</p>
+              <p className="text-xs text-amber-700 mb-2">Extra questions allocated to these laws based on your history.</p>
               <div className="flex flex-wrap gap-2">
                 {focusLaws.map((law) => (
                   <span
