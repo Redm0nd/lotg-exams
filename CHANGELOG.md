@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/Redm0nd/lotg-exams/compare/v1.15.1...v1.16.0) (2026-05-10)
+
+
+### Features
+
+* **admin:** add quiz deletion and platform analytics dashboard ([57e977a](https://github.com/Redm0nd/lotg-exams/commit/57e977a5f975026ac081b1f634852508d9ef500d)), closes [#54](https://github.com/Redm0nd/lotg-exams/issues/54) [#52](https://github.com/Redm0nd/lotg-exams/issues/52)
+
 ## [1.15.1](https://github.com/Redm0nd/lotg-exams/compare/v1.15.0...v1.15.1) (2026-05-09)
 
 
