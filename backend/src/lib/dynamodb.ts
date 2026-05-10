@@ -628,6 +628,7 @@ export async function updateUserStats(
     averageScore,
     bestScore,
     byLaw: byLaw as UserStatsItem['byLaw'],
+    createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
 

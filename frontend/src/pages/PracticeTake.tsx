@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getPracticeQuiz } from '../api/client';
 import type { StudyQuestion, Answer, Law } from '../types';
+import LawDrawer from '../components/LawDrawer';
 
 const OPTION_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -44,6 +45,7 @@ export default function PracticeTake() {
   const [feedbackRevealed, setFeedbackRevealed] = useState(false);
   const [results, setResults] = useState<QuestionResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [lawDrawerRef, setLawDrawerRef] = useState<string | null>(null);
 
   const answersRef = useRef<Answer[]>([]);
   useEffect(() => { answersRef.current = answers; }, [answers]);
@@ -232,9 +234,17 @@ export default function PracticeTake() {
               key={r.question.questionId}
               className={`card border-l-4 ${r.isCorrect ? 'border-green-500' : 'border-red-500'}`}
             >
-              <p className="text-sm font-medium text-gray-500 mb-1">
-                Q{idx + 1} · {r.isCorrect ? '✓ Correct' : '✗ Incorrect'} · {r.question.lawReference}
-              </p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-medium text-gray-500">
+                  Q{idx + 1} · {r.isCorrect ? '✓ Correct' : '✗ Incorrect'} · {r.question.lawReference}
+                </p>
+                <button
+                  onClick={() => setLawDrawerRef(r.question.lawReference)}
+                  className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2"
+                >
+                  View Law →
+                </button>
+              </div>
               <p className="text-gray-900 mb-3">{r.question.text}</p>
               {!r.isCorrect && (
                 <p className="text-sm text-gray-600 mb-2">
@@ -334,10 +344,18 @@ export default function PracticeTake() {
 
         {feedbackRevealed && (
           <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-            <p className="text-sm font-semibold text-blue-900 mb-1">
-              {currentAnswer?.selectedOption === currentQuestion.correctAnswer ? '✓ Correct!' : '✗ Incorrect'}{' '}
-              — {currentQuestion.lawReference}
-            </p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-semibold text-blue-900">
+                {currentAnswer?.selectedOption === currentQuestion.correctAnswer ? '✓ Correct!' : '✗ Incorrect'}{' '}
+                — {currentQuestion.lawReference}
+              </p>
+              <button
+                onClick={() => setLawDrawerRef(currentQuestion.lawReference)}
+                className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2"
+              >
+                View Law →
+              </button>
+            </div>
             <p className="text-sm text-blue-800">{currentQuestion.explanation}</p>
           </div>
         )}
@@ -372,6 +390,10 @@ export default function PracticeTake() {
         <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">Enter</kbd>{' '}
         {hasAnswered && !feedbackRevealed ? 'check' : feedbackRevealed ? (isLast ? 'results' : 'next') : ''}
       </p>
+
+      {lawDrawerRef && (
+        <LawDrawer lawReference={lawDrawerRef} onClose={() => setLawDrawerRef(null)} />
+      )}
     </div>
   );
 }

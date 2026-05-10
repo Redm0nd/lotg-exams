@@ -1,0 +1,336 @@
+{
+  "1": {
+    "title": "The Field of Play",
+    "summary": "Defines the physical requirements for the playing area, including dimensions, markings, goals, and technical areas.",
+    "sections": {
+      "1": {
+        "title": "Field surface",
+        "text": "Matches may be played on natural or artificial surfaces, according to the rules of the competition. The colour of artificial surfaces must be green. Where artificial surfaces are used in either UEFA or FIFA competition matches, the surface must meet the requirements of the FIFA Quality Programme for Football Turf or the UEFA Artificial Turf Programme, unless a special exemption is granted by FIFA/UEFA."
+      },
+      "2": {
+        "title": "Field markings",
+        "text": "The field of play must be rectangular and marked with continuous lines. These lines belong to the areas of which they are boundaries. All lines must be of the same width, which must not be more than 12cm (5ins). The two longer boundary lines are touch lines. The two shorter lines are goal lines. The field of play is divided into two halves by a halfway line, which joins the midpoints of the two touch lines. The centre mark is at the midpoint of the halfway line."
+      },
+      "3": {
+        "title": "Size",
+        "text": "The length of the touch line must be greater than the length of the goal line.\n\nLength (touch line): minimum 90m (100yds), maximum 120m (130yds)\nWidth (goal line): minimum 45m (50yds), maximum 90m (100yds)\n\nInternational matches:\nLength: minimum 100m (110yds), maximum 110m (120yds)\nWidth: minimum 64m (70yds), maximum 75m (80yds)"
+      },
+      "4": {
+        "title": "Goal area",
+        "text": "Two lines are drawn at right angles to the goal line, 5.5m (6yds) from the inside of each goalpost. These lines extend into the field of play for a distance of 5.5m (6yds) and are joined by a line drawn parallel with the goal line. The area bounded by these lines and the goal line is the goal area."
+      },
+      "5": {
+        "title": "Penalty area and goals",
+        "text": "Two lines are drawn at right angles to the goal line, 16.5m (18yds) from the inside of each goalpost. These lines extend into the field of play for a distance of 16.5m (18yds) and are joined by a line drawn parallel with the goal line. The area bounded by these lines and the goal line is the penalty area.\n\nGoals must be placed on the centre of each goal line. They consist of two upright posts equidistant from the corner flagposts and joined at the top by a horizontal crossbar. The distance between the posts is 7.32m (8yds) and the distance from the lower edge of the crossbar to the ground is 2.44m (8ft).\n\nGoalposts and crossbars must be white and made of approved materials."
+      },
+      "6": {
+        "title": "Flagposts",
+        "text": "A flagpost, not less than 1.5m (5ft) high, with a non-pointed top and a flag must be placed at each corner. Flagposts may also be placed at each end of the halfway line, not less than 1m (1yd) outside the touch line."
+      },
+      "7": {
+        "title": "The corner area",
+        "text": "A quarter circle with a radius of 1m (1yd) from each corner flagpost is drawn inside the field of play."
+      },
+      "8": {
+        "title": "Goals",
+        "text": "Goals must be placed on the centre of each goal line. They consist of two upright posts equidistant from the corner flagposts and joined at the top by a horizontal crossbar.\n\nDistance between posts: 7.32m (8yds)\nDistance from lower edge of crossbar to ground: 2.44m (8ft)\n\nBoth goalposts and the crossbar must be the same width and depth, which must not exceed 12cm (5ins). The goal lines must be of the same width as the goalposts and the crossbar. Nets may be attached to the goals and the ground behind the goal; they must be properly supported and must not interfere with the goalkeeper.\n\nGoalposts and crossbars must be white."
+      },
+      "9": {
+        "title": "Technical areas and other requirements",
+        "text": "The penalty mark is made 11m (12yds) from the midpoint between the goalposts and equidistant to them.\n\nAn arc of a circle with a radius of 9.15m (10yds) from the centre of each penalty mark is drawn outside the penalty area.\n\nTechnical areas may exist at professional stadiums and where they do exist, they must conform to the requirements in the Laws of the Game."
+      },
+      "10": {
+        "title": "Goal technology",
+        "text": "Goal-line technology (GLT) may be used to determine whether a goal has been scored. Competition rules must state if GLT will be used. If GLT is used, it must comply with FIFA Quality Programme for GLT."
+      },
+      "11": {
+        "title": "Penalty area details",
+        "text": "The penalty area is defined by:\n- Two lines drawn at right angles to the goal line, 16.5m (18yds) from the inside of each goalpost\n- These lines extend 16.5m (18yds) into the field of play\n- Joined by a line parallel to the goal line\n\nThe penalty mark is 11m (12yds) from the midpoint of the goal line.\n\nThe penalty arc (D) has a radius of 9.15m (10yds) from the penalty mark and is drawn outside the penalty area. During a penalty kick, all players except the kicker and goalkeeper must be: outside the penalty area, outside the penalty arc, and behind the penalty mark."
+      }
+    }
+  },
+  "2": {
+    "title": "The Ball",
+    "summary": "Specifies the requirements for the match ball, including its size, weight, material, and pressure.",
+    "sections": {
+      "1": {
+        "title": "Qualities and measurements",
+        "text": "The ball is:\n- Spherical\n- Made of leather or other suitable material\n- Of a circumference of not more than 70cm (28ins) and not less than 68cm (27ins)\n- Of a weight of not more than 450g (16oz) and not less than 410g (14oz) at the start of the match\n- Of a pressure equal to 0.6–1.1 atmosphere (600–1,100 g/cm²) at sea level (8.5lbs/sq in – 15.6lbs/sq in)"
+      },
+      "2": {
+        "title": "Replacement of a defective ball",
+        "text": "If the ball becomes defective during the course of a match:\n- Play is stopped\n- The match is restarted with a dropped ball at the place where the ball became defective, unless it was inside the goal area, in which case the dropped ball is taken on the goal area line parallel to the goal line at the point nearest to where the ball was when play was stopped.\n\nIf the ball becomes defective during a kick-off, goal kick, corner kick, free kick, penalty kick or throw-in, the restart is retaken.\n\nThe ball may not be changed during the match without the referee's authority."
+      }
+    }
+  },
+  "3": {
+    "title": "The Players",
+    "summary": "Covers the number of players, substitutions, and the role of the team officials.",
+    "sections": {
+      "1": {
+        "title": "Number of players",
+        "text": "A match is played by two teams, each with a maximum of eleven players; one must be the goalkeeper. A match may not start or continue if either team has fewer than seven players.\n\nIf a team has fewer than seven players because one or more players have deliberately left the field of play, the referee is not obliged to stop play and the specific Laws of the Game apply."
+      },
+      "2": {
+        "title": "Number of substitutes and officials",
+        "text": "Competition rules must state how many substitutes may be nominated, from three up to a maximum of fifteen.\n\nIf the rules of competition do not state the maximum number of substitutes, the maximum is five (three in extra time where this applies). Competition rules must also state whether a substitute may be made for an injured player in the 'golden goal' period.\n\nThe number of substitutions that may be made during a match must be stated by competition rules. If competition rules do not state this, the maximum is five (three in extra time)."
+      },
+      "3": {
+        "title": "Substitution procedure",
+        "text": "Substitutes may only enter the field during a stoppage in play.\n\nBefore a substitution is made:\n- The referee must be informed before the intended substitution is made\n- The substitute enters the field only after the player being replaced has left\n- The substitute enters at the halfway line during a stoppage in the match\n- A player who has been replaced takes no further part in the match\n- All substitutes are subject to the referee's authority whether or not they are called upon to play"
+      },
+      "4": {
+        "title": "Changing the goalkeeper",
+        "text": "Any of the other players may change places with the goalkeeper, provided that:\n- The referee is informed before the change is made\n- The change is made during a stoppage in play\n\nIf a player changes places with the goalkeeper without informing the referee, the players concerned may be cautioned when play stops, but not during play."
+      },
+      "5": {
+        "title": "Infringements and sanctions",
+        "text": "If a substitute or substituted player enters the field:\n- During play: play is stopped and the substitute or substituted player may be cautioned; play is restarted with a direct free kick from where the ball was when play was stopped, unless the ball was in the goal area, in which case the free kick is taken on the goal area line parallel to the goal line nearest to where the ball was located.\n\nIf a player changes positions with the goalkeeper without the referee's permission and/or during play:\n- The players concerned are cautioned when the ball is next out of play (but play is not stopped to issue the caution)\n- A free kick is not awarded"
+      }
+    }
+  },
+  "4": {
+    "title": "The Players' Equipment",
+    "summary": "Defines the required and permitted equipment for players, including safety requirements.",
+    "sections": {
+      "1": {
+        "title": "Safety",
+        "text": "A player must not use equipment or wear anything that is dangerous to themselves or another player (including any kind of jewellery).\n\nAll equipment worn must comply with the safety requirements of these Laws."
+      },
+      "2": {
+        "title": "Compulsory equipment",
+        "text": "The compulsory equipment of a player is:\n- A jersey or shirt with sleeves – if undergarments are worn, the colour of the sleeve must be the same main colour as the sleeve of the jersey/shirt\n- Shorts – if undershorts/tights are worn, they must be the same main colour as the shorts\n- Socks – if tape or similar material is applied externally it must be the same colour as the sock\n- Shinguards – these must be covered entirely by the socks, made of a suitable material to provide reasonable protection and not present a danger to the player\n- Footwear\n\nEach goalkeeper must wear colours that are distinguishable from the other players and the match officials."
+      },
+      "3": {
+        "title": "Other equipment",
+        "text": "Non-dangerous protective equipment such as headgear, facemasks and knee and arm protectors made of soft, lightweight padded material is permitted.\n\nPlayers may use modern protective glasses.\n\nThe use of electronic communication systems between players/team officials is not permitted.\n\nPlayer numbers on jerseys: players must wear numbers on the back of jerseys (competition rules may require numbers on the front as well)."
+      }
+    }
+  },
+  "5": {
+    "title": "The Referee",
+    "summary": "Establishes the authority and responsibilities of the referee, including powers during and after the match.",
+    "sections": {
+      "1": {
+        "title": "Authority of the referee",
+        "text": "Each match is controlled by a referee who has full authority to enforce the Laws of the Game in connection with the match to which they have been appointed.\n\nThe referee's authority begins when they enter the field of play and ends when they leave the field of play after the final whistle. The referee's authority extends to time when the ball is not in play."
+      },
+      "2": {
+        "title": "Decisions of the referee",
+        "text": "Decisions of the referee regarding facts connected with play, including whether or not a goal is scored and the result of the match, are final.\n\nThe referee may only change a decision on realising that it is incorrect or, at their discretion, on the advice of an assistant referee or fourth official, provided that they have not restarted play or terminated the match.\n\nIf a referee is incapacitated, play may continue under the supervision of the other match officials until the ball is next out of play."
+      },
+      "3": {
+        "title": "Powers and duties",
+        "text": "The referee:\n- Enforces the Laws of the Game\n- Controls the match in cooperation with the other match officials\n- Acts as timekeeper and keeps a record of the match\n- Stops, suspends or abandons the match for any infringements of the Laws or due to outside interference\n- Stops, suspends or abandons the match because of the weather, or a ground, equipment or serious injury problem\n- Takes disciplinary action against players guilty of cautionable and sending-off offences\n- Ensures that any player bleeding from a wound leaves the field of play\n- Allows play to continue when the team against which an infringement has been committed will benefit from such an advantage and penalises the original infringement if the anticipated advantage does not ensue at that time\n- Takes action against team officials who fail to act in a responsible manner and may expel them from the field of play and its immediate surrounds"
+      },
+      "4": {
+        "title": "Referee and VAR",
+        "text": "Where VAR (Video Assistant Referee) is used, the referee may review incidents on a pitchside monitor or rely on the VAR's recommendation. The referee remains the final decision-maker.\n\nThe referee signals a VAR review by drawing a rectangle in the air with both index fingers. A decision change is signalled by pointing to the ear, then to the relevant signal for the new decision."
+      }
+    }
+  },
+  "6": {
+    "title": "The Other Match Officials",
+    "summary": "Covers the duties and authority of assistant referees, fourth officials, and video match officials.",
+    "sections": {
+      "1": {
+        "title": "Other match officials",
+        "text": "Other match officials (two assistant referees, a fourth official, two additional assistant referees, a reserve assistant referee, a video assistant referee (VAR), at least one assistant VAR (AVAR)) may be appointed to matches. They assist the referee in controlling the match in accordance with the Laws of the Game but the final decision always belongs to the referee."
+      },
+      "2": {
+        "title": "Assistant referees",
+        "text": "The assistant referees assist the referee to control the match in accordance with the Laws of the Game. In particular, they:\n- Indicate when the whole of the ball passes over the touch line or goal line\n- Indicate which team is entitled to a corner kick, goal kick or throw-in\n- Indicate when a player may be penalised for being in an offside position\n- Indicate when misconduct or any other incident has occurred out of the sight of the referee\n- Indicate when infringements have been committed whenever the assistants are closer to the action than the referee (this includes situations in the penalty area)\n- Indicate whether, at penalty kicks, the goalkeeper has moved forward before the ball was kicked and if the ball has crossed the line"
+      }
+    }
+  },
+  "7": {
+    "title": "The Duration of Match",
+    "summary": "Specifies match duration, half-time interval, allowance for lost time, and extra time.",
+    "sections": {
+      "1": {
+        "title": "Periods of play",
+        "text": "A match lasts for two equal halves of 45 minutes, which may only be reduced if agreed between the referee and the two teams before the start of play and is in accordance with competition rules.\n\nIf a different duration is agreed, the allowances for time lost (added time) must still be applied in accordance with Law 7.3."
+      },
+      "2": {
+        "title": "Half-time interval",
+        "text": "Players are entitled to an interval at half-time, not exceeding 15 minutes; a short drinks break (which should not exceed one minute) is permitted at the interval of half-time in extra time. Competition rules must state the duration of the half-time interval and it may only be altered with the referee's permission."
+      },
+      "3": {
+        "title": "Allowance for time lost",
+        "text": "Allowance is made by the referee in each half for all time lost in that half through:\n- Substitutions\n- Assessment and/or removal of injured players\n- Wasting time\n- Disciplinary sanctions\n- Medical stoppages permitted by competition rules, e.g. for water/drinks breaks (which should not exceed one minute) and 'cooling breaks' (ninety seconds to three minutes)\n- Delays relating to VAR 'checks' and 'reviews'\n- Any other cause, including any significant delay to a restart (e.g. because of a goal celebration)\n\nThe fourth official indicates the minimum additional time decided by the referee at the end of the final minute of each half. The additional time may be increased by the referee but not reduced."
+      },
+      "4": {
+        "title": "Playing time lost",
+        "text": "Where competition rules require there to be a winning team after a drawn match or home and away tie, the only permitted methods to determine the winning team are:\n- Away goals rule\n- Extra time\n- Kicks from the penalty mark (penalty shoot-out)"
+      }
+    }
+  },
+  "8": {
+    "title": "The Start and Restart of Play",
+    "summary": "Covers kick-offs, dropped balls, and restarts after stoppages.",
+    "sections": {
+      "1": {
+        "title": "Kick-off",
+        "text": "A kick-off is a way of starting or restarting play:\n- At the start of the match\n- After a goal has been scored\n- At the start of the second half of the match\n- At the start of each period of extra time, where applicable\n\nA goal may be scored directly from the kick-off.\n\nProcedure:\n- The team that wins the toss of a coin decides which goal to attack in the first half or to take the kick-off\n- The opponents take the kick-off to start the second half\n- The team that scores a goal takes the kick-off to restart the match\n- For the kick-off: all players, except the player taking the kick-off, must be in their own half of the field of play\n- The opponents of the team taking the kick-off must be at least 9.15m (10yds) from the ball until it is in play\n- The ball must be stationary on the centre mark\n- The referee gives a signal\n- The ball is in play when it is kicked and clearly moves\n- The kicker must not touch the ball again until it has touched another player"
+      },
+      "2": {
+        "title": "Dropped ball",
+        "text": "A dropped ball is a way of restarting play when the referee has stopped play and the Law does not require one of the other restarts.\n\nA dropped ball is awarded to the goalkeeper of the team that last touched the ball if the ball was in the penalty area or if the last touch of the ball was in the penalty area. In all other cases, the referee drops the ball to one player of the team that last touched the ball at the position where it last touched a player.\n\nAll other players (both teams) must be at least 4m from the ball until it is in play. The ball is in play when it touches the ground."
+      }
+    }
+  },
+  "9": {
+    "title": "The Ball In and Out of Play",
+    "summary": "Defines when the ball is in play and when it is out of play.",
+    "sections": {
+      "1": {
+        "title": "Ball out of play",
+        "text": "The ball is out of play when:\n- It has wholly passed over the goal line or touch line on the ground or in the air\n- Play has been stopped by the referee\n- It strikes the referee or other match official and remains on the field of play, and:\n  · goes into the goal\n  · the team in possession changes\n  · an attack is started\n\nThe ball is in play at all other times when it touches a match official and remains on the field of play."
+      },
+      "2": {
+        "title": "Ball in play",
+        "text": "The ball is in play at all other times, including when:\n- It rebounds off a goalpost, crossbar or corner flagpost and remains on the field of play\n- It rebounds off either the referee or an assistant referee when they are on the field of play\n- An apparent infringement of the Laws of the Game occurs which still needs to be confirmed or dis-confirmed (e.g. handball, offside)"
+      }
+    }
+  },
+  "10": {
+    "title": "Determining the Outcome of a Match",
+    "summary": "Explains how a goal is scored, what constitutes a valid goal, kicks from the penalty mark, and handball in scoring.",
+    "sections": {
+      "1": {
+        "title": "Goal scored",
+        "text": "A goal is scored when the whole of the ball passes over the goal line, between the goalposts and under the crossbar, provided that no infringement of the Laws of the Game has been committed by the team scoring the goal.\n\nIf the goalkeeper throws the ball directly into the opponents' goal, a goal kick is awarded."
+      },
+      "2": {
+        "title": "Winning team",
+        "text": "The team scoring the greater number of goals during a match is the winner. If both teams score an equal number of goals, or if no goals are scored, the match is drawn.\n\nCompetition rules may determine what happens when a match is drawn (e.g. extra time, kicks from the penalty mark)."
+      },
+      "3": {
+        "title": "Kicks from the penalty mark",
+        "text": "Kicks from the penalty mark are used to determine the winning team where competition rules require a result. The team that scores the most kicks wins.\n\nProcedure:\n- The referee chooses the goal at which the kicks are taken\n- The referee tosses a coin and the team that wins the toss decides whether to take the first or second kick\n- Each kick is taken by a different player, and all eligible players must take a kick before any player can take a second kick\n- A player who is dismissed after taking a kick may not take a further kick\n- The goalkeeper may be replaced by a substitute if dismissed\n- Goalkeepers must remain on their goal line and not encroach until the ball is kicked"
+      },
+      "4": {
+        "title": "Handball offences in goal scoring",
+        "text": "A goal is not awarded if the ball touches the hand/arm of the attacking team immediately before or during the goal being scored.\n\nA goal IS awarded if the ball touched the hand/arm of a defending player and then goes into the goal — this is a legitimate goal unless there is another infringement."
+      }
+    }
+  },
+  "11": {
+    "title": "Offside",
+    "summary": "Defines the offside position and when a player is penalised for being offside.",
+    "sections": {
+      "1": {
+        "title": "Offside position",
+        "text": "It is not an offence to be in an offside position.\n\nA player is in an offside position if any part of the head, body or feet is in the opponents' half (excluding the halfway line) and any part of the head, body or feet is nearer to the opponents' goal line than both the ball and the second-last opponent.\n\nThe hands and arms of all players, including the goalkeepers, are not considered. For the purposes of determining offside, the upper boundary of the arm is in line with the bottom of the armpit."
+      },
+      "2": {
+        "title": "Offside offence",
+        "text": "A player in an offside position at the moment the ball is played or touched by a team-mate is only penalised if they become involved in active play by:\n- Interfering with play by playing or touching a ball passed or touched by a team-mate\n- Interfering with an opponent by preventing an opponent from playing or being able to play the ball by clearly obstructing the opponent's line of vision, or challenging an opponent for the ball, or clearly attempting to play a ball which is close when this action impacts on an opponent, or making an obvious action which clearly impacts on the ability of an opponent to play the ball\n- Gaining an advantage by playing the ball or interfering with an opponent when it has rebounded or been deflected off the goalpost, crossbar, match official or an opponent\n- Gaining an advantage by receiving the ball when it has been deliberately saved by any opponent"
+      },
+      "3": {
+        "title": "No offside offence",
+        "text": "There is no offside offence if a player receives the ball directly from:\n- A goal kick\n- A throw-in\n- A corner kick\n\nThere is no offside offence when a player receives the ball from a deliberate save by an opponent (this has been removed from the Laws — a deliberate save by an opponent does NOT cancel out an offside position)."
+      },
+      "4": {
+        "title": "Offside — referee decisions",
+        "text": "In the event of an offside offence, the referee awards an indirect free kick from the position of the offending player at the time the ball was played or touched by a team-mate.\n\nIf an assistant referee indicates offside and the referee stops play but it then becomes clear that no offence was committed, play is restarted with a dropped ball.\n\nWhere VAR is used, the assistant referee should delay raising the flag to allow play to continue in a clear and obvious offside situation, only raising the flag after an attack has broken down or a goal has been scored."
+      }
+    }
+  },
+  "12": {
+    "title": "Fouls and Misconduct",
+    "summary": "The most complex law — defines direct and indirect free kick offences, handball, misconduct, and the criteria for yellow and red cards.",
+    "sections": {
+      "1": {
+        "title": "Direct free kick offences",
+        "text": "A direct free kick is awarded if a player commits any of the following in a manner considered by the referee to be careless, reckless or using excessive force:\n- Charges an opponent\n- Jumps at an opponent\n- Kicks or attempts to kick an opponent\n- Pushes an opponent\n- Strikes or attempts to strike an opponent (including head-butt)\n- Tackles an opponent to gain possession of the ball, making contact with the opponent before touching the ball\n- Trips or attempts to trip an opponent\n\nA direct free kick is also awarded if a player:\n- Handles the ball deliberately (except the goalkeeper within their own penalty area)\n- Bites or spits at someone on the team list\n- Throws an object at the ball, an opponent or a match official or makes contact with the ball with a held object\n\nIf these offences are committed by a player inside their own penalty area, a penalty kick is awarded."
+      },
+      "2": {
+        "title": "Indirect free kick offences",
+        "text": "An indirect free kick is awarded if a goalkeeper, inside their own penalty area, commits any of the following:\n- Controls the ball with the hand/arm for more than six seconds before releasing it\n- Touches the ball again with the hand/arm after releasing it before it has touched another player\n- Touches the ball with the hand/arm after it has been deliberately kicked to them by a team-mate\n- Touches the ball with the hand/arm after they have received it directly from a throw-in taken by a team-mate\n\nAn indirect free kick is awarded if a player:\n- Plays in a dangerous manner\n- Impedes the progress of an opponent without any contact being made\n- Prevents the goalkeeper from releasing the ball from the hands\n- Commits any other offence, not mentioned in the Laws, for which play is stopped to caution or send off a player\n\nPlay is dangerous if it could injure a player including the player themselves. Attempting to kick the ball when the goalkeeper is holding it or attempting a bicycle/scissors kick near an opponent are examples."
+      },
+      "3": {
+        "title": "Handball",
+        "text": "It is an offence if a player (except the goalkeeper handling within their own penalty area) deliberately touches the ball with their hand/arm, including moving the hand/arm towards the ball.\n\nA player is considered to have handled the ball deliberately if:\n- The hand/arm is in an unnatural position and there was a significant impact\n- The hand/arm is above/beyond the shoulder level\n- The ball is touched by any part of the hand or arm that is clearly outstretched\n\nNot every touch of a player's hand/arm with the ball is an offence. A player is not penalised for accidentally handling the ball in normal play unless:\n- A goal is scored or created as a result\n- The player goes on to score a goal (immediately or after a sequence of play)\n\nFor the goalkeeper: touching the ball with the hand/arm outside the penalty area is treated the same as for an outfield player."
+      },
+      "4": {
+        "title": "Disciplinary action — cautions (yellow card)",
+        "text": "A player is cautioned if they commit any of the following offences:\n- Unsporting behaviour\n- Dissent by word or action\n- Persistent offences\n- Delaying the restart of play\n- Failure to respect the required distance when play is restarted with a corner kick, free kick or throw-in\n- Entering, re-entering or deliberately leaving the field of play without the referee's permission\n- Any other offence\n\nA player who has been cautioned may continue to play in the match."
+      },
+      "5": {
+        "title": "Disciplinary action — sending off (red card)",
+        "text": "A player is sent off if they commit any of the following offences:\n- Serious foul play\n- Violent conduct\n- Biting or spitting at anyone on the team list\n- Denying an obvious goal-scoring opportunity (DOGSO) by deliberately handling the ball (except the goalkeeper in their own penalty area)\n- Denying an obvious goal-scoring opportunity (DOGSO) by committing an offence that was an attempt to play the ball (a penalty kick is awarded)\n- Using offensive, insulting or abusive language and/or actions\n- Receiving a second caution in the same match\n\nA player who has been sent off must leave the vicinity of the field of play and the technical area."
+      },
+      "6": {
+        "title": "Advantage and restarting play",
+        "text": "Where a direct or indirect free kick is awarded, the referee may apply the advantage clause if the non-offending team will benefit more from play continuing.\n\nIf a foul is committed during a passage of play that results in a goal, the advantage is signalled by the referee extending both arms at shoulder height before pointing towards the centre circle. If the anticipated advantage does not occur within a few seconds, the original foul should be penalised."
+      }
+    }
+  },
+  "13": {
+    "title": "Free Kicks",
+    "summary": "Covers the procedure for direct and indirect free kicks, the wall, and quick restarts.",
+    "sections": {
+      "1": {
+        "title": "Types of free kick",
+        "text": "Free kicks are direct or indirect.\n\nDirect free kick: a goal can be scored directly against the opposing team.\nIndirect free kick: a goal can only be scored if the ball subsequently touches another player before it enters the goal. The referee indicates an indirect free kick by raising the arm above the head; this signal is maintained until the kick has been taken and the ball has touched another player or goes out of play.\n\nBoth direct and indirect free kicks can be taken anywhere in the field of play."
+      },
+      "2": {
+        "title": "Procedure",
+        "text": "All free kicks must be taken from where the offence occurred, except:\n- Direct free kicks to the defending team in their goal area may be taken from anywhere in the goal area\n- Indirect free kicks to the attacking team in the opponents' goal area are taken from the goal area line parallel to the goal line at the point nearest to where the offence occurred\n- Free kicks when the ball strikes the referee (Law 9.1)\n\nFor all free kicks:\n- The ball must be stationary\n- The kicker must not touch the ball again until it has touched another player\n- All opponents must be at least 9.15m from the ball until it is in play\n- The ball is in play when it is kicked and clearly moves"
+      },
+      "3": {
+        "title": "Free kick inside own penalty area",
+        "text": "For a free kick inside the penalty area when the defending team has been awarded a free kick:\n- All opponents must be outside the penalty area\n- All opponents must be at least 9.15m from the ball\n- The ball is in play when it is kicked directly out of the penalty area\n- A free kick awarded in the goal area may be taken from anywhere in the goal area"
+      }
+    }
+  },
+  "14": {
+    "title": "The Penalty Kick",
+    "summary": "Defines when a penalty is awarded, the procedure, and the positions of players during the kick.",
+    "sections": {
+      "1": {
+        "title": "When a penalty kick is awarded",
+        "text": "A penalty kick is awarded if a player commits a direct free kick offence inside their own penalty area or off the field as part of play.\n\nA goal may be scored directly from a penalty kick.\n\nAdditional time is allowed for a penalty kick to be taken and completed at the end of each half or at the end of periods of extra time."
+      },
+      "2": {
+        "title": "Procedure",
+        "text": "- The ball is placed on the penalty mark\n- The player taking the penalty kick is clearly identified\n- The defending goalkeeper stays on the goal line, facing the kicker, between the goalposts, until the ball has been kicked\n- The players other than the kicker are inside the field of play, outside the penalty area, behind the penalty mark, and at least 9.15m from the penalty mark\n- The referee signals for the penalty kick to be taken\n- The kick must be taken in a forward direction\n- The kicker must not play the ball again until it has touched another player"
+      },
+      "3": {
+        "title": "Infringements",
+        "text": "If the goalkeeper moves from the goal line before the ball is kicked and the penalty kick is missed/saved, the kick is retaken.\n\nIf the kicker feints during the run-up to kick the ball, this is permitted, but feinting at the ball once the run-up is complete is an infringement. The player is cautioned and an indirect free kick is awarded.\n\nIf both the goalkeeper and kicker infringe at the same time:\n- If the kick goes in — retake\n- If the kick doesn't go in — retake\n\nIf an outfield player encroaches:\n- If the kick goes in — goal stands\n- If the kick doesn't go in — retake (if the encroaching player is from the kicking team) or no retake (if from the defending team, unless the goalkeeper also infringed)"
+      }
+    }
+  },
+  "15": {
+    "title": "The Throw-in",
+    "summary": "Covers the procedure for a throw-in, including the throwing technique and offences.",
+    "sections": {
+      "1": {
+        "title": "Procedure",
+        "text": "A throw-in is awarded to the opponents of the player who last touched the ball when the whole of the ball passes over the touch line on the ground or in the air.\n\nA goal cannot be scored directly from a throw-in; if the ball enters the opponents' goal, a goal kick is awarded and if the ball enters the thrower's goal, a corner kick is awarded.\n\nProcedure:\n- The throw is taken from the point where the ball crossed the touch line\n- The thrower faces the field of play\n- Part of each foot is on the touch line or on the ground outside the touch line\n- The thrower uses both hands\n- The thrower delivers the ball from behind and over the head from the point of release\n- The ball must be thrown in any direction\n- The ball is in play when it enters the field of play\n- The thrower must not touch the ball again until it has touched another player"
+      }
+    }
+  },
+  "16": {
+    "title": "The Goal Kick",
+    "summary": "Defines when and how a goal kick is taken.",
+    "sections": {
+      "1": {
+        "title": "Procedure",
+        "text": "A goal kick is awarded when the whole of the ball passes over the goal line, on the ground or in the air, having last touched a player of the attacking team, and a goal is not scored.\n\nA goal may be scored directly from a goal kick, but only against the opposing team; if the ball directly enters the kicker's own goal, a corner kick is awarded to the opposing team.\n\nProcedure:\n- The ball is kicked from any point within the goal area by a player of the defending team\n- Opponents must be outside the penalty area until the ball is in play\n- The ball is in play when it is kicked and clearly moves\n- The kicker must not touch the ball again until it has touched another player (a goalkeeper can handle the ball once it is in play)\n- If the ball is not kicked directly out of the penalty area, the kick is retaken"
+      }
+    }
+  },
+  "17": {
+    "title": "The Corner Kick",
+    "summary": "Defines when and how a corner kick is taken.",
+    "sections": {
+      "1": {
+        "title": "Procedure",
+        "text": "A corner kick is awarded when the whole of the ball passes over the goal line, on the ground or in the air, having last touched a player of the defending team, and a goal is not scored.\n\nA goal may be scored directly from a corner kick, but only against the opposing team; if the ball directly enters the kicker's own goal, a corner kick is awarded to the opposing team.\n\nProcedure:\n- The ball is placed inside the corner area nearest to the point where the ball crossed the goal line\n- The corner flagpost must not be moved\n- Opponents must be at least 9.15m from the corner arc until the ball is in play\n- The ball is in play when it is kicked and clearly moves\n- The kicker must not touch the ball again until it has touched another player\n- If the ball is kicked but does not move, the corner kick must be retaken"
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { getQuestionBank } from '../../api/client';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { getQuestionBank, importQuestionsCSV } from '../../api/client';
 import { useAccessToken } from '../../hooks/useAccessToken';
 import type { BankQuestion, Law, QuestionStatus } from '../../types';
 
@@ -37,7 +37,29 @@ export default function AdminQuestionBank() {
   const [lawFilter, setLawFilter] = useState<Law | ''>('');
   const [statusFilter, setStatusFilter] = useState<QuestionStatus | ''>('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { getToken } = useAccessToken();
+
+  async function handleCSVImport(file: File) {
+    setImporting(true);
+    setImportResult(null);
+    setImportError(null);
+    try {
+      const csv = await file.text();
+      const token = await getToken();
+      const res = await importQuestionsCSV(csv, token);
+      setImportResult(res.message);
+      loadQuestions(); // refresh the list
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : 'Import failed');
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
 
   const loadQuestions = useCallback(async () => {
     setLoading(true);
@@ -72,9 +94,39 @@ export default function AdminQuestionBank() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Question Bank</h1>
-        <p className="text-gray-600">Browse and filter all extracted questions</p>
+      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Question Bank</h1>
+          <p className="text-gray-600">Browse and filter all extracted questions</p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleCSVImport(file);
+            }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className="btn-primary text-sm"
+          >
+            {importing ? 'Importing…' : 'Import CSV'}
+          </button>
+          <p className="text-xs text-gray-400">
+            Columns: law, text, optionA–D, correctAnswer (0–3), explanation, lawReference
+          </p>
+          {importResult && (
+            <p className="text-xs text-green-700 font-medium">{importResult}</p>
+          )}
+          {importError && (
+            <p className="text-xs text-red-600">{importError}</p>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
