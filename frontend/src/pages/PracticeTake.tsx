@@ -181,22 +181,7 @@ export default function PracticeTake() {
             {questions.length} questions across all laws, weighted towards your weakest areas.
             Get instant feedback after each answer.
           </p>
-          {focusLaws.length > 0 && (
-            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-left">
-              <p className="text-sm font-semibold text-amber-800 mb-1">Needs most improvement:</p>
-              <p className="text-xs text-amber-700 mb-2">Extra questions allocated to these laws based on your history.</p>
-              <div className="flex flex-wrap gap-2">
-                {focusLaws.map((law) => (
-                  <span
-                    key={law}
-                    className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full"
-                  >
-                    {law}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+
           <button onClick={() => setPhase('quiz')} className="btn-primary w-full">
             Start Practice →
           </button>
