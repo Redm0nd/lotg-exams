@@ -39,6 +39,8 @@ const handlers = [
   'getAdminAnalytics',
   // Practice mode
   'getPracticeQuiz',
+  // Bulk import
+  'importQuestionsCSV',
 ];
 
 async function buildHandler(handlerName) {

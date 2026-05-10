@@ -300,6 +300,25 @@ export async function getAdminAnalytics(token: string): Promise<AdminAnalytics> 
   return fetchAPI<AdminAnalytics>('/admin/analytics', undefined, token);
 }
 
+export interface CSVImportResponse {
+  jobId: string;
+  imported: number;
+  errors?: { row: number; error: string }[];
+  message: string;
+}
+
+export async function importQuestionsCSV(csv: string, token: string): Promise<CSVImportResponse> {
+  return fetchAPI<CSVImportResponse>(
+    '/admin/questions/import',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv }),
+    },
+    token
+  );
+}
+
 export async function getPracticeQuiz(
   token: string,
   limit?: number
