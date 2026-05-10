@@ -277,6 +277,12 @@ export interface UserAttemptsResponse {
   nextCursor?: string;
 }
 
+// Practice mode types
+export interface PracticeQuizResponse {
+  questions: StudyQuestion[];
+  focusLaws: Law[];
+}
+
 // Admin analytics types
 export interface AdminAnalyticsOverview {
   totalUsers: number;

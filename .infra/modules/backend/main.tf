@@ -24,6 +24,7 @@ locals {
     "getMyStats",
     "deleteQuiz",
     "getAdminAnalytics",
+    "getPracticeQuiz",
   ]
 }
 
@@ -441,6 +442,7 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.get_my_stats,
     aws_api_gateway_integration.delete_quiz,
     aws_api_gateway_integration.get_admin_analytics,
+    aws_api_gateway_integration.get_practice_quiz,
   ]
 
   lifecycle {
@@ -471,6 +473,7 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.me.id,
       aws_api_gateway_resource.me_attempts.id,
       aws_api_gateway_resource.me_stats.id,
+      aws_api_gateway_resource.me_practice.id,
       aws_api_gateway_resource.admin_analytics.id,
       [for r in aws_api_gateway_gateway_response.cors : r.id],
     ]))
@@ -1622,6 +1625,71 @@ resource "aws_lambda_permission" "get_my_stats" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.get_my_stats.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+# ============================================================================
+# Practice Quiz (GET /me/practice-quiz)
+# ============================================================================
+
+resource "aws_lambda_function" "get_practice_quiz" {
+  filename         = "${path.module}/../../../backend/dist/getPracticeQuiz.zip"
+  function_name    = "${var.project_name}-${var.environment}-getPracticeQuiz"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 15
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/getPracticeQuiz.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getPracticeQuiz.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME   = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-getPracticeQuiz"
+  }
+}
+
+resource "aws_api_gateway_resource" "me_practice" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.me.id
+  path_part   = "practice-quiz"
+}
+
+resource "aws_api_gateway_method" "get_practice_quiz" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_practice.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_practice_quiz" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_practice.id
+  http_method             = aws_api_gateway_method.get_practice_quiz.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_practice_quiz.invoke_arn
+}
+
+module "cors_me_practice" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.me_practice.id
+}
+
+resource "aws_lambda_permission" "get_practice_quiz" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.get_practice_quiz.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
