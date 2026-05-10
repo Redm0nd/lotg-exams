@@ -1,3 +1,17 @@
+# [1.18.0](https://github.com/Redm0nd/lotg-exams/compare/v1.17.0...v1.18.0) (2026-05-10)
+
+
+### Bug Fixes
+
+* **analytics:** add createdAt to UserStatsItem so GSI query returns learners ([ced0b56](https://github.com/Redm0nd/lotg-exams/commit/ced0b5661f14dae92b0bb4d54b7447aa3518a09c))
+
+
+### Features
+
+* **admin:** add CSV bulk question import ([b191eba](https://github.com/Redm0nd/lotg-exams/commit/b191ebaace0915534b7b7357a890014b52b3e8e1))
+* **pwa:** add Progressive Web App support for mobile install ([9107adf](https://github.com/Redm0nd/lotg-exams/commit/9107adfe1eeb727c88e21f09b58440fdb1d2ace1))
+* **study:** add Law reference viewer drawer to quiz and practice feedback ([535c688](https://github.com/Redm0nd/lotg-exams/commit/535c6881855b786bacd744f3dd8f6734618b0f37))
+
 # [1.17.0](https://github.com/Redm0nd/lotg-exams/compare/v1.16.0...v1.17.0) (2026-05-10)
 
 
