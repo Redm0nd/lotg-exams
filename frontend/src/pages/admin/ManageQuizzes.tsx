@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getExtractionJobs, publishQuiz } from '../../api/client';
+import { getExtractionJobs, publishQuiz, deleteQuiz } from '../../api/client';
 import { useAccessToken } from '../../hooks/useAccessToken';
 import type { ExtractionJob } from '../../types';
 
@@ -16,6 +16,7 @@ export default function ManageQuizzes() {
   const [quizzes, setQuizzes] = useState<ExtractionJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     getToken()
@@ -37,6 +38,20 @@ export default function ManageQuizzes() {
       console.error('Toggle failed:', err);
     } finally {
       setToggling(null);
+    }
+  };
+
+  const handleDelete = async (quiz: ExtractionJob) => {
+    if (!window.confirm(`Delete "${formatTitle(quiz.fileName)}"? This cannot be undone.`)) return;
+    setDeleting(quiz.jobId);
+    try {
+      const token = await getToken();
+      await deleteQuiz(quiz.jobId, token);
+      setQuizzes((prev) => prev.filter((q) => q.jobId !== quiz.jobId));
+    } catch (err) {
+      console.error('Delete failed:', err);
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -163,6 +178,13 @@ export default function ManageQuizzes() {
                       >
                         ↗
                       </a>
+                      <button
+                        onClick={() => handleDelete(quiz)}
+                        disabled={deleting === quiz.jobId}
+                        className="text-sm text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>

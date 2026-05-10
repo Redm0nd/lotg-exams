@@ -168,6 +168,8 @@ jobs:
       lambda_authorize: ${{ steps.tf-output.outputs.lambda_authorize }}
       lambda_get_my_attempts: ${{ steps.tf-output.outputs.lambda_get_my_attempts }}
       lambda_get_my_stats: ${{ steps.tf-output.outputs.lambda_get_my_stats }}
+      lambda_delete_quiz: ${{ steps.tf-output.outputs.lambda_delete_quiz }}
+      lambda_get_admin_analytics: ${{ steps.tf-output.outputs.lambda_get_admin_analytics }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -209,6 +211,8 @@ jobs:
           echo "lambda_authorize=$(terraform output -json lambda_function_names | jq -r '.authorize')" >> $GITHUB_OUTPUT
           echo "lambda_get_my_attempts=$(terraform output -json lambda_function_names | jq -r '.get_my_attempts')" >> $GITHUB_OUTPUT
           echo "lambda_get_my_stats=$(terraform output -json lambda_function_names | jq -r '.get_my_stats')" >> $GITHUB_OUTPUT
+          echo "lambda_delete_quiz=$(terraform output -json lambda_function_names | jq -r '.delete_quiz')" >> $GITHUB_OUTPUT
+          echo "lambda_get_admin_analytics=$(terraform output -json lambda_function_names | jq -r '.get_admin_analytics')" >> $GITHUB_OUTPUT
 
   # Deploy Backend - uses pre-built artifacts
   deploy-backend:
@@ -345,6 +349,20 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_my_stats }} \
             --zip-file fileb://backend/dist/getMyStats.zip
+
+      - name: Update Lambda - deleteQuiz
+        if: needs.get-outputs.outputs.lambda_delete_quiz != '' && needs.get-outputs.outputs.lambda_delete_quiz != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_delete_quiz }} \
+            --zip-file fileb://backend/dist/deleteQuiz.zip
+
+      - name: Update Lambda - getAdminAnalytics
+        if: needs.get-outputs.outputs.lambda_get_admin_analytics != '' && needs.get-outputs.outputs.lambda_get_admin_analytics != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_admin_analytics }} \
+            --zip-file fileb://backend/dist/getAdminAnalytics.zip
 
   # Build and Deploy Frontend
   deploy-frontend:

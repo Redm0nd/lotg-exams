@@ -34,6 +34,8 @@ output "lambda_function_names" {
     authorize              = aws_lambda_function.authorize.function_name
     get_my_attempts        = aws_lambda_function.get_my_attempts.function_name
     get_my_stats           = aws_lambda_function.get_my_stats.function_name
+    delete_quiz            = aws_lambda_function.delete_quiz.function_name
+    get_admin_analytics    = aws_lambda_function.get_admin_analytics.function_name
   }
 }
 
@@ -58,6 +60,8 @@ output "lambda_function_arns" {
     authorize              = aws_lambda_function.authorize.arn
     get_my_attempts        = aws_lambda_function.get_my_attempts.arn
     get_my_stats           = aws_lambda_function.get_my_stats.arn
+    delete_quiz            = aws_lambda_function.delete_quiz.arn
+    get_admin_analytics    = aws_lambda_function.get_admin_analytics.arn
   }
 }
 

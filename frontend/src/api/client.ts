@@ -20,6 +20,7 @@ import type {
   UpdateQuizMetadataRequest,
   UserAttemptsResponse,
   UserStats,
+  AdminAnalytics,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -285,4 +286,15 @@ export async function removeQuizQuestion(
   token: string
 ): Promise<{ questionId: string; message: string; approvedCount: number }> {
   return fetchAPI(`/admin/jobs/${jobId}/questions/${questionId}`, { method: 'DELETE' }, token);
+}
+
+export async function deleteQuiz(
+  jobId: string,
+  token: string
+): Promise<{ jobId: string; message: string }> {
+  return fetchAPI(`/admin/jobs/${jobId}`, { method: 'DELETE' }, token);
+}
+
+export async function getAdminAnalytics(token: string): Promise<AdminAnalytics> {
+  return fetchAPI<AdminAnalytics>('/admin/analytics', undefined, token);
 }

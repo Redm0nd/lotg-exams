@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getExtractionJobs, getQuestionBank } from '../../api/client';
+import { getExtractionJobs, getQuestionBank, getAdminAnalytics } from '../../api/client';
 import { useAccessToken } from '../../hooks/useAccessToken';
-import type { ExtractionJob, BankQuestion } from '../../types';
+import type { ExtractionJob, BankQuestion, AdminAnalytics } from '../../types';
 
 interface Stats {
   totalQuestions: number;
@@ -18,6 +18,8 @@ export default function AdminDashboard() {
   const [recentJobs, setRecentJobs] = useState<ExtractionJob[]>([]);
   const [pendingQuestions, setPendingQuestions] = useState<BankQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const { getToken } = useAccessToken();
 
   useEffect(() => {
@@ -50,6 +52,21 @@ export default function AdminDashboard() {
     }
 
     loadData();
+  }, [getToken]);
+
+  useEffect(() => {
+    async function loadAnalytics() {
+      try {
+        const token = await getToken();
+        const data = await getAdminAnalytics(token);
+        setAnalytics(data);
+      } catch (error) {
+        console.error('Error loading analytics:', error);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    }
+    loadAnalytics();
   }, [getToken]);
 
   if (loading) {
@@ -182,6 +199,96 @@ export default function AdminDashboard() {
             Browse Question Bank
           </Link>
         </div>
+      </div>
+
+      {/* Learner Analytics */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-gray-900">Learner Analytics</h2>
+        {analyticsLoading ? (
+          <div className="flex items-center gap-2 text-gray-500">
+            <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
+            <span>Loading analytics...</span>
+          </div>
+        ) : analytics ? (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-sm font-medium text-gray-500">Total Learners</div>
+                <div className="mt-1 text-3xl font-bold text-gray-900">
+                  {analytics.overview.totalUsers}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-sm font-medium text-gray-500">Total Attempts</div>
+                <div className="mt-1 text-3xl font-bold text-gray-900">
+                  {analytics.overview.totalAttempts}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-sm font-medium text-gray-500">Platform Avg Score</div>
+                <div className="mt-1 text-3xl font-bold text-primary-600">
+                  {analytics.overview.platformAvgScore.toFixed(1)}%
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-sm font-medium text-gray-500">Published Quizzes</div>
+                <div className="mt-1 text-3xl font-bold text-gray-900">
+                  {analytics.overview.publishedQuizzes}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-sm font-medium text-gray-500">Questions Available</div>
+                <div className="mt-1 text-3xl font-bold text-gray-900">
+                  {analytics.overview.totalQuestionsAvailable}
+                </div>
+              </div>
+            </div>
+
+            {Object.keys(analytics.byLaw).length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-base font-semibold text-gray-900 mb-4">
+                  Performance by Law
+                </h3>
+                <div className="space-y-3">
+                  {(Object.entries(analytics.byLaw) as [string, { attempts: number; avgScore: number }][])
+                    .sort(([a], [b]) => {
+                      const num = (s: string) => parseInt(s.replace('Law ', ''), 10);
+                      return num(a) - num(b);
+                    })
+                    .map(([law, data]) => {
+                      const pct = Math.round(data.avgScore);
+                      const barColor =
+                        pct >= 90
+                          ? 'bg-green-500'
+                          : pct >= 70
+                            ? 'bg-blue-500'
+                            : pct >= 50
+                              ? 'bg-amber-500'
+                              : 'bg-red-500';
+                      return (
+                        <div key={law}>
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span className="font-medium text-gray-700">{law}</span>
+                            <span className="text-gray-500">
+                              {pct}% avg · {data.attempts} attempts
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-2">
+                            <div
+                              className={`${barColor} h-2 rounded-full transition-all`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-gray-500">Analytics unavailable.</p>
+        )}
       </div>
     </div>
   );
