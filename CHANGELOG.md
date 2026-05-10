@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/Redm0nd/lotg-exams/compare/v1.16.0...v1.17.0) (2026-05-10)
+
+
+### Features
+
+* **practice:** add smart practice mode with weakness targeting ([88a781c](https://github.com/Redm0nd/lotg-exams/commit/88a781c85d4ea0472e8a33ef6bc934b7e8da28b7))
+
 # [1.16.0](https://github.com/Redm0nd/lotg-exams/compare/v1.15.1...v1.16.0) (2026-05-10)
 
 
