@@ -37,6 +37,8 @@ const handlers = [
   // Admin management
   'deleteQuiz',
   'getAdminAnalytics',
+  // Practice mode
+  'getPracticeQuiz',
 ];
 
 async function buildHandler(handlerName) {

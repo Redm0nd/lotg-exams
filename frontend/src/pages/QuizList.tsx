@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getQuizzes } from '../api/client';
 import Hero from '../components/Hero';
@@ -10,6 +10,7 @@ const ALL_CATEGORIES = '__all__';
 
 export default function QuizList() {
   const { isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +77,25 @@ export default function QuizList() {
         id="quizzes"
         className="container mx-auto px-4 py-12 max-w-4xl scroll-mt-16"
       >
+        {isAuthenticated && (
+          <ScrollReveal>
+            <div className="mb-8 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl flex items-center justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-gray-900">Practice Mode</h3>
+                <p className="text-sm text-gray-600">
+                  Targeted questions based on your weak areas — with instant feedback.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/practice')}
+                className="flex-shrink-0 px-4 py-2 rounded-lg font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+              >
+                Start Practice
+              </button>
+            </div>
+          </ScrollReveal>
+        )}
+
         <ScrollReveal>
           <header className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Available Quizzes</h2>

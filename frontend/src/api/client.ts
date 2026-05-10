@@ -21,6 +21,7 @@ import type {
   UserAttemptsResponse,
   UserStats,
   AdminAnalytics,
+  PracticeQuizResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -297,4 +298,18 @@ export async function deleteQuiz(
 
 export async function getAdminAnalytics(token: string): Promise<AdminAnalytics> {
   return fetchAPI<AdminAnalytics>('/admin/analytics', undefined, token);
+}
+
+export async function getPracticeQuiz(
+  token: string,
+  limit?: number
+): Promise<PracticeQuizResponse> {
+  const params = new URLSearchParams();
+  if (limit !== undefined) params.set('limit', limit.toString());
+  const query = params.toString();
+  return fetchAPI<PracticeQuizResponse>(
+    `/me/practice-quiz${query ? `?${query}` : ''}`,
+    undefined,
+    token
+  );
 }

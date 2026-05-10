@@ -18,6 +18,7 @@ import AdminEditQuiz from './pages/admin/EditQuiz';
 import AdminQuizQuestions from './pages/admin/QuizQuestions';
 import ProfilePage from './pages/ProfilePage';
 import HistoryPage from './pages/HistoryPage';
+import PracticeTake from './pages/PracticeTake';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/quiz/:quizId/results" element={<QuizResults />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/practice" element={<PracticeTake />} />
       </Route>
 
       {/* Protected admin routes */}

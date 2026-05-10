@@ -36,6 +36,7 @@ output "lambda_function_names" {
     get_my_stats           = aws_lambda_function.get_my_stats.function_name
     delete_quiz            = aws_lambda_function.delete_quiz.function_name
     get_admin_analytics    = aws_lambda_function.get_admin_analytics.function_name
+    get_practice_quiz      = aws_lambda_function.get_practice_quiz.function_name
   }
 }
 
@@ -62,6 +63,7 @@ output "lambda_function_arns" {
     get_my_stats           = aws_lambda_function.get_my_stats.arn
     delete_quiz            = aws_lambda_function.delete_quiz.arn
     get_admin_analytics    = aws_lambda_function.get_admin_analytics.arn
+    get_practice_quiz      = aws_lambda_function.get_practice_quiz.arn
   }
 }
 
