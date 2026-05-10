@@ -34,6 +34,9 @@ const handlers = [
   // User progress
   'getMyAttempts',
   'getMyStats',
+  // Admin management
+  'deleteQuiz',
+  'getAdminAnalytics',
 ];
 
 async function buildHandler(handlerName) {

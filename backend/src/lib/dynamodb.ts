@@ -6,6 +6,7 @@ import {
   PutCommand,
   UpdateCommand,
   BatchWriteCommand,
+  DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import type {
   QuizItem,
@@ -496,6 +497,41 @@ export async function updateQuestionUsage(questionIds: string[]): Promise<void> 
       )
     )
   );
+}
+
+/**
+ * Delete an extraction job (quiz) by ID
+ */
+export async function deleteExtractionJob(jobId: string): Promise<void> {
+  await docClient.send(
+    new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `JOB#${jobId}`,
+        SK: 'METADATA',
+      },
+    })
+  );
+}
+
+/**
+ * Get all UserStats items for platform-wide analytics
+ */
+export async function getAllUserStats(): Promise<UserStatsItem[]> {
+  const params = {
+    TableName: TABLE_NAME,
+    IndexName: 'Type-createdAt-index',
+    KeyConditionExpression: '#type = :type',
+    ExpressionAttributeNames: {
+      '#type': 'Type',
+    },
+    ExpressionAttributeValues: {
+      ':type': 'UserStats',
+    },
+  };
+
+  const result = await docClient.send(new QueryCommand(params));
+  return (result.Items || []) as UserStatsItem[];
 }
 
 // ============================================================================

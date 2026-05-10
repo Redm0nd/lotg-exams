@@ -276,3 +276,17 @@ export interface UserAttemptsResponse {
   attempts: UserAttempt[];
   nextCursor?: string;
 }
+
+// Admin analytics types
+export interface AdminAnalyticsOverview {
+  totalUsers: number;
+  totalAttempts: number;
+  platformAvgScore: number;
+  publishedQuizzes: number;
+  totalQuestionsAvailable: number;
+}
+
+export interface AdminAnalytics {
+  overview: AdminAnalyticsOverview;
+  byLaw: Partial<Record<Law, { attempts: number; avgScore: number }>>;
+}
