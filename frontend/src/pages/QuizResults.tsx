@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { submitAnswers } from '../api/client';
 import type { Answer, SubmitAnswersResponse } from '../types';
+import LawDrawer from '../components/LawDrawer';
 
 function prefersReducedMotion(): boolean {
   return (
@@ -73,6 +74,7 @@ export default function QuizResults() {
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const [reviewWrongOnly, setReviewWrongOnly] = useState(false);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
+  const [lawDrawerRef, setLawDrawerRef] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadResults() {
@@ -299,9 +301,17 @@ export default function QuizResults() {
                 </div>
 
                 <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                  <p className="text-sm font-semibold text-blue-900 mb-1">
-                    Explanation ({result.lawReference})
-                  </p>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-semibold text-blue-900">
+                      Explanation ({result.lawReference})
+                    </p>
+                    <button
+                      onClick={() => setLawDrawerRef(result.lawReference)}
+                      className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2"
+                    >
+                      View Law →
+                    </button>
+                  </div>
                   <p className="text-sm text-blue-800">{result.explanation}</p>
                 </div>
               </div>
@@ -309,6 +319,10 @@ export default function QuizResults() {
           </div>
         ))}
       </div>
+
+      {lawDrawerRef && (
+        <LawDrawer lawReference={lawDrawerRef} onClose={() => setLawDrawerRef(null)} />
+      )}
     </div>
   );
 }

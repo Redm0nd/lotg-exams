@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getQuiz, getQuestions } from '../api/client';
 import type { QuizDetail, Question, StudyQuestion, Answer } from '../types';
+import LawDrawer from '../components/LawDrawer';
 
 const OPTION_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -59,6 +60,7 @@ export default function QuizTake() {
 
   // Study mode: whether current question feedback is revealed
   const [feedbackRevealed, setFeedbackRevealed] = useState(false);
+  const [lawDrawerRef, setLawDrawerRef] = useState<string | null>(null);
 
   const answersRef = useRef<Answer[]>([]);
   const questionsRef = useRef<Question[]>([]);
@@ -485,12 +487,20 @@ export default function QuizTake() {
         {/* Study mode feedback */}
         {mode === 'study' && feedbackRevealed && studyQ && (
           <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-            <p className="text-sm font-semibold text-blue-900 mb-1">
-              {currentAnswer?.selectedOption === studyQ.correctAnswer
-                ? '✓ Correct!'
-                : '✗ Incorrect'}{' '}
-              — {studyQ.lawReference}
-            </p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-semibold text-blue-900">
+                {currentAnswer?.selectedOption === studyQ.correctAnswer
+                  ? '✓ Correct!'
+                  : '✗ Incorrect'}{' '}
+                — {studyQ.lawReference}
+              </p>
+              <button
+                onClick={() => setLawDrawerRef(studyQ.lawReference)}
+                className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2"
+              >
+                View Law →
+              </button>
+            </div>
             <p className="text-sm text-blue-800">{studyQ.explanation}</p>
           </div>
         )}
@@ -546,6 +556,10 @@ export default function QuizTake() {
             ? 'submit'
             : 'next'}
       </p>
+
+      {lawDrawerRef && (
+        <LawDrawer lawReference={lawDrawerRef} onClose={() => setLawDrawerRef(null)} />
+      )}
     </div>
   );
 }
