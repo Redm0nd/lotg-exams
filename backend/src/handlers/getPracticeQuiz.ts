@@ -24,14 +24,16 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const stats = await getUserStats(userId);
     const byLaw = stats?.byLaw || {};
 
-    // Weight each law: weaker laws get more questions (range 10–100)
+    // Weight each law: weaker laws get more questions (range 10–100).
+    // Untried laws get a lower base weight (25) so known-weak laws
+    // are not crowded out by 16 equally-weighted untried laws.
     const weights: Partial<Record<Law, number>> = {};
     for (const law of ALL_LAWS) {
       const lawStats = byLaw[law];
       if (lawStats && lawStats.attempts > 0) {
         weights[law] = Math.max(10, 100 - lawStats.avgScore);
       } else {
-        weights[law] = 50;
+        weights[law] = 25;
       }
     }
 
@@ -45,13 +47,13 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       lawBudgets[law] = budget;
       allocated += budget;
     }
-    // Distribute rounding remainder to the weakest law
+    // Distribute rounding remainder to the highest-weight law
     const remainder = limit - allocated;
     if (remainder !== 0) {
-      const weakest = ALL_LAWS.reduce((a, b) =>
+      const heaviest = ALL_LAWS.reduce((a, b) =>
         (weights[a] ?? 0) >= (weights[b] ?? 0) ? a : b
       );
-      lawBudgets[weakest] = (lawBudgets[weakest] ?? 0) + remainder;
+      lawBudgets[heaviest] = (lawBudgets[heaviest] ?? 0) + remainder;
     }
 
     // Fetch and sample questions per law in parallel
@@ -67,10 +69,13 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const shuffled = shuffleArray(selected);
 
-    // Top 3 focus laws (lowest avgScore with existing data)
+    // Focus laws = laws that received an above-average question budget AND
+    // have actual performance data. This ensures the label reflects the
+    // real session composition rather than just lowest-scored laws.
+    const avgBudget = limit / ALL_LAWS.length;
     const focusLaws = ALL_LAWS
-      .filter((l) => byLaw[l]?.attempts)
-      .sort((a, b) => (byLaw[a]?.avgScore ?? 100) - (byLaw[b]?.avgScore ?? 100))
+      .filter((l) => byLaw[l]?.attempts && (lawBudgets[l] ?? 0) > avgBudget)
+      .sort((a, b) => (lawBudgets[b] ?? 0) - (lawBudgets[a] ?? 0))
       .slice(0, 3);
 
     const questions = shuffled.map((q) => ({
