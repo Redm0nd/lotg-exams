@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/Redm0nd/lotg-exams/compare/v1.18.0...v1.19.0) (2026-05-11)
+
+
+### Features
+
+* **admin:** edit existing questions (text, options, correctAnswer, etc.) ([71a90ef](https://github.com/Redm0nd/lotg-exams/commit/71a90efd9a01666b72e2d36855d88bdfdae5b844))
+
 # [1.18.0](https://github.com/Redm0nd/lotg-exams/compare/v1.17.0...v1.18.0) (2026-05-10)
 
 
