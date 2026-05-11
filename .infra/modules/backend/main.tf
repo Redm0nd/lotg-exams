@@ -13,6 +13,7 @@ locals {
     "getQuestionBank",
     "reviewQuestion",
     "bulkReviewQuestions",
+    "updateQuestion",
     "publishQuiz",
     "getExtractionJobs",
     "createManualJob",
@@ -433,6 +434,7 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.get_job,
     aws_api_gateway_integration.get_question_bank,
     aws_api_gateway_integration.review_question,
+    aws_api_gateway_integration.update_question,
     aws_api_gateway_integration.bulk_review,
     aws_api_gateway_integration.publish_quiz,
     aws_api_gateway_integration.create_manual_job,
@@ -848,6 +850,32 @@ resource "aws_lambda_function" "bulk_review_questions" {
 }
 
 # ============================================================================
+# Lambda Function: updateQuestion
+# ============================================================================
+
+resource "aws_lambda_function" "update_question" {
+  filename         = "${path.module}/../../../backend/dist/updateQuestion.zip"
+  function_name    = "${var.project_name}-${var.environment}-updateQuestion"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/updateQuestion.zip") ? filebase64sha256("${path.module}/../../../backend/dist/updateQuestion.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-updateQuestion"
+  }
+}
+
+# ============================================================================
 # Lambda Function: publishQuiz
 # ============================================================================
 
@@ -1074,6 +1102,26 @@ resource "aws_api_gateway_integration" "review_question" {
   uri                     = aws_lambda_function.review_question.invoke_arn
 }
 
+# PUT /admin/questions/{id} - edit question content (text, options,
+# correctAnswer, explanation, law, lawReference). Distinct from /review
+# which only changes approval status.
+resource "aws_api_gateway_method" "update_question" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_question_id.id
+  http_method   = "PUT"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
+}
+
+resource "aws_api_gateway_integration" "update_question" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_question_id.id
+  http_method             = aws_api_gateway_method.update_question.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.update_question.invoke_arn
+}
+
 # /admin/questions/bulk-review
 resource "aws_api_gateway_resource" "admin_bulk_review" {
   rest_api_id = aws_api_gateway_rest_api.this.id
@@ -1154,6 +1202,14 @@ module "cors_admin_question_review" {
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_question_review.id
+}
+
+module "cors_admin_question_id" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_question_id.id
 }
 
 module "cors_admin_bulk_review" {
@@ -1457,6 +1513,14 @@ resource "aws_lambda_permission" "review_question" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.review_question.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "update_question" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.update_question.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }

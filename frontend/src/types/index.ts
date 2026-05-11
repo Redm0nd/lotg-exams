@@ -204,6 +204,21 @@ export interface AddManualQuestionResponse {
   message: string;
 }
 
+export interface UpdateQuestionRequest {
+  text?: string;
+  options?: string[];
+  correctAnswer?: number;
+  explanation?: string;
+  law?: Law;
+  lawReference?: string;
+}
+
+export interface UpdateQuestionResponse {
+  questionId: string;
+  updated: string[];
+  message: string;
+}
+
 export interface UpdateQuizMetadataRequest {
   title?: string;
   description?: string;

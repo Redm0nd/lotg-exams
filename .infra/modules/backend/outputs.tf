@@ -25,6 +25,7 @@ output "lambda_function_names" {
     get_question_bank      = aws_lambda_function.get_question_bank.function_name
     review_question        = aws_lambda_function.review_question.function_name
     bulk_review_questions  = aws_lambda_function.bulk_review_questions.function_name
+    update_question        = aws_lambda_function.update_question.function_name
     get_extraction_jobs    = aws_lambda_function.get_extraction_jobs.function_name
     publish_quiz           = aws_lambda_function.publish_quiz.function_name
     create_manual_job      = aws_lambda_function.create_manual_job.function_name
@@ -51,6 +52,7 @@ output "lambda_function_arns" {
     process_pdf            = aws_lambda_function.process_pdf.arn
     get_question_bank      = aws_lambda_function.get_question_bank.arn
     review_question        = aws_lambda_function.review_question.arn
+    update_question        = aws_lambda_function.update_question.arn
     bulk_review_questions  = aws_lambda_function.bulk_review_questions.arn
     get_extraction_jobs    = aws_lambda_function.get_extraction_jobs.arn
     publish_quiz           = aws_lambda_function.publish_quiz.arn

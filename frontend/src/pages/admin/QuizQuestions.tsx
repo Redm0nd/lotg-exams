@@ -7,6 +7,7 @@ import {
   removeQuizQuestion,
 } from '../../api/client';
 import { useAccessToken } from '../../hooks/useAccessToken';
+import QuestionEditor from '../../components/admin/QuestionEditor';
 import type { JobDetailResponse, BankQuestion, Law } from '../../types';
 
 const LAWS: Law[] = [
@@ -44,6 +45,7 @@ export default function QuizQuestions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Question picker state
   const [showPicker, setShowPicker] = useState(false);
@@ -284,36 +286,67 @@ export default function QuizQuestions() {
           ) : (
             approvedQuestions.map((q, idx) => (
               <div key={q.questionId} className="px-6 py-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-medium text-gray-400">{idx + 1}.</span>
-                      <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
-                        {q.law}
-                      </span>
+                {editingId === q.questionId ? (
+                  <QuestionEditor
+                    question={q}
+                    onSaved={(updated) => {
+                      setJob((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              questions: prev.questions.map((it) =>
+                                it.questionId === updated.questionId ? updated : it
+                              ),
+                            }
+                          : prev
+                      );
+                      setEditingId(null);
+                    }}
+                    onCancel={() => setEditingId(null)}
+                  />
+                ) : (
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium text-gray-400">{idx + 1}.</span>
+                        <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                          {q.law}
+                        </span>
+                        {q.lawReference && q.lawReference !== q.law && (
+                          <span className="text-xs font-mono text-gray-400">{q.lawReference}</span>
+                        )}
+                      </div>
+                      <p className="text-gray-900 mb-2">{q.text}</p>
+                      <div className="grid gap-1">
+                        {q.options.map((opt, i) => (
+                          <div
+                            key={i}
+                            className={`px-3 py-1.5 rounded text-sm ${i === q.correctAnswer ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-gray-50 text-gray-700'}`}
+                          >
+                            <span className="font-medium mr-2">{String.fromCharCode(65 + i)}.</span>
+                            {opt}
+                            {i === q.correctAnswer && <span className="ml-2 text-green-600">✓</span>}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <p className="text-gray-900 mb-2">{q.text}</p>
-                    <div className="grid gap-1">
-                      {q.options.map((opt, i) => (
-                        <div
-                          key={i}
-                          className={`px-3 py-1.5 rounded text-sm ${i === q.correctAnswer ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-gray-50 text-gray-700'}`}
-                        >
-                          <span className="font-medium mr-2">{String.fromCharCode(65 + i)}.</span>
-                          {opt}
-                          {i === q.correctAnswer && <span className="ml-2 text-green-600">✓</span>}
-                        </div>
-                      ))}
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => setEditingId(q.questionId)}
+                        className="px-3 py-1 text-sm font-medium text-primary-700 bg-primary-50 rounded hover:bg-primary-100"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleRemove(q.questionId)}
+                        disabled={removing === q.questionId}
+                        className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 rounded hover:bg-red-200 disabled:opacity-50"
+                      >
+                        {removing === q.questionId ? '...' : 'Remove'}
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleRemove(q.questionId)}
-                    disabled={removing === q.questionId}
-                    className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 rounded hover:bg-red-200 disabled:opacity-50 flex-shrink-0"
-                  >
-                    {removing === q.questionId ? '...' : 'Remove'}
-                  </button>
-                </div>
+                )}
               </div>
             ))
           )}
