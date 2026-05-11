@@ -17,6 +17,8 @@ import type {
   AddManualQuestionRequest,
   AddManualQuestionResponse,
   SubmitAnswersResponse,
+  UpdateQuestionRequest,
+  UpdateQuestionResponse,
   UpdateQuizMetadataRequest,
   UserAttemptsResponse,
   UserStats,
@@ -279,6 +281,18 @@ export async function getMyAttempts(
 
 export async function getMyStats(token: string): Promise<UserStats> {
   return fetchAPI<UserStats>('/me/stats', undefined, token);
+}
+
+export async function updateQuestion(
+  questionId: string,
+  updates: UpdateQuestionRequest,
+  token: string
+): Promise<UpdateQuestionResponse> {
+  return fetchAPI<UpdateQuestionResponse>(
+    `/admin/questions/${questionId}`,
+    { method: 'PUT', body: JSON.stringify(updates) },
+    token
+  );
 }
 
 export async function removeQuizQuestion(

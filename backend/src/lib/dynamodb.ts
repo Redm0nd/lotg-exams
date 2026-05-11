@@ -261,6 +261,46 @@ export async function updateBankQuestionStatus(
 }
 
 /**
+ * Update the editable content of a bank question (text, options,
+ * correctAnswer, explanation, law, lawReference). Only the fields
+ * present in `updates` are written; everything else is left untouched.
+ */
+export async function updateBankQuestionContent(
+  questionId: string,
+  updates: Partial<
+    Pick<BankQuestionItem, 'text' | 'options' | 'correctAnswer' | 'explanation' | 'law' | 'lawReference'>
+  >
+): Promise<void> {
+  const setExpressions: string[] = ['updatedAt = :updatedAt'];
+  const attributeNames: Record<string, string> = {};
+  const attributeValues: Record<string, unknown> = {
+    ':updatedAt': new Date().toISOString(),
+  };
+
+  for (const [key, value] of Object.entries(updates)) {
+    if (value === undefined) continue;
+    setExpressions.push(`#${key} = :${key}`);
+    attributeNames[`#${key}`] = key;
+    attributeValues[`:${key}`] = value;
+  }
+
+  if (setExpressions.length === 1) {
+    // Nothing besides updatedAt to write - skip the round trip.
+    return;
+  }
+
+  await docClient.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `QUESTION#${questionId}`, SK: 'METADATA' },
+      UpdateExpression: `SET ${setExpressions.join(', ')}`,
+      ExpressionAttributeNames: attributeNames,
+      ExpressionAttributeValues: attributeValues,
+    })
+  );
+}
+
+/**
  * Get questions by status (for review queue)
  */
 export async function getQuestionsByStatus(

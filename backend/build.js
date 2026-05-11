@@ -21,6 +21,7 @@ const handlers = [
   'getQuestionBank',
   'reviewQuestion',
   'bulkReviewQuestions',
+  'updateQuestion',
   'getExtractionJobs',
   'publishQuiz',
   // Manual quiz creation handlers

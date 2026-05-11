@@ -161,6 +161,7 @@ jobs:
       lambda_get_question_bank: ${{ steps.tf-output.outputs.lambda_get_question_bank }}
       lambda_review_question: ${{ steps.tf-output.outputs.lambda_review_question }}
       lambda_bulk_review_questions: ${{ steps.tf-output.outputs.lambda_bulk_review_questions }}
+      lambda_update_question: ${{ steps.tf-output.outputs.lambda_update_question }}
       lambda_get_extraction_jobs: ${{ steps.tf-output.outputs.lambda_get_extraction_jobs }}
       lambda_publish_quiz: ${{ steps.tf-output.outputs.lambda_publish_quiz }}
       lambda_create_manual_job: ${{ steps.tf-output.outputs.lambda_create_manual_job }}
@@ -205,6 +206,7 @@ jobs:
           echo "lambda_get_question_bank=$(terraform output -json lambda_function_names | jq -r '.get_question_bank')" >> $GITHUB_OUTPUT
           echo "lambda_review_question=$(terraform output -json lambda_function_names | jq -r '.review_question')" >> $GITHUB_OUTPUT
           echo "lambda_bulk_review_questions=$(terraform output -json lambda_function_names | jq -r '.bulk_review_questions')" >> $GITHUB_OUTPUT
+          echo "lambda_update_question=$(terraform output -json lambda_function_names | jq -r '.update_question')" >> $GITHUB_OUTPUT
           echo "lambda_get_extraction_jobs=$(terraform output -json lambda_function_names | jq -r '.get_extraction_jobs')" >> $GITHUB_OUTPUT
           echo "lambda_publish_quiz=$(terraform output -json lambda_function_names | jq -r '.publish_quiz')" >> $GITHUB_OUTPUT
           echo "lambda_create_manual_job=$(terraform output -json lambda_function_names | jq -r '.create_manual_job')" >> $GITHUB_OUTPUT
@@ -295,6 +297,13 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_review_question }} \
             --zip-file fileb://backend/dist/reviewQuestion.zip
+
+      - name: Update Lambda - updateQuestion
+        if: needs.get-outputs.outputs.lambda_update_question != '' && needs.get-outputs.outputs.lambda_update_question != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_update_question }} \
+            --zip-file fileb://backend/dist/updateQuestion.zip
 
       - name: Update Lambda - bulkReviewQuestions
         if: needs.get-outputs.outputs.lambda_bulk_review_questions != '' && needs.get-outputs.outputs.lambda_bulk_review_questions != 'null'
