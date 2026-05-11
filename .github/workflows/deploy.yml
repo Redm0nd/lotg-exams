@@ -80,9 +80,9 @@ jobs:
           path: backend/dist/*.zip
           retention-days: 1
 
-  # Terraform - plan on PRs, plan + apply on pushes to main
-  terraform:
-    name: Terraform
+  # Terraform Plan - runs on PRs and main pushes when infra changes
+  terraform-plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
     needs: [changes, build-backend]
     if: needs.changes.outputs.infra == 'true'
@@ -129,22 +129,60 @@ jobs:
           cat plan_output.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
+  # Terraform Apply - requires manual approval via GitHub Environment protection rules
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [changes, build-backend, terraform-plan]
+    if: |
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      needs.changes.outputs.infra == 'true' &&
+      needs.terraform-plan.result == 'success'
+    environment: production
+    defaults:
+      run:
+        working-directory: .infra
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download Lambda Artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: lambda-zips
+          path: backend/dist
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
 
-  # Get Terraform outputs - runs after terraform (if infra changed) or independently
+  # Get Terraform outputs - runs after terraform-apply (if infra changed) or independently
   get-outputs:
     name: Get Terraform Outputs
     runs-on: ubuntu-latest
-    needs: [changes, terraform]
-    # Run if: (infra changed AND terraform succeeded) OR (infra didn't change but backend/frontend changed)
+    needs: [changes, terraform-apply]
+    # Run if: (infra changed AND apply succeeded) OR (infra didn't change but backend/frontend changed)
     if: |
       always() &&
       github.ref == 'refs/heads/main' &&
       github.event_name == 'push' &&
       (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true') &&
-      (needs.terraform.result == 'success' || needs.terraform.result == 'skipped')
+      (needs.terraform-apply.result == 'success' || needs.terraform-apply.result == 'skipped')
     defaults:
       run:
         working-directory: .infra
