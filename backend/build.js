@@ -42,6 +42,10 @@ const handlers = [
   'getPracticeQuiz',
   // Bulk import
   'importQuestionsCSV',
+  // Bookmarks
+  'addBookmark',
+  'removeBookmark',
+  'getBookmarks',
 ];
 
 async function buildHandler(handlerName) {

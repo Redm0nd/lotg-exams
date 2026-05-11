@@ -19,6 +19,7 @@ import type {
   UserStatsItem,
   PerQuestionResult,
   LawStats,
+  BookmarkItem,
 } from './types.js';
 
 const client = new DynamoDBClient({});
@@ -659,6 +660,17 @@ export async function updateUserStats(
     };
   }
 
+  // Streak calculation (UTC dates)
+  const today = now.substring(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().substring(0, 10);
+  const lastDate = existing?.lastStudyDate;
+  const currentStreak = lastDate === today
+    ? (existing?.currentStreak ?? 1)           // already studied today — no change
+    : lastDate === yesterday
+      ? (existing?.currentStreak ?? 0) + 1     // consecutive day
+      : 1;                                      // streak broken or first attempt
+  const longestStreak = Math.max(existing?.longestStreak ?? 0, currentStreak);
+
   const stats: UserStatsItem = {
     PK: `USER#${userId}`,
     SK: 'STATS',
@@ -668,10 +680,54 @@ export async function updateUserStats(
     averageScore,
     bestScore,
     byLaw: byLaw as UserStatsItem['byLaw'],
+    currentStreak,
+    longestStreak,
+    lastStudyDate: today,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
 
   await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: stats }));
+}
+
+// ============================================================================
+// Bookmarks
+// ============================================================================
+
+export async function addBookmark(userId: string, questionId: string): Promise<void> {
+  const now = new Date().toISOString();
+  const item: BookmarkItem = {
+    PK: `USER#${userId}`,
+    SK: `BOOKMARK#${questionId}`,
+    Type: 'Bookmark',
+    userId,
+    questionId,
+    createdAt: now,
+  };
+  await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
+}
+
+export async function removeBookmark(userId: string, questionId: string): Promise<void> {
+  await docClient.send(
+    new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `USER#${userId}`, SK: `BOOKMARK#${questionId}` },
+    })
+  );
+}
+
+export async function getUserBookmarks(userId: string): Promise<BookmarkItem[]> {
+  const result = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+      ExpressionAttributeValues: {
+        ':pk': `USER#${userId}`,
+        ':prefix': 'BOOKMARK#',
+      },
+      ScanIndexForward: false,
+    })
+  );
+  return (result.Items || []) as BookmarkItem[];
 }
 

@@ -15,23 +15,29 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   );
   if (!userId) return errorResponse('Authentication required', 401);
 
+  const isMock = event.queryStringParameters?.mock === 'true';
+  const defaultLimit = isMock ? 25 : 20;
+  const maxLimit = isMock ? 25 : 40;
   const limit = Math.min(
-    parseInt(event.queryStringParameters?.limit || '20', 10),
-    40
+    parseInt(event.queryStringParameters?.limit || String(defaultLimit), 10),
+    maxLimit
   );
 
   try {
-    const stats = await getUserStats(userId);
+    const stats = isMock ? null : await getUserStats(userId);
     const byLaw = stats?.byLaw || {};
 
-    // Weight each law: weaker laws get more questions (range 10–100)
+    // Mock exam: equal weights across all laws (random selection).
+    // Practice: weaker laws get higher weight; untried laws default to 25.
     const weights: Partial<Record<Law, number>> = {};
     for (const law of ALL_LAWS) {
-      const lawStats = byLaw[law];
-      if (lawStats && lawStats.attempts > 0) {
-        weights[law] = Math.max(10, 100 - lawStats.avgScore);
+      if (isMock) {
+        weights[law] = 1;
       } else {
-        weights[law] = 50;
+        const lawStats = byLaw[law];
+        weights[law] = lawStats && lawStats.attempts > 0
+          ? Math.max(10, 100 - lawStats.avgScore)
+          : 25;
       }
     }
 
@@ -45,13 +51,13 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       lawBudgets[law] = budget;
       allocated += budget;
     }
-    // Distribute rounding remainder to the weakest law
+    // Distribute rounding remainder to the highest-weight law
     const remainder = limit - allocated;
     if (remainder !== 0) {
-      const weakest = ALL_LAWS.reduce((a, b) =>
+      const heaviest = ALL_LAWS.reduce((a, b) =>
         (weights[a] ?? 0) >= (weights[b] ?? 0) ? a : b
       );
-      lawBudgets[weakest] = (lawBudgets[weakest] ?? 0) + remainder;
+      lawBudgets[heaviest] = (lawBudgets[heaviest] ?? 0) + remainder;
     }
 
     // Fetch and sample questions per law in parallel
@@ -67,10 +73,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const shuffled = shuffleArray(selected);
 
-    // Top 3 focus laws (lowest avgScore with existing data)
-    const focusLaws = ALL_LAWS
-      .filter((l) => byLaw[l]?.attempts)
-      .sort((a, b) => (byLaw[a]?.avgScore ?? 100) - (byLaw[b]?.avgScore ?? 100))
+    const avgBudget = limit / ALL_LAWS.length;
+    const focusLaws = isMock ? [] : ALL_LAWS
+      .filter((l) => byLaw[l]?.attempts && (lawBudgets[l] ?? 0) > avgBudget)
+      .sort((a, b) => (lawBudgets[b] ?? 0) - (lawBudgets[a] ?? 0))
       .slice(0, 3);
 
     const questions = shuffled.map((q) => ({

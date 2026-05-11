@@ -27,6 +27,8 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         averageScore: 0,
         bestScore: 0,
         byLaw: {},
+        currentStreak: 0,
+        longestStreak: 0,
       };
       return successResponse(empty);
     }
@@ -36,6 +38,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       averageScore: statsItem.averageScore,
       bestScore: statsItem.bestScore,
       byLaw: statsItem.byLaw,
+      currentStreak: statsItem.currentStreak ?? 0,
+      longestStreak: statsItem.longestStreak ?? 0,
+      lastStudyDate: statsItem.lastStudyDate,
     };
 
     return successResponse(stats);

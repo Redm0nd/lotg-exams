@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useRoles } from '../hooks/useRoles';
+import { useStats } from '../contexts/StatsContext';
 
 export default function Navbar() {
   const { isAuthenticated, isLoading, user, loginWithRedirect, logout } = useAuth0();
   const { isAdmin } = useRoles();
+  const { stats } = useStats();
+  const streak = stats?.currentStreak ?? 0;
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -24,9 +27,14 @@ export default function Navbar() {
               <>
                 <Link
                   to="/profile"
-                  className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
                 >
                   My Progress
+                  {streak > 0 && (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                      🔥{streak}
+                    </span>
+                  )}
                 </Link>
                 {isAdmin && (
                   <Link

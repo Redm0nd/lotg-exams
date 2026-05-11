@@ -172,6 +172,9 @@ jobs:
       lambda_delete_quiz: ${{ steps.tf-output.outputs.lambda_delete_quiz }}
       lambda_get_admin_analytics: ${{ steps.tf-output.outputs.lambda_get_admin_analytics }}
       lambda_get_practice_quiz: ${{ steps.tf-output.outputs.lambda_get_practice_quiz }}
+      lambda_get_bookmarks: ${{ steps.tf-output.outputs.lambda_get_bookmarks }}
+      lambda_add_bookmark: ${{ steps.tf-output.outputs.lambda_add_bookmark }}
+      lambda_remove_bookmark: ${{ steps.tf-output.outputs.lambda_remove_bookmark }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -217,6 +220,9 @@ jobs:
           echo "lambda_delete_quiz=$(terraform output -json lambda_function_names | jq -r '.delete_quiz')" >> $GITHUB_OUTPUT
           echo "lambda_get_admin_analytics=$(terraform output -json lambda_function_names | jq -r '.get_admin_analytics')" >> $GITHUB_OUTPUT
           echo "lambda_get_practice_quiz=$(terraform output -json lambda_function_names | jq -r '.get_practice_quiz')" >> $GITHUB_OUTPUT
+          echo "lambda_get_bookmarks=$(terraform output -json lambda_function_names | jq -r '.get_bookmarks')" >> $GITHUB_OUTPUT
+          echo "lambda_add_bookmark=$(terraform output -json lambda_function_names | jq -r '.add_bookmark')" >> $GITHUB_OUTPUT
+          echo "lambda_remove_bookmark=$(terraform output -json lambda_function_names | jq -r '.remove_bookmark')" >> $GITHUB_OUTPUT
 
   # Deploy Backend - uses pre-built artifacts
   deploy-backend:
@@ -381,6 +387,27 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_get_practice_quiz }} \
             --zip-file fileb://backend/dist/getPracticeQuiz.zip
+
+      - name: Update Lambda - getBookmarks
+        if: needs.get-outputs.outputs.lambda_get_bookmarks != '' && needs.get-outputs.outputs.lambda_get_bookmarks != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_bookmarks }} \
+            --zip-file fileb://backend/dist/getBookmarks.zip
+
+      - name: Update Lambda - addBookmark
+        if: needs.get-outputs.outputs.lambda_add_bookmark != '' && needs.get-outputs.outputs.lambda_add_bookmark != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_add_bookmark }} \
+            --zip-file fileb://backend/dist/addBookmark.zip
+
+      - name: Update Lambda - removeBookmark
+        if: needs.get-outputs.outputs.lambda_remove_bookmark != '' && needs.get-outputs.outputs.lambda_remove_bookmark != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_remove_bookmark }} \
+            --zip-file fileb://backend/dist/removeBookmark.zip
 
   # Build and Deploy Frontend
   deploy-frontend:

@@ -27,6 +27,9 @@ locals {
     "getAdminAnalytics",
     "getPracticeQuiz",
     "importQuestionsCSV",
+    "addBookmark",
+    "removeBookmark",
+    "getBookmarks",
   ]
 }
 
@@ -447,6 +450,9 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.get_admin_analytics,
     aws_api_gateway_integration.get_practice_quiz,
     aws_api_gateway_integration.import_questions_csv,
+    aws_api_gateway_integration.get_bookmarks,
+    aws_api_gateway_integration.add_bookmark,
+    aws_api_gateway_integration.remove_bookmark,
   ]
 
   lifecycle {
@@ -480,6 +486,8 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.me_practice.id,
       aws_api_gateway_resource.admin_analytics.id,
       aws_api_gateway_resource.admin_questions_import.id,
+      aws_api_gateway_resource.me_bookmarks.id,
+      aws_api_gateway_resource.me_bookmark_id.id,
       [for r in aws_api_gateway_gateway_response.cors : r.id],
     ]))
   }
@@ -1944,3 +1952,181 @@ resource "aws_lambda_permission" "import_questions_csv" {
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
 
+# ============================================================================
+# Bookmarks (GET/POST /me/bookmarks, DELETE /me/bookmarks/{questionId})
+# ============================================================================
+
+resource "aws_api_gateway_resource" "me_bookmarks" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.me.id
+  path_part   = "bookmarks"
+}
+
+resource "aws_api_gateway_resource" "me_bookmark_id" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.me_bookmarks.id
+  path_part   = "{questionId}"
+}
+
+# Lambda: getBookmarks
+resource "aws_lambda_function" "get_bookmarks" {
+  filename         = "${path.module}/../../../backend/dist/getBookmarks.zip"
+  function_name    = "${var.project_name}-${var.environment}-getBookmarks"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/getBookmarks.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getBookmarks.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME   = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-getBookmarks"
+  }
+}
+
+# Lambda: addBookmark
+resource "aws_lambda_function" "add_bookmark" {
+  filename         = "${path.module}/../../../backend/dist/addBookmark.zip"
+  function_name    = "${var.project_name}-${var.environment}-addBookmark"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/addBookmark.zip") ? filebase64sha256("${path.module}/../../../backend/dist/addBookmark.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME   = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-addBookmark"
+  }
+}
+
+# Lambda: removeBookmark
+resource "aws_lambda_function" "remove_bookmark" {
+  filename         = "${path.module}/../../../backend/dist/removeBookmark.zip"
+  function_name    = "${var.project_name}-${var.environment}-removeBookmark"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/removeBookmark.zip") ? filebase64sha256("${path.module}/../../../backend/dist/removeBookmark.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME   = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-removeBookmark"
+  }
+}
+
+# GET /me/bookmarks
+resource "aws_api_gateway_method" "get_bookmarks" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_bookmarks.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_bookmarks" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_bookmarks.id
+  http_method             = aws_api_gateway_method.get_bookmarks.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_bookmarks.invoke_arn
+}
+
+# POST /me/bookmarks
+resource "aws_api_gateway_method" "add_bookmark" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_bookmarks.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "add_bookmark" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_bookmarks.id
+  http_method             = aws_api_gateway_method.add_bookmark.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.add_bookmark.invoke_arn
+}
+
+# DELETE /me/bookmarks/{questionId}
+resource "aws_api_gateway_method" "remove_bookmark" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_bookmark_id.id
+  http_method   = "DELETE"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "remove_bookmark" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_bookmark_id.id
+  http_method             = aws_api_gateway_method.remove_bookmark.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.remove_bookmark.invoke_arn
+}
+
+module "cors_me_bookmarks" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.me_bookmarks.id
+}
+
+module "cors_me_bookmark_id" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.me_bookmark_id.id
+}
+
+resource "aws_lambda_permission" "get_bookmarks" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.get_bookmarks.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "add_bookmark" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.add_bookmark.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "remove_bookmark" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.remove_bookmark.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}

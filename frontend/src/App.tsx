@@ -19,9 +19,13 @@ import AdminQuizQuestions from './pages/admin/QuizQuestions';
 import ProfilePage from './pages/ProfilePage';
 import HistoryPage from './pages/HistoryPage';
 import PracticeTake from './pages/PracticeTake';
+import MockExam from './pages/MockExam';
+import BookmarksPage from './pages/BookmarksPage';
+import { StatsProvider } from './contexts/StatsContext';
 
 export default function App() {
   return (
+    <StatsProvider>
     <Routes>
       {/* Public routes with Navbar */}
       <Route element={<Layout />}>
@@ -31,6 +35,8 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/practice" element={<PracticeTake />} />
+        <Route path="/mock-exam" element={<MockExam />} />
+        <Route path="/bookmarks" element={<BookmarksPage />} />
       </Route>
 
       {/* Protected admin routes */}
@@ -55,5 +61,6 @@ export default function App() {
         <Route path="questions" element={<AdminQuestionBank />} />
       </Route>
     </Routes>
+    </StatsProvider>
   );
 }

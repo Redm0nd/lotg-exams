@@ -285,6 +285,9 @@ export interface UserStats {
   averageScore: number;
   bestScore: number;
   byLaw: Partial<Record<Law, LawStats>>;
+  currentStreak: number;
+  longestStreak: number;
+  lastStudyDate?: string;
 }
 
 export interface UserAttemptsResponse {
@@ -296,6 +299,22 @@ export interface UserAttemptsResponse {
 export interface PracticeQuizResponse {
   questions: StudyQuestion[];
   focusLaws: Law[];
+}
+
+// Bookmarks
+export interface BookmarkedQuestion {
+  questionId: string;
+  text: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  lawReference: string;
+  bookmarkedAt: string;
+}
+
+export interface BookmarksResponse {
+  questions: BookmarkedQuestion[];
+  count: number;
 }
 
 // Admin analytics types
