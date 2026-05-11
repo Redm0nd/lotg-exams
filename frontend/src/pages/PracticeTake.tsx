@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { getPracticeQuiz } from '../api/client';
+import { getPracticeQuiz, addBookmark, removeBookmark } from '../api/client';
+import { useAccessToken } from '../hooks/useAccessToken';
 import type { StudyQuestion, Answer, Law } from '../types';
 import LawDrawer from '../components/LawDrawer';
 
@@ -35,6 +36,7 @@ interface QuestionResult {
 export default function PracticeTake() {
   const navigate = useNavigate();
   const { getIdTokenClaims } = useAuth0();
+  const { getToken } = useAccessToken();
 
   const [phase, setPhase] = useState<Phase>('loading');
   const [questions, setQuestions] = useState<StudyQuestion[]>([]);
@@ -46,6 +48,26 @@ export default function PracticeTake() {
   const [results, setResults] = useState<QuestionResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [lawDrawerRef, setLawDrawerRef] = useState<string | null>(null);
+  const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
+  const [bookmarkPending, setBookmarkPending] = useState<string | null>(null);
+
+  async function toggleBookmark(questionId: string) {
+    if (bookmarkPending === questionId) return;
+    setBookmarkPending(questionId);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      if (bookmarked.has(questionId)) {
+        await removeBookmark(questionId, token);
+        setBookmarked((prev) => { const n = new Set(prev); n.delete(questionId); return n; });
+      } else {
+        await addBookmark(questionId, token);
+        setBookmarked((prev) => new Set(prev).add(questionId));
+      }
+    } catch { /* non-fatal */ } finally {
+      setBookmarkPending(null);
+    }
+  }
 
   const answersRef = useRef<Answer[]>([]);
   useEffect(() => { answersRef.current = answers; }, [answers]);
@@ -335,12 +357,22 @@ export default function PracticeTake() {
                 {currentAnswer?.selectedOption === currentQuestion.correctAnswer ? '✓ Correct!' : '✗ Incorrect'}{' '}
                 — {currentQuestion.lawReference}
               </p>
-              <button
-                onClick={() => setLawDrawerRef(currentQuestion.lawReference)}
-                className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2"
-              >
-                View Law →
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                <button
+                  onClick={() => toggleBookmark(currentQuestion.questionId)}
+                  disabled={bookmarkPending === currentQuestion.questionId}
+                  className="text-xs text-amber-600 hover:text-amber-800 disabled:opacity-40"
+                  title={bookmarked.has(currentQuestion.questionId) ? 'Remove bookmark' : 'Bookmark'}
+                >
+                  {bookmarked.has(currentQuestion.questionId) ? '🔖 Saved' : '🔖 Save'}
+                </button>
+                <button
+                  onClick={() => setLawDrawerRef(currentQuestion.lawReference)}
+                  className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900"
+                >
+                  View Law →
+                </button>
+              </div>
             </div>
             <p className="text-sm text-blue-800">{currentQuestion.explanation}</p>
           </div>

@@ -22,6 +22,7 @@ import type {
   UserStats,
   AdminAnalytics,
   PracticeQuizResponse,
+  BookmarksResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -319,12 +320,26 @@ export async function importQuestionsCSV(csv: string, token: string): Promise<CS
   );
 }
 
+export async function getBookmarks(token: string): Promise<BookmarksResponse> {
+  return fetchAPI<BookmarksResponse>('/me/bookmarks', undefined, token);
+}
+
+export async function addBookmark(questionId: string, token: string): Promise<void> {
+  await fetchAPI('/me/bookmarks', { method: 'POST', body: JSON.stringify({ questionId }) }, token);
+}
+
+export async function removeBookmark(questionId: string, token: string): Promise<void> {
+  await fetchAPI(`/me/bookmarks/${questionId}`, { method: 'DELETE' }, token);
+}
+
 export async function getPracticeQuiz(
   token: string,
-  limit?: number
+  limit?: number,
+  mock?: boolean
 ): Promise<PracticeQuizResponse> {
   const params = new URLSearchParams();
   if (limit !== undefined) params.set('limit', limit.toString());
+  if (mock) params.set('mock', 'true');
   const query = params.toString();
   return fetchAPI<PracticeQuizResponse>(
     `/me/practice-quiz${query ? `?${query}` : ''}`,

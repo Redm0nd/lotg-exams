@@ -15,25 +15,29 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   );
   if (!userId) return errorResponse('Authentication required', 401);
 
+  const isMock = event.queryStringParameters?.mock === 'true';
+  const defaultLimit = isMock ? 25 : 20;
+  const maxLimit = isMock ? 25 : 40;
   const limit = Math.min(
-    parseInt(event.queryStringParameters?.limit || '20', 10),
-    40
+    parseInt(event.queryStringParameters?.limit || String(defaultLimit), 10),
+    maxLimit
   );
 
   try {
-    const stats = await getUserStats(userId);
+    const stats = isMock ? null : await getUserStats(userId);
     const byLaw = stats?.byLaw || {};
 
-    // Weight each law: weaker laws get more questions (range 10–100).
-    // Untried laws get a lower base weight (25) so known-weak laws
-    // are not crowded out by 16 equally-weighted untried laws.
+    // Mock exam: equal weights across all laws (random selection).
+    // Practice: weaker laws get higher weight; untried laws default to 25.
     const weights: Partial<Record<Law, number>> = {};
     for (const law of ALL_LAWS) {
-      const lawStats = byLaw[law];
-      if (lawStats && lawStats.attempts > 0) {
-        weights[law] = Math.max(10, 100 - lawStats.avgScore);
+      if (isMock) {
+        weights[law] = 1;
       } else {
-        weights[law] = 25;
+        const lawStats = byLaw[law];
+        weights[law] = lawStats && lawStats.attempts > 0
+          ? Math.max(10, 100 - lawStats.avgScore)
+          : 25;
       }
     }
 
@@ -69,11 +73,8 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const shuffled = shuffleArray(selected);
 
-    // Focus laws = laws that received an above-average question budget AND
-    // have actual performance data. This ensures the label reflects the
-    // real session composition rather than just lowest-scored laws.
     const avgBudget = limit / ALL_LAWS.length;
-    const focusLaws = ALL_LAWS
+    const focusLaws = isMock ? [] : ALL_LAWS
       .filter((l) => byLaw[l]?.attempts && (lawBudgets[l] ?? 0) > avgBudget)
       .sort((a, b) => (lawBudgets[b] ?? 0) - (lawBudgets[a] ?? 0))
       .slice(0, 3);

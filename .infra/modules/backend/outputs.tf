@@ -37,6 +37,9 @@ output "lambda_function_names" {
     delete_quiz            = aws_lambda_function.delete_quiz.function_name
     get_admin_analytics    = aws_lambda_function.get_admin_analytics.function_name
     get_practice_quiz      = aws_lambda_function.get_practice_quiz.function_name
+    get_bookmarks          = aws_lambda_function.get_bookmarks.function_name
+    add_bookmark           = aws_lambda_function.add_bookmark.function_name
+    remove_bookmark        = aws_lambda_function.remove_bookmark.function_name
   }
 }
 
@@ -64,6 +67,9 @@ output "lambda_function_arns" {
     delete_quiz            = aws_lambda_function.delete_quiz.arn
     get_admin_analytics    = aws_lambda_function.get_admin_analytics.arn
     get_practice_quiz      = aws_lambda_function.get_practice_quiz.arn
+    get_bookmarks          = aws_lambda_function.get_bookmarks.arn
+    add_bookmark           = aws_lambda_function.add_bookmark.arn
+    remove_bookmark        = aws_lambda_function.remove_bookmark.arn
   }
 }
 

@@ -239,6 +239,9 @@ export interface UserStatsItem {
   averageScore: number;
   bestScore: number;
   byLaw: Partial<Record<Law, LawStats>>;
+  currentStreak: number;
+  longestStreak: number;
+  lastStudyDate?: string; // YYYY-MM-DD UTC
   createdAt: string;
   updatedAt: string;
 }
@@ -259,6 +262,22 @@ export interface UserStats {
   averageScore: number;
   bestScore: number;
   byLaw: Partial<Record<Law, LawStats>>;
+  currentStreak: number;
+  longestStreak: number;
+  lastStudyDate?: string;
+}
+
+// ============================================================================
+// Bookmarks
+// ============================================================================
+
+export interface BookmarkItem {
+  PK: string; // USER#{userId}
+  SK: string; // BOOKMARK#{questionId}
+  Type: 'Bookmark';
+  userId: string;
+  questionId: string;
+  createdAt: string;
 }
 
 // Lambda event types

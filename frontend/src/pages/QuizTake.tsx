@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { getQuiz, getQuestions } from '../api/client';
+import { getQuiz, getQuestions, addBookmark, removeBookmark } from '../api/client';
+import { useAccessToken } from '../hooks/useAccessToken';
 import type { QuizDetail, Question, StudyQuestion, Answer } from '../types';
 import LawDrawer from '../components/LawDrawer';
 
@@ -46,6 +47,7 @@ export default function QuizTake() {
     isLoading: authLoading,
     getIdTokenClaims,
   } = useAuth0();
+  const { getToken } = useAccessToken();
 
   // Phase: 'select' (mode selection), 'quiz' (taking quiz), or 'auth' (login required)
   const [phase, setPhase] = useState<'loading' | 'select' | 'auth' | 'quiz' | 'error'>('loading');
@@ -61,6 +63,26 @@ export default function QuizTake() {
   // Study mode: whether current question feedback is revealed
   const [feedbackRevealed, setFeedbackRevealed] = useState(false);
   const [lawDrawerRef, setLawDrawerRef] = useState<string | null>(null);
+  const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
+  const [bookmarkPending, setBookmarkPending] = useState<string | null>(null);
+
+  async function toggleBookmark(questionId: string) {
+    if (bookmarkPending === questionId) return;
+    setBookmarkPending(questionId);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      if (bookmarked.has(questionId)) {
+        await removeBookmark(questionId, token);
+        setBookmarked((prev) => { const n = new Set(prev); n.delete(questionId); return n; });
+      } else {
+        await addBookmark(questionId, token);
+        setBookmarked((prev) => new Set(prev).add(questionId));
+      }
+    } catch { /* non-fatal */ } finally {
+      setBookmarkPending(null);
+    }
+  }
 
   const answersRef = useRef<Answer[]>([]);
   const questionsRef = useRef<Question[]>([]);
@@ -494,12 +516,24 @@ export default function QuizTake() {
                   : '✗ Incorrect'}{' '}
                 — {studyQ.lawReference}
               </p>
-              <button
-                onClick={() => setLawDrawerRef(studyQ.lawReference)}
-                className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2"
-              >
-                View Law →
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                {isAuthenticated && (
+                  <button
+                    onClick={() => toggleBookmark(studyQ.questionId)}
+                    disabled={bookmarkPending === studyQ.questionId}
+                    className="text-xs text-amber-600 hover:text-amber-800 disabled:opacity-40"
+                    title={bookmarked.has(studyQ.questionId) ? 'Remove bookmark' : 'Bookmark'}
+                  >
+                    {bookmarked.has(studyQ.questionId) ? '🔖 Saved' : '🔖 Save'}
+                  </button>
+                )}
+                <button
+                  onClick={() => setLawDrawerRef(studyQ.lawReference)}
+                  className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900"
+                >
+                  View Law →
+                </button>
+              </div>
             </div>
             <p className="text-sm text-blue-800">{studyQ.explanation}</p>
           </div>
