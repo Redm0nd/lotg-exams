@@ -1,17 +1,8 @@
 resource "aws_dynamodb_table" "this" {
   name         = "${var.project_name}-${var.environment}-quizzes"
   billing_mode = "PAY_PER_REQUEST" # On-demand pricing, no capacity planning needed
-
-  # key_schema replaces the deprecated top-level hash_key / range_key attributes
-  key_schema {
-    attribute_name = "PK"
-    key_type       = "HASH"
-  }
-
-  key_schema {
-    attribute_name = "SK"
-    key_type       = "RANGE"
-  }
+  hash_key     = "PK"
+  range_key    = "SK"
 
   attribute {
     name = "PK"
