@@ -1,3 +1,17 @@
+# [1.20.0](https://github.com/Redm0nd/lotg-exams/compare/v1.19.0...v1.20.0) (2026-05-11)
+
+
+### Bug Fixes
+
+* **practice:** align focus areas display with actual question distribution ([eee0d4d](https://github.com/Redm0nd/lotg-exams/commit/eee0d4d767604a22e7f397b55f2591c23600cf34))
+* **practice:** clarify practice mode start screen copy ([d660da3](https://github.com/Redm0nd/lotg-exams/commit/d660da31544239a9c131047baa85a7f73e6a4e9b))
+* **practice:** remove focus areas chip from practice start screen ([6eefafa](https://github.com/Redm0nd/lotg-exams/commit/6eefafa2a44f21c2c2777ecb979d416ac23e7c8f))
+
+
+### Features
+
+* add mock exam, streaks, exam readiness, and bookmarks ([7b7ceb2](https://github.com/Redm0nd/lotg-exams/commit/7b7ceb2c279e8cc0be68e65d58b4846674be91c4))
+
 # [1.19.0](https://github.com/Redm0nd/lotg-exams/compare/v1.18.0...v1.19.0) (2026-05-11)
 
 
