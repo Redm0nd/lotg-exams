@@ -392,32 +392,28 @@ resource "aws_api_gateway_integration" "submit_answers" {
 
 # Enable CORS for all methods
 module "cors_quizzes" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.quizzes.id
 }
 
 module "cors_quiz_id" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.quiz_id.id
 }
 
 module "cors_questions" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.questions.id
 }
 
 module "cors_submit" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.submit.id
@@ -1157,72 +1153,63 @@ resource "aws_api_gateway_integration" "bulk_review" {
 
 # CORS for admin routes
 module "cors_admin" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin.id
 }
 
 module "cors_admin_presigned_url" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_presigned_url.id
 }
 
 module "cors_admin_jobs" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_jobs.id
 }
 
 module "cors_admin_job_id" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_job_id.id
 }
 
 module "cors_admin_job_publish" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_job_publish.id
 }
 
 module "cors_admin_questions" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_questions.id
 }
 
 module "cors_admin_question_review" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_question_review.id
 }
 
 module "cors_admin_question_id" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_question_id.id
 }
 
 module "cors_admin_bulk_review" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_bulk_review.id
@@ -1332,16 +1319,14 @@ resource "aws_api_gateway_integration" "add_manual_question" {
 
 # CORS for new routes
 module "cors_admin_jobs_manual" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_jobs_manual.id
 }
 
 module "cors_admin_job_questions" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_job_questions.id
@@ -1468,16 +1453,14 @@ resource "aws_api_gateway_integration" "remove_job_question" {
 
 # CORS for new routes
 module "cors_admin_job_metadata" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_job_metadata.id
 }
 
 module "cors_admin_job_question_id" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_job_question_id.id
@@ -1665,24 +1648,21 @@ resource "aws_api_gateway_integration" "get_my_stats" {
 }
 
 module "cors_me" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.me.id
 }
 
 module "cors_me_attempts" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.me_attempts.id
 }
 
 module "cors_me_stats" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.me_stats.id
@@ -1754,8 +1734,7 @@ resource "aws_api_gateway_integration" "get_practice_quiz" {
 }
 
 module "cors_me_practice" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.me_practice.id
@@ -1870,8 +1849,7 @@ resource "aws_api_gateway_integration" "get_admin_analytics" {
 }
 
 module "cors_admin_analytics" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_analytics.id
@@ -1937,8 +1915,7 @@ resource "aws_api_gateway_integration" "import_questions_csv" {
 }
 
 module "cors_admin_questions_import" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_questions_import.id
@@ -2092,16 +2069,14 @@ resource "aws_api_gateway_integration" "remove_bookmark" {
 }
 
 module "cors_me_bookmarks" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.me_bookmarks.id
 }
 
 module "cors_me_bookmark_id" {
-  source  = "squidfunk/api-gateway-enable-cors/aws"
-  version = "0.3.3"
+  source = "../cors"
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.me_bookmark_id.id
