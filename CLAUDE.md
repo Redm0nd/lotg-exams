@@ -155,15 +155,34 @@ lotg-exams/
 
 ## Development Workflow
 
-1. Create feature branch from `main`
-2. Make changes following style guidelines
+This project follows **trunk-based development**. `main` is the trunk — it is always deployable and CI runs on every push to it.
+
+### Branch rules
+
+- Branch directly from `main`; never branch off another feature branch
+- Keep branches **short-lived**: aim to merge within 1–2 days
+- One logical change per branch — avoid combining unrelated work
+- Delete the branch immediately after merging (GitHub is configured to do this automatically via *Settings → General → Automatically delete head branches*)
+- If a change is too large to merge quickly, break it into smaller incremental PRs
+
+### Workflow
+
+1. Create a branch from `main` using the conventional naming format:
+   `<type>/<short-description>` (e.g. `feat/bookmark-questions`, `fix/timer-reset`)
+2. Make changes following the style guidelines
 3. Test locally:
    - Frontend: `cd frontend && npm run dev`
    - Backend: `cd backend && npm run build`
    - Terraform: `cd .infra && terraform validate && terraform plan`
-4. Commit with conventional commit message
-5. Push and create PR
-6. Merge to `main` triggers deployment
+4. Commit with conventional commit messages (one logical commit per change)
+5. Open a PR against `main` — keep it small and reviewable
+6. Merge to `main` triggers deployment via GitHub Actions
+
+### What to avoid
+
+- Long-lived branches (they diverge and become painful to merge)
+- Stacking PRs on top of unmerged branches
+- Leaving branches open after they are merged
 
 ## PR Conventions
 
@@ -172,7 +191,7 @@ lotg-exams/
   - What changed and why
   - How to test
   - Screenshots for UI changes
-- Keep PRs focused and reviewable
+- Keep PRs focused and reviewable (prefer small PRs over large ones)
 - Reference related issues
 
 ## Testing
