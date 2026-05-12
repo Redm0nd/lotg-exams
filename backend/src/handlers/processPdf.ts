@@ -9,12 +9,14 @@ import type {
   BankQuestionItem,
   ExtractionJobItem,
   Law,
+  QuestionConflictItem,
 } from '../lib/types.js';
 import {
   createExtractionJob,
   updateExtractionJob,
   batchSaveBankQuestions,
-  questionExistsByHash,
+  getBankQuestionByHash,
+  saveQuestionConflict,
 } from '../lib/dynamodb.js';
 
 const s3Client = new S3Client({});
@@ -284,17 +286,66 @@ export async function handler(event: S3Event): Promise<void> {
       // Process and deduplicate questions
       const questionsToSave: BankQuestionItem[] = [];
       let duplicateCount = 0;
+      let conflictCount = 0;
       let autoApprovedCount = 0;
       let pendingCount = 0;
 
       for (const extracted of extractedQuestions) {
         const hash = generateQuestionHash(extracted.text, extracted.options);
 
-        // Check for duplicates
-        const isDuplicate = await questionExistsByHash(hash);
-        if (isDuplicate) {
-          duplicateCount++;
-          console.log(`Duplicate question found: ${extracted.text.substring(0, 50)}...`);
+        // Look up any existing question with the same text+options hash.
+        const existing = await getBankQuestionByHash(hash);
+        if (existing) {
+          // Compare the "outcome" fields. If any differ, this is a conflict
+          // worth surfacing for admin review rather than a silent dupe.
+          const diffFields: QuestionConflictItem['diffFields'] = [];
+          if (existing.correctAnswer !== extracted.correctAnswer) diffFields.push('correctAnswer');
+          if ((existing.explanation ?? '') !== (extracted.explanation ?? '')) diffFields.push('explanation');
+          if (existing.law !== extracted.law) diffFields.push('law');
+          if ((existing.lawReference ?? '') !== (extracted.lawReference ?? ''))
+            diffFields.push('lawReference');
+
+          if (diffFields.length === 0) {
+            // True duplicate — same text, options and outcome. Skip silently as before.
+            duplicateCount++;
+            console.log(`Duplicate question found: ${extracted.text.substring(0, 50)}...`);
+            continue;
+          }
+
+          // Outcome differs — record a conflict for admin review and do NOT
+          // create the candidate as a new bank question yet.
+          const conflictId = ulid();
+          const conflict: QuestionConflictItem = {
+            PK: `CONFLICT#${conflictId}`,
+            SK: 'METADATA',
+            Type: 'QuestionConflict',
+            conflictId,
+            status: 'pending',
+            existingQuestionId: existing.questionId,
+            jobId,
+            text: extracted.text,
+            options: extracted.options,
+            existing: {
+              correctAnswer: existing.correctAnswer,
+              explanation: existing.explanation ?? '',
+              law: existing.law,
+              lawReference: existing.lawReference ?? '',
+            },
+            candidate: {
+              correctAnswer: extracted.correctAnswer,
+              explanation: extracted.explanation ?? '',
+              law: extracted.law,
+              lawReference: extracted.lawReference ?? '',
+              confidence: extracted.confidence,
+            },
+            diffFields,
+            createdAt: now,
+          };
+          await saveQuestionConflict(conflict);
+          conflictCount++;
+          console.log(
+            `Conflict on question "${extracted.text.substring(0, 50)}…" diffs=${diffFields.join(',')}`
+          );
           continue;
         }
 
@@ -345,12 +396,13 @@ export async function handler(event: S3Event): Promise<void> {
         pendingCount,
         rejectedCount: 0,
         duplicateCount,
+        conflictCount,
         completedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
 
       console.log(
-        `Job ${jobId} completed: ${questionsToSave.length} questions saved, ${autoApprovedCount} auto-approved, ${pendingCount} pending review, ${duplicateCount} duplicates`
+        `Job ${jobId} completed: ${questionsToSave.length} questions saved, ${autoApprovedCount} auto-approved, ${pendingCount} pending review, ${duplicateCount} duplicates, ${conflictCount} conflicts`
       );
     } catch (error) {
       console.error(`Error processing job ${jobId}:`, error);

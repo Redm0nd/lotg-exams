@@ -20,6 +20,8 @@ import type {
   PerQuestionResult,
   LawStats,
   BookmarkItem,
+  QuestionConflictItem,
+  ConflictResolution,
 } from './types.js';
 
 const client = new DynamoDBClient({});
@@ -386,6 +388,16 @@ export async function getAllBankQuestions(limit = 100): Promise<BankQuestionItem
  * Check if a question with the same hash already exists
  */
 export async function questionExistsByHash(hash: string): Promise<boolean> {
+  const existing = await getBankQuestionByHash(hash);
+  return existing !== null;
+}
+
+/**
+ * Fetch the first bank question that matches a given content hash, or null.
+ * Used by the import flow to surface "looks like a duplicate but the answer
+ * has changed" conflicts for admin review.
+ */
+export async function getBankQuestionByHash(hash: string): Promise<BankQuestionItem | null> {
   const params = {
     TableName: TABLE_NAME,
     IndexName: 'Hash-index',
@@ -400,7 +412,8 @@ export async function questionExistsByHash(hash: string): Promise<boolean> {
   };
 
   const result = await docClient.send(new QueryCommand(params));
-  return (result.Items?.length || 0) > 0;
+  const items = (result.Items || []) as BankQuestionItem[];
+  return items[0] ?? null;
 }
 
 /**
@@ -729,5 +742,75 @@ export async function getUserBookmarks(userId: string): Promise<BookmarkItem[]> 
     })
   );
   return (result.Items || []) as BookmarkItem[];
+}
+
+// ============================================================================
+// Question conflicts (import-time answer-changed duplicates)
+// ============================================================================
+
+export async function saveQuestionConflict(item: QuestionConflictItem): Promise<void> {
+  await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
+}
+
+export async function getConflict(conflictId: string): Promise<QuestionConflictItem | null> {
+  const result = await docClient.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `CONFLICT#${conflictId}`, SK: 'METADATA' },
+    })
+  );
+  return (result.Item as QuestionConflictItem | undefined) ?? null;
+}
+
+/**
+ * List conflicts by status (pending by default), newest first.
+ * Uses the Type-createdAt GSI with a FilterExpression on status — fine at
+ * the scale this admin queue runs at (tens of pending items, not thousands).
+ */
+export async function getConflictsByStatus(
+  status: 'pending' | 'resolved' = 'pending',
+  limit = 100
+): Promise<QuestionConflictItem[]> {
+  const result = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: 'Type-createdAt-index',
+      KeyConditionExpression: '#type = :type',
+      FilterExpression: '#status = :status',
+      ExpressionAttributeNames: {
+        '#type': 'Type',
+        '#status': 'status',
+      },
+      ExpressionAttributeValues: {
+        ':type': 'QuestionConflict',
+        ':status': status,
+      },
+      ScanIndexForward: false,
+      Limit: limit,
+    })
+  );
+  return (result.Items || []) as QuestionConflictItem[];
+}
+
+export async function markConflictResolved(
+  conflictId: string,
+  resolution: ConflictResolution,
+  resolvedBy: string
+): Promise<void> {
+  await docClient.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `CONFLICT#${conflictId}`, SK: 'METADATA' },
+      UpdateExpression:
+        'SET #status = :status, resolution = :resolution, resolvedAt = :resolvedAt, resolvedBy = :resolvedBy',
+      ExpressionAttributeNames: { '#status': 'status' },
+      ExpressionAttributeValues: {
+        ':status': 'resolved',
+        ':resolution': resolution,
+        ':resolvedAt': new Date().toISOString(),
+        ':resolvedBy': resolvedBy,
+      },
+    })
+  );
 }
 

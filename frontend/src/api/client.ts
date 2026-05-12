@@ -25,6 +25,9 @@ import type {
   AdminAnalytics,
   PracticeQuizResponse,
   BookmarksResponse,
+  ConflictsResponse,
+  ConflictResolution,
+  ResolveConflictResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -358,6 +361,31 @@ export async function getPracticeQuiz(
   return fetchAPI<PracticeQuizResponse>(
     `/me/practice-quiz${query ? `?${query}` : ''}`,
     undefined,
+    token
+  );
+}
+
+// Import conflicts
+export async function listConflicts(
+  token: string,
+  status: 'pending' | 'resolved' = 'pending'
+): Promise<ConflictsResponse> {
+  return fetchAPI<ConflictsResponse>(
+    `/admin/conflicts?status=${status}`,
+    undefined,
+    token
+  );
+}
+
+export async function resolveConflict(
+  conflictId: string,
+  resolution: ConflictResolution,
+  token: string,
+  resolvedBy?: string
+): Promise<ResolveConflictResponse> {
+  return fetchAPI<ResolveConflictResponse>(
+    `/admin/conflicts/${conflictId}/resolve`,
+    { method: 'POST', body: JSON.stringify({ resolution, resolvedBy }) },
     token
   );
 }

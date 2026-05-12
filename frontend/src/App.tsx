@@ -11,6 +11,7 @@ import AdminJobs from './pages/admin/Jobs';
 import AdminJobDetail from './pages/admin/JobDetail';
 import AdminReview from './pages/admin/Review';
 import AdminQuestionBank from './pages/admin/QuestionBank';
+import AdminConflicts from './pages/admin/Conflicts';
 import AdminCreateQuiz from './pages/admin/CreateQuiz';
 import AdminAddQuestion from './pages/admin/AddQuestion';
 import AdminManageQuizzes from './pages/admin/ManageQuizzes';
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="jobs/:jobId/add" element={<AdminAddQuestion />} />
         <Route path="review" element={<AdminReview />} />
         <Route path="questions" element={<AdminQuestionBank />} />
+        <Route path="conflicts" element={<AdminConflicts />} />
       </Route>
     </Routes>
     </StatsProvider>
