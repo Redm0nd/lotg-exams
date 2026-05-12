@@ -1,7 +1,38 @@
 # Handles CORS preflight (OPTIONS) for an API Gateway resource.
 # Replaces the deprecated squidfunk/api-gateway-enable-cors/aws registry module.
-# Resource names intentionally match the squidfunk v0.3.3 naming so that
-# switching the source does not force recreation of existing AWS resources.
+#
+# The squidfunk v0.3.3 module declared its resources with the local name "_"
+# (underscore), while this local module uses "cors". When commit 30bb98f
+# swapped the source, Terraform saw the rename as "destroy `_`, create `cors`"
+# which on parallel-apply led to PutMethod racing the DeleteMethod, AWS
+# replying 409 ("Method already exists for this resource"), and state ending
+# up partially migrated.
+#
+# These `moved` blocks tell Terraform the old `_` addresses are the same
+# resources as the new `cors` ones, so state is renamed in place with no AWS
+# calls. They are no-ops when the source address isn't present (i.e. the
+# instance was successfully migrated already), so they're safe to leave in
+# permanently.
+
+moved {
+  from = aws_api_gateway_method._
+  to   = aws_api_gateway_method.cors
+}
+
+moved {
+  from = aws_api_gateway_integration._
+  to   = aws_api_gateway_integration.cors
+}
+
+moved {
+  from = aws_api_gateway_method_response._
+  to   = aws_api_gateway_method_response.cors
+}
+
+moved {
+  from = aws_api_gateway_integration_response._
+  to   = aws_api_gateway_integration_response.cors
+}
 
 resource "aws_api_gateway_method" "cors" {
   rest_api_id   = var.api_id
