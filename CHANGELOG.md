@@ -1,3 +1,11 @@
+## [1.20.1](https://github.com/Redm0nd/lotg-exams/compare/v1.20.0...v1.20.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* **infra:** fix DynamoDB key_schema and add manual approval gate for terraform apply ([d862525](https://github.com/Redm0nd/lotg-exams/commit/d862525a32623f8f0c99e13c8763616b7b47d53b)), closes [#101](https://github.com/Redm0nd/lotg-exams/issues/101)
+* **infra:** revert DynamoDB table-level key_schema blocks to hash_key/range_key ([e99896f](https://github.com/Redm0nd/lotg-exams/commit/e99896f060013f8318baa6b3095cac405e68977b))
+
 # [1.20.0](https://github.com/Redm0nd/lotg-exams/compare/v1.19.0...v1.20.0) (2026-05-11)
 
 
