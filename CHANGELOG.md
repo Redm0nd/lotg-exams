@@ -1,3 +1,10 @@
+## [1.20.2](https://github.com/Redm0nd/lotg-exams/compare/v1.20.1...v1.20.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* **infra:** import orphaned CORS method/integration rows into state ([558875c](https://github.com/Redm0nd/lotg-exams/commit/558875c6b05137323f3d6c3faf73a73014342ac8))
+
 ## [1.20.1](https://github.com/Redm0nd/lotg-exams/compare/v1.20.0...v1.20.1) (2026-05-12)
 
 
