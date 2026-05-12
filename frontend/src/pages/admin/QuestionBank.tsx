@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { getQuestionBank, importQuestionsCSV } from '../../api/client';
+import { getQuestionBank, importQuestionsCSV, reviewQuestion } from '../../api/client';
 import { useAccessToken } from '../../hooks/useAccessToken';
+import QuestionEditor from '../../components/admin/QuestionEditor';
 import type { BankQuestion, Law, QuestionStatus } from '../../types';
 
 const LAWS: Law[] = [
@@ -37,6 +38,7 @@ export default function AdminQuestionBank() {
   const [lawFilter, setLawFilter] = useState<Law | ''>('');
   const [statusFilter, setStatusFilter] = useState<QuestionStatus | ''>('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -84,6 +86,21 @@ export default function AdminQuestionBank() {
 
   const toggleExpand = (questionId: string) => {
     setExpandedId((prev) => (prev === questionId ? null : questionId));
+    setEditingId(null);
+  };
+
+  const patchQuestion = (questionId: string, patch: Partial<BankQuestion>) => {
+    setQuestions((prev) => prev.map((q) => (q.questionId === questionId ? { ...q, ...patch } : q)));
+  };
+
+  const handleStatusChange = async (questionId: string, status: QuestionStatus) => {
+    try {
+      const token = await getToken();
+      await reviewQuestion(questionId, status, token);
+      patchQuestion(questionId, { status, reviewedAt: new Date().toISOString() });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to change status');
+    }
   };
 
   // Group questions by law for stats
@@ -120,12 +137,8 @@ export default function AdminQuestionBank() {
           <p className="text-xs text-gray-400">
             Columns: law, text, optionA–D, correctAnswer (0–3), explanation, lawReference
           </p>
-          {importResult && (
-            <p className="text-xs text-green-700 font-medium">{importResult}</p>
-          )}
-          {importError && (
-            <p className="text-xs text-red-600">{importError}</p>
-          )}
+          {importResult && <p className="text-xs text-green-700 font-medium">{importResult}</p>}
+          {importError && <p className="text-xs text-red-600">{importError}</p>}
         </div>
       </div>
 
@@ -236,7 +249,15 @@ export default function AdminQuestionBank() {
                   key={question.questionId}
                   question={question}
                   expanded={expandedId === question.questionId}
+                  editing={editingId === question.questionId}
                   onToggle={() => toggleExpand(question.questionId)}
+                  onStartEdit={() => setEditingId(question.questionId)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSaved={(updated) => {
+                    patchQuestion(updated.questionId, updated);
+                    setEditingId(null);
+                  }}
+                  onStatusChange={(s) => handleStatusChange(question.questionId, s)}
                 />
               ))}
             </tbody>
@@ -250,11 +271,21 @@ export default function AdminQuestionBank() {
 function QuestionRow({
   question,
   expanded,
+  editing,
   onToggle,
+  onStartEdit,
+  onCancelEdit,
+  onSaved,
+  onStatusChange,
 }: {
   question: BankQuestion;
   expanded: boolean;
+  editing: boolean;
   onToggle: () => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSaved: (updated: BankQuestion) => void;
+  onStatusChange: (status: QuestionStatus) => void;
 }) {
   return (
     <>
@@ -277,42 +308,96 @@ function QuestionRow({
       {expanded && (
         <tr className="bg-gray-50">
           <td colSpan={4} className="px-6 py-4">
-            <div className="space-y-4">
-              <div className="grid gap-2">
-                {question.options.map((option, index) => (
-                  <div
-                    key={index}
-                    className={`p-2 rounded text-sm ${
-                      index === question.correctAnswer
-                        ? 'bg-green-100 border border-green-200 text-green-800'
-                        : 'bg-white border border-gray-200 text-gray-700'
-                    }`}
-                  >
-                    <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
-                    {option}
-                    {index === question.correctAnswer && (
-                      <span className="ml-2 text-green-600 font-medium">✓</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {question.explanation && (
-                <div className="p-3 bg-blue-50 rounded text-sm text-blue-800">
-                  <span className="font-medium">Explanation:</span> {question.explanation}
+            {editing ? (
+              <QuestionEditor question={question} onSaved={onSaved} onCancel={onCancelEdit} />
+            ) : (
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  {question.options.map((option, index) => (
+                    <div
+                      key={index}
+                      className={`p-2 rounded text-sm ${
+                        index === question.correctAnswer
+                          ? 'bg-green-100 border border-green-200 text-green-800'
+                          : 'bg-white border border-gray-200 text-gray-700'
+                      }`}
+                    >
+                      <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
+                      {option}
+                      {index === question.correctAnswer && (
+                        <span className="ml-2 text-green-600 font-medium">✓</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                <span>Law Reference: {question.lawReference}</span>
-                <span>|</span>
-                <span>Job: {question.jobId}</span>
-                <span>|</span>
-                <span>Created: {new Date(question.createdAt).toLocaleString()}</span>
+                {question.explanation && (
+                  <div className="p-3 bg-blue-50 rounded text-sm text-blue-800">
+                    <span className="font-medium">Explanation:</span> {question.explanation}
+                  </div>
+                )}
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span>Law Reference: {question.lawReference}</span>
+                  <span>|</span>
+                  <span>Job: {question.jobId}</span>
+                  <span>|</span>
+                  <span>Created: {new Date(question.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-200">
+                  <StatusChanger
+                    current={question.status}
+                    onChange={(s) => {
+                      if (s !== question.status) onStatusChange(s);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={onStartEdit}
+                    className="text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded px-3 py-1"
+                  >
+                    Edit question
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </td>
         </tr>
       )}
     </>
+  );
+}
+
+function StatusChanger({
+  current,
+  onChange,
+}: {
+  current: QuestionStatus;
+  onChange: (s: QuestionStatus) => void;
+}) {
+  const buttons: { value: QuestionStatus; label: string; activeClass: string }[] = [
+    { value: 'approved', label: 'Approved', activeClass: 'bg-green-600 text-white' },
+    { value: 'pending_review', label: 'Pending', activeClass: 'bg-yellow-500 text-white' },
+    { value: 'rejected', label: 'Rejected', activeClass: 'bg-red-600 text-white' },
+  ];
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-gray-500 mr-1">Status:</span>
+      <div className="inline-flex rounded-md shadow-sm overflow-hidden border border-gray-200">
+        {buttons.map((b, i) => (
+          <button
+            key={b.value}
+            type="button"
+            onClick={() => onChange(b.value)}
+            className={`px-3 py-1 text-xs font-medium transition-colors ${
+              current === b.value
+                ? b.activeClass
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            } ${i > 0 ? 'border-l border-gray-200' : ''}`}
+          >
+            {b.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
