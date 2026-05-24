@@ -17,14 +17,14 @@ export default function Hero({ onStartClick }: HeroProps) {
   };
 
   return (
-    <section className="border-b border-gray-200 bg-white">
+    <section className="border-b border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800">
       <div className="container mx-auto px-4 py-16 sm:py-20 max-w-6xl">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight dark:text-gray-100">
               Practice the IFAB Laws of the Game
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-gray-600 leading-relaxed">
+            <p className="mt-4 text-base sm:text-lg text-gray-600 leading-relaxed dark:text-gray-300">
               A quiz tool for football referees. Take timed exams, drill on
               specific laws, and review every answer with the relevant Law
               reference.
@@ -44,7 +44,7 @@ export default function Hero({ onStartClick }: HeroProps) {
           </div>
         </div>
 
-        <div className="mt-14 sm:mt-16 grid gap-6 sm:grid-cols-3 text-sm border-t border-gray-100 pt-10">
+        <div className="mt-14 sm:mt-16 grid gap-6 sm:grid-cols-3 text-sm border-t border-gray-100 pt-10 dark:border-gray-800">
           <FeatureItem title="Timed or untimed">
             Optional countdown with auto-submit on expiry.
           </FeatureItem>
@@ -63,8 +63,8 @@ export default function Hero({ onStartClick }: HeroProps) {
 function FeatureItem({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="font-medium text-gray-900">{title}</p>
-      <p className="mt-1 text-gray-600 leading-relaxed">{children}</p>
+      <p className="font-medium text-gray-900 dark:text-gray-100">{title}</p>
+      <p className="mt-1 text-gray-600 leading-relaxed dark:text-gray-400">{children}</p>
     </div>
   );
 }

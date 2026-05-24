@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
+import ThemeToggle from './ThemeToggle';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', end: true },
@@ -14,15 +15,15 @@ export default function AdminLayout() {
   const { user, logout } = useAuth0();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-800">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">
-              <NavLink to="/" className="text-xl font-bold text-gray-900">
+              <NavLink to="/" className="text-xl font-bold text-gray-900 dark:text-gray-100">
                 LOTG Exams
               </NavLink>
-              <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded">
+              <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded dark:bg-orange-900/40 dark:text-orange-300">
                 Admin
               </span>
             </div>
@@ -36,8 +37,8 @@ export default function AdminLayout() {
                     className={({ isActive }) =>
                       `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         isActive
-                          ? 'bg-primary-100 text-primary-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
                       }`
                     }
                   >
@@ -45,7 +46,8 @@ export default function AdminLayout() {
                   </NavLink>
                 ))}
               </nav>
-              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200">
+              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200 dark:border-gray-800">
+                <ThemeToggle />
                 {user?.picture && (
                   <img
                     src={user.picture}
@@ -53,7 +55,7 @@ export default function AdminLayout() {
                     className="h-8 w-8 rounded-full"
                   />
                 )}
-                <span className="text-sm text-gray-700 hidden sm:block">
+                <span className="text-sm text-gray-700 hidden sm:block dark:text-gray-300">
                   {user?.name || user?.email}
                 </span>
                 <button

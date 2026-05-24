@@ -62,10 +62,10 @@ export default function LawDrawer({ lawReference, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={`Law ${lawNum} reference`}
-        className="fixed inset-y-0 right-0 z-50 flex flex-col w-full max-w-lg bg-white shadow-2xl overflow-hidden"
+        className="fixed inset-y-0 right-0 z-50 flex flex-col w-full max-w-lg bg-white shadow-2xl overflow-hidden dark:bg-gray-900"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-blue-700 text-white flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 bg-blue-700 text-white flex-shrink-0 dark:bg-blue-900">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide opacity-75">
               Laws of the Game
@@ -88,22 +88,22 @@ export default function LawDrawer({ lawReference, onClose }: Props) {
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {error && (
-            <p className="text-red-600 text-sm">Could not load law reference content.</p>
+            <p className="text-red-600 text-sm dark:text-red-400">Could not load law reference content.</p>
           )}
 
           {!laws && !error && (
-            <p className="text-gray-500 text-sm animate-pulse">Loading…</p>
+            <p className="text-gray-500 text-sm animate-pulse dark:text-gray-400">Loading…</p>
           )}
 
           {law && (
             <>
               {/* Highlighted section */}
               {section && (
-                <div className="bg-blue-50 border-l-4 border-blue-600 rounded-r-lg p-4">
-                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+                <div className="bg-blue-50 border-l-4 border-blue-600 rounded-r-lg p-4 dark:bg-blue-950/40 dark:border-blue-500">
+                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 dark:text-blue-300">
                     {lawReference} — {section.title}
                   </p>
-                  <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">
+                  <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed dark:text-gray-200">
                     {section.text}
                   </p>
                 </div>
@@ -111,19 +111,19 @@ export default function LawDrawer({ lawReference, onClose }: Props) {
 
               {/* Law summary */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">Overview</h3>
-                <p className="text-sm text-gray-600">{law.summary}</p>
+                <h3 className="text-sm font-semibold text-gray-700 mb-1 dark:text-gray-200">Overview</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{law.summary}</p>
               </div>
 
               {/* Other sections */}
               {Object.entries(law.sections)
                 .filter(([key]) => key !== sectionNum)
                 .map(([key, sec]) => (
-                  <div key={key} className="border-t pt-4">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                  <div key={key} className="border-t pt-4 dark:border-gray-800">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 dark:text-gray-400">
                       {lawNum}.{key} — {sec.title}
                     </h4>
-                    <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                    <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed dark:text-gray-300">
                       {sec.text}
                     </p>
                   </div>
@@ -132,21 +132,21 @@ export default function LawDrawer({ lawReference, onClose }: Props) {
           )}
 
           {laws && !law && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               No reference content available for <strong>{lawReference}</strong>.
             </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 bg-gray-50 border-t flex-shrink-0">
-          <p className="text-xs text-gray-400">
+        <div className="px-5 py-3 bg-gray-50 border-t flex-shrink-0 dark:bg-gray-950 dark:border-gray-800">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Source: IFAB Laws of the Game 2024/25.{' '}
             <a
               href="https://www.theifab.com/laws-of-the-game/overview/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 hover:underline dark:text-blue-400"
             >
               View full text at IFAB →
             </a>

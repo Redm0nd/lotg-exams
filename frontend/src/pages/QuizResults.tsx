@@ -143,8 +143,8 @@ export default function QuizResults() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-          <p className="mt-4 text-gray-600">Calculating results...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Calculating results...</p>
         </div>
       </div>
     );
@@ -154,8 +154,8 @@ export default function QuizResults() {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="card text-center">
-          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error || 'Failed to load results'}</p>
+          <h2 className="text-xl font-bold text-red-600 mb-2 dark:text-red-400">Error</h2>
+          <p className="text-gray-600 mb-4 dark:text-gray-300">{error || 'Failed to load results'}</p>
           <div className="flex gap-4 justify-center">
             <button onClick={handleRetry} className="btn-primary">
               Retry Quiz
@@ -175,12 +175,12 @@ export default function QuizResults() {
     if (score.percentage >= 90) {
       return {
         text: 'Excellent work! You really know the Laws of the Game!',
-        color: 'text-green-600',
+        color: 'text-green-600 dark:text-green-400',
       };
     } else if (score.percentage >= 70) {
-      return { text: 'Good job! Keep studying to master the Laws!', color: 'text-blue-600' };
+      return { text: 'Good job! Keep studying to master the Laws!', color: 'text-blue-600 dark:text-blue-400' };
     } else {
-      return { text: 'Keep practicing! Review the Laws and try again.', color: 'text-amber-600' };
+      return { text: 'Keep practicing! Review the Laws and try again.', color: 'text-amber-600 dark:text-amber-400' };
     }
   };
 
@@ -189,30 +189,30 @@ export default function QuizResults() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="card mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Quiz Results</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4 dark:text-gray-100">Quiz Results</h1>
         {autoSubmitted && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-3 mb-4">
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-3 mb-4 dark:bg-amber-950/40 dark:border-amber-800/60 dark:text-amber-200">
             Time ran out — your quiz was submitted automatically.
           </div>
         )}
         <p className={`text-lg font-medium mb-4 ${message.color}`}>{message.text}</p>
         <div className="flex items-center justify-center gap-8 mb-4 flex-wrap">
           <div>
-            <div className="text-5xl font-bold text-primary-600">{score.percentage}%</div>
-            <div className="text-gray-600 mt-1">Score</div>
+            <div className="text-5xl font-bold text-primary-600 dark:text-primary-400">{score.percentage}%</div>
+            <div className="text-gray-600 mt-1 dark:text-gray-400">Score</div>
           </div>
           <div>
-            <div className="text-3xl font-semibold text-gray-900">
+            <div className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
               {score.correct}/{score.total}
             </div>
-            <div className="text-gray-600 mt-1">Correct Answers</div>
+            <div className="text-gray-600 mt-1 dark:text-gray-400">Correct Answers</div>
           </div>
           {durationMs !== null && (
             <div>
-              <div className="text-3xl font-semibold text-gray-900">
+              <div className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
                 {formatDuration(durationMs)}
               </div>
-              <div className="text-gray-600 mt-1">Time Taken</div>
+              <div className="text-gray-600 mt-1 dark:text-gray-400">Time Taken</div>
             </div>
           )}
         </div>
@@ -228,12 +228,12 @@ export default function QuizResults() {
 
       {wrongCount > 0 && (
         <div className="flex items-center justify-end mb-4">
-          <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-300">
             <input
               type="checkbox"
               checked={reviewWrongOnly}
               onChange={(e) => setReviewWrongOnly(e.target.checked)}
-              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
             />
             Review wrong answers only ({wrongCount})
           </label>
@@ -246,13 +246,13 @@ export default function QuizResults() {
             <div className="flex items-start gap-4">
               <div
                 className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                  result.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  result.isCorrect ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
                 }`}
               >
                 {result.isCorrect ? '✓' : '✗'}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 mb-3">
+                <h3 className="font-semibold text-gray-900 mb-3 dark:text-gray-100">
                   {originalIndex + 1}. {result.text}
                 </h3>
 
@@ -267,52 +267,52 @@ export default function QuizResults() {
                         key={optionIndex}
                         className={`p-3 rounded-lg border-2 ${
                           isCorrect
-                            ? 'border-green-500 bg-green-50'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/30 dark:border-green-500'
                             : isSelected
-                              ? 'border-red-500 bg-red-50'
-                              : 'border-gray-200 bg-gray-50'
+                              ? 'border-red-500 bg-red-50 dark:bg-red-900/30 dark:border-red-500'
+                              : 'border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <span
-                              className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
+                              className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300"
                               aria-hidden="true"
                             >
                               {label}
                             </span>
-                            <span className="text-gray-900">{option}</span>
+                            <span className="text-gray-900 dark:text-gray-100">{option}</span>
                           </div>
                           {isCorrect && (
-                            <span className="text-sm font-medium text-green-700">
+                            <span className="text-sm font-medium text-green-700 dark:text-green-300">
                               Correct Answer
                             </span>
                           )}
                           {isSelected && !isCorrect && (
-                            <span className="text-sm font-medium text-red-700">Your Answer</span>
+                            <span className="text-sm font-medium text-red-700 dark:text-red-300">Your Answer</span>
                           )}
                         </div>
                       </div>
                     );
                   })}
                   {result.selectedOption < 0 && (
-                    <p className="text-sm font-medium text-amber-700">Not answered</p>
+                    <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Not answered</p>
                   )}
                 </div>
 
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded dark:bg-blue-950/40 dark:border-blue-500">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm font-semibold text-blue-900">
+                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
                       Explanation ({result.lawReference})
                     </p>
                     <button
                       onClick={() => setLawDrawerRef(result.lawReference)}
-                      className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2"
+                      className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 flex-shrink-0 ml-2 dark:text-blue-300 dark:hover:text-blue-200"
                     >
                       View Law →
                     </button>
                   </div>
-                  <p className="text-sm text-blue-800">{result.explanation}</p>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">{result.explanation}</p>
                 </div>
               </div>
             </div>

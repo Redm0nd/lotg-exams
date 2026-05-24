@@ -12,6 +12,17 @@
     <meta name="apple-mobile-web-app-title" content="LOTG Exams" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <title>LOTG Exams - Laws of the Game Quizzes</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var resolved = stored === 'dark' || ((stored === 'system' || !stored) && prefersDark) ? 'dark' : 'light';
+          if (resolved === 'dark') document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = resolved;
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

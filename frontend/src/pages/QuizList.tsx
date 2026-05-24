@@ -58,8 +58,8 @@ export default function QuizList() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="card max-w-md">
-          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600">{error}</p>
+          <h2 className="text-xl font-bold text-red-600 mb-2 dark:text-red-400">Error</h2>
+          <p className="text-gray-600 dark:text-gray-300">{error}</p>
         </div>
       </div>
     );
@@ -79,16 +79,16 @@ export default function QuizList() {
       >
         {isAuthenticated && (
           <ScrollReveal>
-            <div className="mb-8 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl flex items-center justify-between gap-4">
+            <div className="mb-8 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl flex items-center justify-between gap-4 dark:from-amber-950/40 dark:to-orange-950/40 dark:border-amber-800/60">
               <div>
-                <h3 className="font-semibold text-gray-900">Practice Mode</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Practice Mode</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Targeted questions based on your weak areas — with instant feedback.
                 </p>
               </div>
               <button
                 onClick={() => navigate('/practice')}
-                className="flex-shrink-0 px-4 py-2 rounded-lg font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                className="flex-shrink-0 px-4 py-2 rounded-lg font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors dark:bg-amber-600 dark:hover:bg-amber-500"
               >
                 Start Practice
               </button>
@@ -98,16 +98,16 @@ export default function QuizList() {
 
         <ScrollReveal>
           <header className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Available Quizzes</h2>
-            <p className="text-gray-600">Pick one to start practising.</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Available Quizzes</h2>
+            <p className="text-gray-600 dark:text-gray-400">Pick one to start practising.</p>
           </header>
         </ScrollReveal>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-              <p className="mt-4 text-gray-600">Loading quizzes...</p>
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-300">Loading quizzes...</p>
             </div>
           </div>
         ) : (
@@ -124,7 +124,7 @@ export default function QuizList() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search quizzes..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
                   />
                 </div>
                 {categories.length > 1 && (
@@ -136,7 +136,7 @@ export default function QuizList() {
                       id="quiz-category"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                     >
                       <option value={ALL_CATEGORIES}>All categories</option>
                       {categories.map((cat) => (
@@ -151,18 +151,18 @@ export default function QuizList() {
             )}
 
             {hasQuizzes && (
-              <p className="text-sm text-gray-500 mb-4" aria-live="polite">
+              <p className="text-sm text-gray-500 mb-4 dark:text-gray-400" aria-live="polite">
                 Showing {filtered.length} of {quizzes.length} quizzes
               </p>
             )}
 
             {!hasQuizzes ? (
               <div className="card text-center">
-                <p className="text-gray-600">No quizzes available yet.</p>
+                <p className="text-gray-600 dark:text-gray-300">No quizzes available yet.</p>
               </div>
             ) : filtered.length === 0 ? (
               <div className="card text-center">
-                <p className="text-gray-600 mb-3">
+                <p className="text-gray-600 mb-3 dark:text-gray-300">
                   No quizzes match {isFiltering ? 'your filters' : 'your search'}.
                 </p>
                 <button
@@ -170,7 +170,7 @@ export default function QuizList() {
                     setSearch('');
                     setCategory(ALL_CATEGORIES);
                   }}
-                  className="text-primary-600 hover:underline text-sm font-medium"
+                  className="text-primary-600 hover:underline text-sm font-medium dark:text-primary-400"
                 >
                   Clear filters
                 </button>
@@ -188,27 +188,27 @@ export default function QuizList() {
                         aria-disabled={locked}
                       >
                         <div className="flex items-start justify-between mb-3">
-                          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors dark:text-gray-100 dark:group-hover:text-primary-400">
                             {quiz.title}
                           </h3>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {!quiz.isPublic && (
-                              <span title="Login required" className="text-gray-400">
+                              <span title="Login required" className="text-gray-400 dark:text-gray-500">
                                 🔒
                               </span>
                             )}
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-300">
                               {quiz.questionCount} questions
                             </span>
                           </div>
                         </div>
-                        <p className="text-gray-600 mb-4">{quiz.description}</p>
+                        <p className="text-gray-600 mb-4 dark:text-gray-400">{quiz.description}</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-500">{quiz.category}</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{quiz.category}</span>
                           {locked ? (
-                            <span className="text-gray-400 text-sm">Login to access</span>
+                            <span className="text-gray-400 text-sm dark:text-gray-500">Login to access</span>
                           ) : (
-                            <span className="text-primary-600 group-hover:translate-x-1 transition-transform">
+                            <span className="text-primary-600 group-hover:translate-x-1 transition-transform dark:text-primary-400">
                               Start Quiz →
                             </span>
                           )}

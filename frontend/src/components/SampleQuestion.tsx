@@ -95,20 +95,20 @@ export default function SampleQuestion() {
   const sample = SAMPLES[index];
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-6 sm:p-7">
+    <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-6 sm:p-7 dark:bg-gray-800 dark:ring-gray-700 dark:shadow-black/30">
       <div className="flex items-center justify-between mb-4">
-        <span className="inline-flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <span className="inline-flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-wide dark:text-gray-400">
           <span className="inline-block w-1.5 h-1.5 bg-primary-500 rounded-full" aria-hidden="true" />
           Sample question
         </span>
-        <span className="text-xs font-mono text-gray-400">{sample.lawReference}</span>
+        <span className="text-xs font-mono text-gray-400 dark:text-gray-500">{sample.lawReference}</span>
       </div>
 
       <div
         className={`transition-opacity ${visible ? 'opacity-100' : 'opacity-0'}`}
         style={{ transitionDuration: `${FADE_MS}ms` }}
       >
-        <p className="text-base sm:text-lg font-medium text-gray-900 leading-snug min-h-[3.5rem]">
+        <p className="text-base sm:text-lg font-medium text-gray-900 leading-snug min-h-[3.5rem] dark:text-gray-100">
           {sample.text}
         </p>
 
@@ -121,15 +121,15 @@ export default function SampleQuestion() {
                 key={i}
                 className={`flex items-center gap-3 rounded-lg border-2 px-3 py-2.5 text-sm transition-colors duration-300 ${
                   showCorrect
-                    ? 'border-green-500 bg-green-50 text-green-900'
-                    : 'border-gray-200 bg-white text-gray-800'
+                    ? 'border-green-500 bg-green-50 text-green-900 dark:bg-green-900/30 dark:text-green-200 dark:border-green-500'
+                    : 'border-gray-200 bg-white text-gray-800 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200'
                 }`}
               >
                 <span
                   className={`flex-shrink-0 inline-flex items-center justify-center w-6 h-6 text-xs font-mono font-semibold rounded ${
                     showCorrect
                       ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 text-gray-500'
+                      : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300'
                   }`}
                   aria-hidden="true"
                 >
@@ -142,7 +142,7 @@ export default function SampleQuestion() {
         </ul>
       </div>
 
-      <div className="mt-5 flex items-center justify-between text-xs text-gray-400">
+      <div className="mt-5 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
         <span aria-live="polite" aria-atomic="true">
           {index + 1} / {SAMPLES.length}
         </span>

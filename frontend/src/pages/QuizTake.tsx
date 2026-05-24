@@ -294,8 +294,8 @@ export default function QuizTake() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-          <p className="mt-4 text-gray-600">Loading quiz...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading quiz...</p>
         </div>
       </div>
     );
@@ -306,8 +306,8 @@ export default function QuizTake() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="card max-w-md text-center">
           <div className="text-4xl mb-4">🔒</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">{quiz?.title || 'Quiz'}</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-2 dark:text-gray-100">{quiz?.title || 'Quiz'}</h2>
+          <p className="text-gray-600 mb-6 dark:text-gray-300">
             This quiz requires you to log in before you can take it.
           </p>
           <div className="flex gap-4 justify-center">
@@ -327,8 +327,8 @@ export default function QuizTake() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="card max-w-md">
-          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600">{error || 'Quiz not found'}</p>
+          <h2 className="text-xl font-bold text-red-600 mb-2 dark:text-red-400">Error</h2>
+          <p className="text-gray-600 dark:text-gray-300">{error || 'Quiz not found'}</p>
           <button onClick={() => navigate('/')} className="btn-primary mt-4">
             Back to Quizzes
           </button>
@@ -342,19 +342,19 @@ export default function QuizTake() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="card max-w-lg text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{quiz.title}</h2>
-          <p className="text-gray-600 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-100">{quiz.title}</h2>
+          <p className="text-gray-600 mb-8 dark:text-gray-400">
             {quiz.questionCount} questions
             {quiz.timeLimitMinutes ? ` · ${quiz.timeLimitMinutes} min` : ''}
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <button
               onClick={() => startQuiz('exam')}
-              className="p-6 rounded-xl border-2 border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all text-left"
+              className="p-6 rounded-xl border-2 border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all text-left dark:border-gray-700 dark:hover:border-primary-500 dark:hover:bg-primary-900/20"
             >
               <div className="text-2xl mb-2">📝</div>
-              <div className="font-semibold text-gray-900 mb-1">Exam Mode</div>
-              <p className="text-sm text-gray-500">
+              <div className="font-semibold text-gray-900 mb-1 dark:text-gray-100">Exam Mode</div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Answer all questions, then see your results.
                 {quiz.timeLimitMinutes
                   ? ` ${quiz.timeLimitMinutes} minute time limit.`
@@ -364,24 +364,24 @@ export default function QuizTake() {
             {isAuthenticated ? (
               <button
                 onClick={() => startQuiz('study')}
-                className="p-6 rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all text-left"
+                className="p-6 rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all text-left dark:border-gray-700 dark:hover:border-green-500 dark:hover:bg-green-900/20"
               >
                 <div className="text-2xl mb-2">📖</div>
-                <div className="font-semibold text-gray-900 mb-1">Study Mode</div>
-                <p className="text-sm text-gray-500">
+                <div className="font-semibold text-gray-900 mb-1 dark:text-gray-100">Study Mode</div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Get instant feedback and explanations after each question. No timer.
                 </p>
               </button>
             ) : (
-              <div className="p-6 rounded-xl border-2 border-gray-200 bg-gray-50 text-left opacity-75">
+              <div className="p-6 rounded-xl border-2 border-gray-200 bg-gray-50 text-left opacity-75 dark:border-gray-700 dark:bg-gray-800/60">
                 <div className="text-2xl mb-2">📖</div>
-                <div className="font-semibold text-gray-900 mb-1">Study Mode</div>
-                <p className="text-sm text-gray-500 mb-3">
+                <div className="font-semibold text-gray-900 mb-1 dark:text-gray-100">Study Mode</div>
+                <p className="text-sm text-gray-500 mb-3 dark:text-gray-400">
                   Get instant feedback and explanations after each question.
                 </p>
                 <button
                   onClick={() => loginWithRedirect()}
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
                 >
                   Log in to unlock →
                 </button>
@@ -390,7 +390,7 @@ export default function QuizTake() {
           </div>
           <button
             onClick={() => navigate('/')}
-            className="mt-6 text-sm text-gray-500 hover:text-gray-700"
+            className="mt-6 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             ← Back to Quizzes
           </button>
@@ -410,9 +410,9 @@ export default function QuizTake() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">{quiz.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{quiz.title}</h1>
             {mode === 'study' && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full dark:bg-green-900/40 dark:text-green-300">
                 Study
               </span>
             )}
@@ -420,27 +420,27 @@ export default function QuizTake() {
           <div className="flex items-center gap-4">
             {secondsLeft !== null && (
               <span
-                className={`text-sm font-mono font-semibold px-3 py-1 rounded-full ${lowTime ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}
+                className={`text-sm font-mono font-semibold px-3 py-1 rounded-full ${lowTime ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200'}`}
                 aria-label="Time remaining"
               >
                 {formatTime(Math.max(0, secondsLeft))}
               </span>
             )}
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               Question {currentIndex + 1} of {questions.length}
             </span>
           </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-800">
           <div
-            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+            className="bg-primary-600 h-2 rounded-full transition-all duration-300 dark:bg-primary-500"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
       </div>
 
       <div className="card mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">{currentQuestion.text}</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-6 dark:text-gray-100">{currentQuestion.text}</h2>
 
         <div className="space-y-3">
           {currentShuffledOptions.map((option, displayIndex) => {
@@ -451,10 +451,10 @@ export default function QuizTake() {
             const isCorrect = showFeedback && originalIndex === studyQ.correctAnswer;
             const isWrong = showFeedback && isSelected && originalIndex !== studyQ.correctAnswer;
 
-            let borderClass = 'border-gray-200 hover:border-gray-300 bg-white';
-            if (showFeedback && isCorrect) borderClass = 'border-green-500 bg-green-50';
-            else if (showFeedback && isWrong) borderClass = 'border-red-500 bg-red-50';
-            else if (isSelected) borderClass = 'border-primary-600 bg-primary-50';
+            let borderClass = 'border-gray-200 hover:border-gray-300 bg-white dark:border-gray-700 dark:hover:border-gray-600 dark:bg-gray-800';
+            if (showFeedback && isCorrect) borderClass = 'border-green-500 bg-green-50 dark:bg-green-900/30 dark:border-green-500';
+            else if (showFeedback && isWrong) borderClass = 'border-red-500 bg-red-50 dark:bg-red-900/30 dark:border-red-500';
+            else if (isSelected) borderClass = 'border-primary-600 bg-primary-50 dark:bg-primary-900/30 dark:border-primary-500';
 
             return (
               <button
@@ -472,7 +472,7 @@ export default function QuizTake() {
                           ? 'border-red-600 bg-red-600'
                           : isSelected
                             ? 'border-primary-600 bg-primary-600'
-                            : 'border-gray-300'
+                            : 'border-gray-300 dark:border-gray-600'
                     }`}
                   >
                     {(isSelected || (showFeedback && isCorrect)) && (
@@ -494,12 +494,12 @@ export default function QuizTake() {
                     )}
                   </div>
                   <span
-                    className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
+                    className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded dark:bg-gray-700 dark:text-gray-300"
                     aria-hidden="true"
                   >
                     {OPTION_LABELS[displayIndex]}
                   </span>
-                  <span className="text-gray-900">{option}</span>
+                  <span className="text-gray-900 dark:text-gray-100">{option}</span>
                 </div>
               </button>
             );
@@ -508,9 +508,9 @@ export default function QuizTake() {
 
         {/* Study mode feedback */}
         {mode === 'study' && feedbackRevealed && studyQ && (
-          <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+          <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded dark:bg-blue-950/40 dark:border-blue-500">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-semibold text-blue-900">
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
                 {currentAnswer?.selectedOption === studyQ.correctAnswer
                   ? '✓ Correct!'
                   : '✗ Incorrect'}{' '}
@@ -521,7 +521,7 @@ export default function QuizTake() {
                   <button
                     onClick={() => toggleBookmark(studyQ.questionId)}
                     disabled={bookmarkPending === studyQ.questionId}
-                    className="text-xs text-amber-600 hover:text-amber-800 disabled:opacity-40"
+                    className="text-xs text-amber-600 hover:text-amber-800 disabled:opacity-40 dark:text-amber-400 dark:hover:text-amber-300"
                     title={bookmarked.has(studyQ.questionId) ? 'Remove bookmark' : 'Bookmark'}
                   >
                     {bookmarked.has(studyQ.questionId) ? '🔖 Saved' : '🔖 Save'}
@@ -529,13 +529,13 @@ export default function QuizTake() {
                 )}
                 <button
                   onClick={() => setLawDrawerRef(studyQ.lawReference)}
-                  className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900"
+                  className="text-xs text-blue-700 underline underline-offset-2 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-200"
                 >
                   View Law →
                 </button>
               </div>
             </div>
-            <p className="text-sm text-blue-800">{studyQ.explanation}</p>
+            <p className="text-sm text-blue-800 dark:text-blue-200">{studyQ.explanation}</p>
           </div>
         )}
       </div>
@@ -545,14 +545,14 @@ export default function QuizTake() {
           ← Previous
         </button>
 
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {answeredCount} of {questions.length} answered
         </div>
 
         {mode === 'study' && hasAnswered && !feedbackRevealed ? (
           <button
             onClick={handleCheck}
-            className="px-6 py-2 rounded-lg font-medium bg-green-600 text-white hover:bg-green-700"
+            className="px-6 py-2 rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400"
           >
             Check Answer
           </button>
@@ -575,15 +575,15 @@ export default function QuizTake() {
         )}
       </div>
 
-      <p className="hidden sm:block text-center text-xs text-gray-400 mt-6">
-        Shortcuts: <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">A</kbd>
+      <p className="hidden sm:block text-center text-xs text-gray-400 mt-6 dark:text-gray-500">
+        Shortcuts: <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">A</kbd>
         –
-        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">
+        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
           {OPTION_LABELS[currentQuestion.options.length - 1]}
         </kbd>{' '}
-        select · <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">←</kbd>/
-        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">→</kbd> nav ·{' '}
-        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded">Enter</kbd>{' '}
+        select · <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">←</kbd>/
+        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">→</kbd> nav ·{' '}
+        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">Enter</kbd>{' '}
         {mode === 'study' && hasAnswered && !feedbackRevealed
           ? 'check'
           : isLast

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Auth0Provider } from '@auth0/auth0-react';
 import App from './App';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './styles/index.css';
 
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -25,7 +26,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           redirect_uri: window.location.origin,
         }}
       >
-        <App />
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
       </Auth0Provider>
     </BrowserRouter>
   </React.StrictMode>
