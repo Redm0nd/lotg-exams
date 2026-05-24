@@ -1,3 +1,11 @@
+## [1.20.3](https://github.com/Redm0nd/lotg-exams/compare/v1.20.2...v1.20.3) (2026-05-24)
+
+
+### Bug Fixes
+
+* **infra:** delete misplaced imports.tf inside backend module ([97a89e4](https://github.com/Redm0nd/lotg-exams/commit/97a89e4aaf874040e0249ee6352558ea1612bb83))
+* **infra:** moved blocks for cors module rename, replacing failed import approach ([a43c9f9](https://github.com/Redm0nd/lotg-exams/commit/a43c9f9b1aaa9993770531b3739e72e49fc9b501)), closes [#104](https://github.com/Redm0nd/lotg-exams/issues/104)
+
 ## [1.20.2](https://github.com/Redm0nd/lotg-exams/compare/v1.20.1...v1.20.2) (2026-05-12)
 
 
