@@ -32,6 +32,7 @@ locals {
     "addBookmark",
     "removeBookmark",
     "getBookmarks",
+    "getDailyChallenge",
   ]
 }
 
@@ -451,6 +452,8 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.get_bookmarks,
     aws_api_gateway_integration.add_bookmark,
     aws_api_gateway_integration.remove_bookmark,
+    aws_api_gateway_integration.get_daily_challenge,
+    aws_api_gateway_integration.post_daily_challenge,
   ]
 
   lifecycle {
@@ -489,6 +492,7 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.admin_conflicts.id,
       aws_api_gateway_resource.admin_conflict_id.id,
       aws_api_gateway_resource.admin_conflict_resolve.id,
+      aws_api_gateway_resource.me_daily_challenge.id,
       [for r in aws_api_gateway_gateway_response.cors : r.id],
     ]))
   }
@@ -2248,6 +2252,86 @@ resource "aws_lambda_permission" "remove_bookmark" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.remove_bookmark.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+# ============================================================================
+# Daily Challenge (GET & POST /me/daily-challenge)
+# ============================================================================
+
+resource "aws_lambda_function" "get_daily_challenge" {
+  filename         = "${path.module}/../../../backend/dist/getDailyChallenge.zip"
+  function_name    = "${var.project_name}-${var.environment}-getDailyChallenge"
+  role             = aws_iam_role.lambda.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 15
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/getDailyChallenge.zip") ? filebase64sha256("${path.module}/../../../backend/dist/getDailyChallenge.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME   = var.dynamodb_table_name
+      AUTH0_DOMAIN = var.auth0_domain
+      NODE_ENV     = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-getDailyChallenge"
+  }
+}
+
+resource "aws_api_gateway_resource" "me_daily_challenge" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.me.id
+  path_part   = "daily-challenge"
+}
+
+resource "aws_api_gateway_method" "get_daily_challenge" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_daily_challenge.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "get_daily_challenge" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_daily_challenge.id
+  http_method             = aws_api_gateway_method.get_daily_challenge.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_daily_challenge.invoke_arn
+}
+
+resource "aws_api_gateway_method" "post_daily_challenge" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.me_daily_challenge.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "post_daily_challenge" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.me_daily_challenge.id
+  http_method             = aws_api_gateway_method.post_daily_challenge.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.get_daily_challenge.invoke_arn
+}
+
+module "cors_me_daily_challenge" {
+  source = "../cors"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.me_daily_challenge.id
+}
+
+resource "aws_lambda_permission" "get_daily_challenge" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.get_daily_challenge.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }

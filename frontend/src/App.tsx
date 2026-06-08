@@ -22,47 +22,49 @@ import HistoryPage from './pages/HistoryPage';
 import PracticeTake from './pages/PracticeTake';
 import MockExam from './pages/MockExam';
 import BookmarksPage from './pages/BookmarksPage';
+import DailyChallengePage from './pages/DailyChallenge';
 import { StatsProvider } from './contexts/StatsContext';
 
 export default function App() {
   return (
     <StatsProvider>
-    <Routes>
-      {/* Public routes with Navbar */}
-      <Route element={<Layout />}>
-        <Route path="/" element={<QuizList />} />
-        <Route path="/quiz/:quizId" element={<QuizTake />} />
-        <Route path="/quiz/:quizId/results" element={<QuizResults />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/history" element={<HistoryPage />} />
-        <Route path="/practice" element={<PracticeTake />} />
-        <Route path="/mock-exam" element={<MockExam />} />
-        <Route path="/bookmarks" element={<BookmarksPage />} />
-      </Route>
+      <Routes>
+        {/* Public routes with Navbar */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<QuizList />} />
+          <Route path="/quiz/:quizId" element={<QuizTake />} />
+          <Route path="/quiz/:quizId/results" element={<QuizResults />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/practice" element={<PracticeTake />} />
+          <Route path="/mock-exam" element={<MockExam />} />
+          <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/daily-challenge" element={<DailyChallengePage />} />
+        </Route>
 
-      {/* Protected admin routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="quizzes" element={<AdminManageQuizzes />} />
-        <Route path="quizzes/:jobId" element={<AdminQuizQuestions />} />
-        <Route path="quizzes/:jobId/edit" element={<AdminEditQuiz />} />
-        <Route path="upload" element={<AdminUpload />} />
-        <Route path="create" element={<AdminCreateQuiz />} />
-        <Route path="jobs" element={<AdminJobs />} />
-        <Route path="jobs/:jobId" element={<AdminJobDetail />} />
-        <Route path="jobs/:jobId/add" element={<AdminAddQuestion />} />
-        <Route path="review" element={<AdminReview />} />
-        <Route path="questions" element={<AdminQuestionBank />} />
-        <Route path="conflicts" element={<AdminConflicts />} />
-      </Route>
-    </Routes>
+        {/* Protected admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="quizzes" element={<AdminManageQuizzes />} />
+          <Route path="quizzes/:jobId" element={<AdminQuizQuestions />} />
+          <Route path="quizzes/:jobId/edit" element={<AdminEditQuiz />} />
+          <Route path="upload" element={<AdminUpload />} />
+          <Route path="create" element={<AdminCreateQuiz />} />
+          <Route path="jobs" element={<AdminJobs />} />
+          <Route path="jobs/:jobId" element={<AdminJobDetail />} />
+          <Route path="jobs/:jobId/add" element={<AdminAddQuestion />} />
+          <Route path="review" element={<AdminReview />} />
+          <Route path="questions" element={<AdminQuestionBank />} />
+          <Route path="conflicts" element={<AdminConflicts />} />
+        </Route>
+      </Routes>
     </StatsProvider>
   );
 }
