@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/Redm0nd/lotg-exams/compare/v1.22.0...v1.23.0) (2026-06-08)
+
+
+### Features
+
+* **daily-challenge:** add daily challenge with streak tracking ([bd0926b](https://github.com/Redm0nd/lotg-exams/commit/bd0926bff5e1d854b6320391f20acdc9ac333081))
+
 # [1.22.0](https://github.com/Redm0nd/lotg-exams/compare/v1.21.0...v1.22.0) (2026-06-08)
 
 
