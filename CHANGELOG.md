@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/Redm0nd/lotg-exams/compare/v1.20.3...v1.21.0) (2026-06-08)
+
+
+### Features
+
+* **admin:** edit questions and change status from the Question Bank ([d95106a](https://github.com/Redm0nd/lotg-exams/commit/d95106af7bbee570889da3319b42b9034bd16048)), closes [#90](https://github.com/Redm0nd/lotg-exams/issues/90) [#90](https://github.com/Redm0nd/lotg-exams/issues/90)
+
 ## [1.20.3](https://github.com/Redm0nd/lotg-exams/compare/v1.20.2...v1.20.3) (2026-05-24)
 
 
