@@ -142,25 +142,67 @@ export default function DailyChallengePage() {
             <span className="font-semibold">{streak} day streak</span>
           </div>
         </div>
-        <div className="space-y-4">
-          {results.map((r) => (
-            <div
-              key={r.questionId}
-              className={`p-4 rounded-lg border ${r.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}
-            >
-              <p className="font-medium mb-2">{r.text}</p>
-              <div className="space-y-1 text-sm mb-2">
-                {r.options.map((opt, i) => (
-                  <div
-                    key={i}
-                    className={`px-2 py-1 rounded ${i === r.correctOption ? 'bg-green-200 font-medium' : i === r.selectedOption && !r.isCorrect ? 'bg-red-200' : ''}`}
-                  >
-                    {OPTION_LABELS[i]}. {opt}
+        <div className="space-y-6">
+          {results.map((r, idx) => (
+            <div key={r.questionId} className="card">
+              <div className="flex items-start gap-4">
+                <div
+                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    r.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {r.isCorrect ? '✓' : '✗'}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    {idx + 1}. {r.text}
+                  </h3>
+                  <div className="space-y-2 mb-4">
+                    {r.options.map((opt, i) => {
+                      const isCorrect = i === r.correctOption;
+                      const isSelected = i === r.selectedOption;
+                      return (
+                        <div
+                          key={i}
+                          className={`p-3 rounded-lg border-2 ${
+                            isCorrect
+                              ? 'border-green-500 bg-green-50'
+                              : isSelected
+                                ? 'border-red-500 bg-red-50'
+                                : 'border-gray-200 bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <span
+                                className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
+                                aria-hidden="true"
+                              >
+                                {OPTION_LABELS[i]}
+                              </span>
+                              <span className="text-gray-900">{opt}</span>
+                            </div>
+                            {isCorrect && (
+                              <span className="text-sm font-medium text-green-700">
+                                Correct Answer
+                              </span>
+                            )}
+                            {isSelected && !isCorrect && (
+                              <span className="text-sm font-medium text-red-700">Your Answer</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <p className="text-sm font-semibold text-blue-900 mb-1">
+                      Explanation ({r.lawReference})
+                    </p>
+                    <p className="text-sm text-blue-800">{r.explanation}</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-600">{r.explanation}</p>
-              <p className="text-xs text-gray-400 mt-1">{r.lawReference}</p>
             </div>
           ))}
         </div>
@@ -187,24 +229,54 @@ export default function DailyChallengePage() {
 
       <div className="space-y-6">
         {challenge.questions.map((q, qi) => (
-          <div key={q.questionId} className="p-4 border rounded-lg">
-            <p className="font-medium mb-3">
+          <div key={q.questionId} className="card mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
               {qi + 1}. {q.text}
-            </p>
-            <div className="space-y-2">
-              {q.options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => setAnswers((prev) => ({ ...prev, [q.questionId]: i }))}
-                  className={`w-full text-left px-3 py-2 rounded border transition ${
-                    answers[q.questionId] === i
-                      ? 'border-green-600 bg-green-50 text-green-800'
-                      : 'border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  {OPTION_LABELS[i]}. {opt}
-                </button>
-              ))}
+            </h2>
+            <div className="space-y-3">
+              {q.options.map((opt, i) => {
+                const isSelected = answers[q.questionId] === i;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setAnswers((prev) => ({ ...prev, [q.questionId]: i }))}
+                    className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                      isSelected
+                        ? 'border-primary-600 bg-primary-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div
+                        className={`flex-shrink-0 w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${
+                          isSelected ? 'border-primary-600 bg-primary-600' : 'border-gray-300'
+                        }`}
+                      >
+                        {isSelected && (
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                      <span
+                        className="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-mono font-semibold text-gray-500 bg-gray-100 rounded"
+                        aria-hidden="true"
+                      >
+                        {OPTION_LABELS[i]}
+                      </span>
+                      <span className="text-gray-900">{opt}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
