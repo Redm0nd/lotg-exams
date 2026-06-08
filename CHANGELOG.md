@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/Redm0nd/lotg-exams/compare/v1.23.0...v1.23.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* **daily-challenge:** align quiz UI with standard QuizTake/QuizResults style ([1f4d180](https://github.com/Redm0nd/lotg-exams/commit/1f4d180407e27561dfbe4094a8b140aec87e9a50))
+
 # [1.23.0](https://github.com/Redm0nd/lotg-exams/compare/v1.22.0...v1.23.0) (2026-06-08)
 
 
