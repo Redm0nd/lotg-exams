@@ -246,11 +246,14 @@ export default function AdminDashboard() {
 
             {Object.keys(analytics.byLaw).length > 0 && (
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-base font-semibold text-gray-900 mb-4">
-                  Performance by Law
-                </h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-4">Performance by Law</h3>
                 <div className="space-y-3">
-                  {(Object.entries(analytics.byLaw) as [string, { attempts: number; avgScore: number }][])
+                  {(
+                    Object.entries(analytics.byLaw) as [
+                      string,
+                      { attempts: number; avgScore: number },
+                    ][]
+                  )
                     .sort(([a], [b]) => {
                       const num = (s: string) => parseInt(s.replace('Law ', ''), 10);
                       return num(a) - num(b);
@@ -282,6 +285,48 @@ export default function AdminDashboard() {
                         </div>
                       );
                     })}
+                </div>
+              </div>
+            )}
+
+            {analytics.streakLeaderboard && analytics.streakLeaderboard.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-base font-semibold text-gray-900 mb-4">
+                  🔥 Streak Leaderboard
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-gray-500 border-b">
+                        <th className="pb-2 font-medium">#</th>
+                        <th className="pb-2 font-medium">User</th>
+                        <th className="pb-2 font-medium text-right">Current Streak</th>
+                        <th className="pb-2 font-medium text-right">Longest Streak</th>
+                        <th className="pb-2 font-medium text-right">Last Active</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {analytics.streakLeaderboard.map((entry, idx) => (
+                        <tr key={entry.userId}>
+                          <td className="py-2 text-gray-400">{idx + 1}</td>
+                          <td className="py-2 font-medium text-gray-900 truncate max-w-[200px]">
+                            {entry.userId.includes('|')
+                              ? entry.userId.split('|')[1]?.slice(0, 12) + '…'
+                              : entry.userId.slice(0, 16)}
+                          </td>
+                          <td className="py-2 text-right">
+                            <span className="inline-flex items-center gap-1 text-orange-600 font-semibold">
+                              🔥 {entry.currentStreak}
+                            </span>
+                          </td>
+                          <td className="py-2 text-right text-gray-600">{entry.longestStreak}</td>
+                          <td className="py-2 text-right text-gray-400">
+                            {entry.lastStudyDate || '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}

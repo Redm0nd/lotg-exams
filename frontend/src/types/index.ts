@@ -371,4 +371,10 @@ export interface AdminAnalyticsOverview {
 export interface AdminAnalytics {
   overview: AdminAnalyticsOverview;
   byLaw: Partial<Record<Law, { attempts: number; avgScore: number }>>;
+  streakLeaderboard: Array<{
+    userId: string;
+    currentStreak: number;
+    longestStreak: number;
+    lastStudyDate?: string;
+  }>;
 }
