@@ -36,6 +36,12 @@ export default function Navbar() {
                     </span>
                   )}
                 </Link>
+                <Link
+                  to="/daily-challenge"
+                  className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  Daily
+                </Link>
                 {isAdmin && (
                   <Link
                     to="/admin"

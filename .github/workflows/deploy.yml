@@ -215,6 +215,7 @@ jobs:
       lambda_get_bookmarks: ${{ steps.tf-output.outputs.lambda_get_bookmarks }}
       lambda_add_bookmark: ${{ steps.tf-output.outputs.lambda_add_bookmark }}
       lambda_remove_bookmark: ${{ steps.tf-output.outputs.lambda_remove_bookmark }}
+      lambda_get_daily_challenge: ${{ steps.tf-output.outputs.lambda_get_daily_challenge }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -265,6 +266,7 @@ jobs:
           echo "lambda_get_bookmarks=$(terraform output -json lambda_function_names | jq -r '.get_bookmarks')" >> $GITHUB_OUTPUT
           echo "lambda_add_bookmark=$(terraform output -json lambda_function_names | jq -r '.add_bookmark')" >> $GITHUB_OUTPUT
           echo "lambda_remove_bookmark=$(terraform output -json lambda_function_names | jq -r '.remove_bookmark')" >> $GITHUB_OUTPUT
+          echo "lambda_get_daily_challenge=$(terraform output -json lambda_function_names | jq -r '.get_daily_challenge')" >> $GITHUB_OUTPUT
 
   # Deploy Backend - uses pre-built artifacts
   deploy-backend:
@@ -464,6 +466,13 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.get-outputs.outputs.lambda_remove_bookmark }} \
             --zip-file fileb://backend/dist/removeBookmark.zip
+
+      - name: Update Lambda - getDailyChallenge
+        if: needs.get-outputs.outputs.lambda_get_daily_challenge != '' && needs.get-outputs.outputs.lambda_get_daily_challenge != 'null'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.get-outputs.outputs.lambda_get_daily_challenge }} \
+            --zip-file fileb://backend/dist/getDailyChallenge.zip
 
   # Build and Deploy Frontend
   deploy-frontend:

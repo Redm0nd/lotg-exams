@@ -49,6 +49,8 @@ const handlers = [
   // Import conflict review
   'listConflicts',
   'resolveConflict',
+  // Daily challenge
+  'getDailyChallenge',
 ];
 
 async function buildHandler(handlerName) {
