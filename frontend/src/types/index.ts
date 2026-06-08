@@ -317,6 +317,48 @@ export interface BookmarksResponse {
   count: number;
 }
 
+// PDF import conflict types
+export type ConflictResolution = 'kept_existing' | 'replaced' | 'kept_both';
+export type ConflictStatus = 'pending' | 'resolved';
+
+export interface QuestionConflict {
+  conflictId: string;
+  status: ConflictStatus;
+  existingQuestionId: string;
+  jobId: string;
+  text: string;
+  options: string[];
+  existing: {
+    correctAnswer: number;
+    explanation: string;
+    law: Law;
+    lawReference: string;
+  };
+  candidate: {
+    correctAnswer: number;
+    explanation: string;
+    law: Law;
+    lawReference: string;
+    confidence: number;
+  };
+  diffFields: Array<'correctAnswer' | 'explanation' | 'law' | 'lawReference'>;
+  resolution?: ConflictResolution;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  createdAt: string;
+}
+
+export interface ConflictsResponse {
+  conflicts: QuestionConflict[];
+  count: number;
+}
+
+export interface ResolveConflictResponse {
+  conflictId: string;
+  resolution: ConflictResolution;
+  message: string;
+}
+
 // Admin analytics types
 export interface AdminAnalyticsOverview {
   totalUsers: number;

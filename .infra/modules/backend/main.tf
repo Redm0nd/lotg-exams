@@ -14,6 +14,8 @@ locals {
     "reviewQuestion",
     "bulkReviewQuestions",
     "updateQuestion",
+    "listConflicts",
+    "resolveConflict",
     "publishQuiz",
     "getExtractionJobs",
     "createManualJob",
@@ -484,6 +486,9 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.admin_questions_import.id,
       aws_api_gateway_resource.me_bookmarks.id,
       aws_api_gateway_resource.me_bookmark_id.id,
+      aws_api_gateway_resource.admin_conflicts.id,
+      aws_api_gateway_resource.admin_conflict_id.id,
+      aws_api_gateway_resource.admin_conflict_resolve.id,
       [for r in aws_api_gateway_gateway_response.cors : r.id],
     ]))
   }
@@ -880,6 +885,58 @@ resource "aws_lambda_function" "update_question" {
 }
 
 # ============================================================================
+# Lambda Function: listConflicts
+# ============================================================================
+
+resource "aws_lambda_function" "list_conflicts" {
+  filename         = "${path.module}/../../../backend/dist/listConflicts.zip"
+  function_name    = "${var.project_name}-${var.environment}-listConflicts"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/listConflicts.zip") ? filebase64sha256("${path.module}/../../../backend/dist/listConflicts.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-listConflicts"
+  }
+}
+
+# ============================================================================
+# Lambda Function: resolveConflict
+# ============================================================================
+
+resource "aws_lambda_function" "resolve_conflict" {
+  filename         = "${path.module}/../../../backend/dist/resolveConflict.zip"
+  function_name    = "${var.project_name}-${var.environment}-resolveConflict"
+  role             = aws_iam_role.lambda_admin.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  timeout          = 10
+  memory_size      = 256
+  source_code_hash = fileexists("${path.module}/../../../backend/dist/resolveConflict.zip") ? filebase64sha256("${path.module}/../../../backend/dist/resolveConflict.zip") : null
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+      NODE_ENV   = var.environment
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-resolveConflict"
+  }
+}
+
+# ============================================================================
 # Lambda Function: publishQuiz
 # ============================================================================
 
@@ -1151,6 +1208,63 @@ resource "aws_api_gateway_integration" "bulk_review" {
   uri                     = aws_lambda_function.bulk_review_questions.invoke_arn
 }
 
+# /admin/conflicts
+resource "aws_api_gateway_resource" "admin_conflicts" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "conflicts"
+}
+
+# GET /admin/conflicts - list pending or resolved conflicts
+resource "aws_api_gateway_method" "list_conflicts" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_conflicts.id
+  http_method   = "GET"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
+}
+
+resource "aws_api_gateway_integration" "list_conflicts" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_conflicts.id
+  http_method             = aws_api_gateway_method.list_conflicts.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.list_conflicts.invoke_arn
+}
+
+# /admin/conflicts/{id}
+resource "aws_api_gateway_resource" "admin_conflict_id" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_conflicts.id
+  path_part   = "{id}"
+}
+
+# /admin/conflicts/{id}/resolve
+resource "aws_api_gateway_resource" "admin_conflict_resolve" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id   = aws_api_gateway_resource.admin_conflict_id.id
+  path_part   = "resolve"
+}
+
+# POST /admin/conflicts/{id}/resolve
+resource "aws_api_gateway_method" "resolve_conflict" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.admin_conflict_resolve.id
+  http_method   = "POST"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.jwt.id
+}
+
+resource "aws_api_gateway_integration" "resolve_conflict" {
+  rest_api_id             = aws_api_gateway_rest_api.this.id
+  resource_id             = aws_api_gateway_resource.admin_conflict_resolve.id
+  http_method             = aws_api_gateway_method.resolve_conflict.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.resolve_conflict.invoke_arn
+}
+
 # CORS for admin routes
 module "cors_admin" {
   source = "../cors"
@@ -1213,6 +1327,22 @@ module "cors_admin_bulk_review" {
 
   api_id          = aws_api_gateway_rest_api.this.id
   api_resource_id = aws_api_gateway_resource.admin_bulk_review.id
+}
+
+module "cors_admin_conflicts" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_conflicts.id
+}
+
+module "cors_admin_conflict_resolve" {
+  source  = "squidfunk/api-gateway-enable-cors/aws"
+  version = "0.3.3"
+
+  api_id          = aws_api_gateway_rest_api.this.id
+  api_resource_id = aws_api_gateway_resource.admin_conflict_resolve.id
 }
 
 # ============================================================================
@@ -1520,6 +1650,22 @@ resource "aws_lambda_permission" "bulk_review_questions" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.bulk_review_questions.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "list_conflicts" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.list_conflicts.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "resolve_conflict" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.resolve_conflict.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }

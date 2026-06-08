@@ -46,6 +46,9 @@ const handlers = [
   'addBookmark',
   'removeBookmark',
   'getBookmarks',
+  // Import conflict review
+  'listConflicts',
+  'resolveConflict',
 ];
 
 async function buildHandler(handlerName) {

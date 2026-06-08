@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin/jobs', label: 'Jobs' },
   { to: '/admin/review', label: 'Review Queue' },
   { to: '/admin/questions', label: 'Question Bank' },
+  { to: '/admin/conflicts', label: 'Conflicts' },
 ];
 
 export default function AdminLayout() {

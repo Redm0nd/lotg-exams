@@ -111,6 +111,52 @@ export interface ExtractionJobItem {
   lawFilter?: Law;
   questionsPerAttempt?: number;
   shuffleOptions?: boolean;
+  // Conflict-detection counters (see QuestionConflictItem)
+  conflictCount?: number;
+}
+
+// ============================================================================
+// Import-time conflict between a PDF candidate and an existing bank question
+// ============================================================================
+
+export type ConflictResolution = 'kept_existing' | 'replaced' | 'kept_both';
+export type ConflictStatus = 'pending' | 'resolved';
+
+/**
+ * A candidate question extracted during PDF processing whose hash matches an
+ * existing approved/pending bank question but where one or more of the
+ * "outcome" fields (correctAnswer, explanation, lawReference, law) differ.
+ * Typically caused by IFAB law revisions changing the right answer to a
+ * question whose text/options the new PDF still poses the same way.
+ */
+export interface QuestionConflictItem {
+  PK: string; // CONFLICT#{conflictId}
+  SK: string; // METADATA
+  Type: 'QuestionConflict';
+  conflictId: string;
+  status: ConflictStatus;
+  existingQuestionId: string;
+  jobId: string; // job that produced the conflict
+  text: string;
+  options: string[];
+  existing: {
+    correctAnswer: number;
+    explanation: string;
+    law: Law;
+    lawReference: string;
+  };
+  candidate: {
+    correctAnswer: number;
+    explanation: string;
+    law: Law;
+    lawReference: string;
+    confidence: number;
+  };
+  diffFields: Array<'correctAnswer' | 'explanation' | 'law' | 'lawReference'>;
+  resolution?: ConflictResolution;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  createdAt: string;
 }
 
 // API response types
