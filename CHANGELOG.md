@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/Redm0nd/lotg-exams/compare/v1.21.0...v1.22.0) (2026-06-08)
+
+
+### Features
+
+* **admin:** surface PDF-import duplicate conflicts for admin review ([f74bead](https://github.com/Redm0nd/lotg-exams/commit/f74bead3c40d938f5ad663f5722a2ebd2dc155a8))
+
 # [1.21.0](https://github.com/Redm0nd/lotg-exams/compare/v1.20.3...v1.21.0) (2026-06-08)
 
 
