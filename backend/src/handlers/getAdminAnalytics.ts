@@ -11,6 +11,12 @@ export interface AdminAnalyticsResponse {
     totalQuestionsAvailable: number;
   };
   byLaw: Partial<Record<Law, { attempts: number; avgScore: number }>>;
+  streakLeaderboard: Array<{
+    userId: string;
+    currentStreak: number;
+    longestStreak: number;
+    lastStudyDate?: string;
+  }>;
 }
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -18,7 +24,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const [jobs, userStats] = await Promise.all([getAllExtractionJobs(), getAllUserStats()]);
 
     const publishedJobs = jobs.filter((j) => j.published === true);
-    const totalQuestionsAvailable = publishedJobs.reduce((sum, j) => sum + (j.approvedCount || 0), 0);
+    const totalQuestionsAvailable = publishedJobs.reduce(
+      (sum, j) => sum + (j.approvedCount || 0),
+      0
+    );
 
     const usersWithAttempts = userStats.filter((u) => u.totalAttempts > 0);
     const totalAttempts = userStats.reduce((sum, u) => sum + u.totalAttempts, 0);
@@ -38,7 +47,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     const byLawSummary: Partial<Record<Law, { attempts: number; avgScore: number }>> = {};
-    for (const [law, data] of Object.entries(byLaw) as [Law, { totalAttempts: number; totalCorrect: number }][]) {
+    for (const [law, data] of Object.entries(byLaw) as [
+      Law,
+      { totalAttempts: number; totalCorrect: number },
+    ][]) {
       byLawSummary[law] = {
         attempts: data.totalAttempts,
         avgScore: data.totalAttempts > 0 ? (data.totalCorrect / data.totalAttempts) * 100 : 0,
@@ -54,6 +66,16 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         totalQuestionsAvailable,
       },
       byLaw: byLawSummary,
+      streakLeaderboard: userStats
+        .filter((u) => u.currentStreak > 0 || u.longestStreak > 0)
+        .sort((a, b) => b.currentStreak - a.currentStreak || b.longestStreak - a.longestStreak)
+        .slice(0, 10)
+        .map((u) => ({
+          userId: u.userId,
+          currentStreak: u.currentStreak,
+          longestStreak: u.longestStreak,
+          lastStudyDate: u.lastStudyDate,
+        })),
     };
 
     return successResponse(response);
