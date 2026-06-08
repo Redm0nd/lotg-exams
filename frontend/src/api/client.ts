@@ -370,11 +370,7 @@ export async function listConflicts(
   token: string,
   status: 'pending' | 'resolved' = 'pending'
 ): Promise<ConflictsResponse> {
-  return fetchAPI<ConflictsResponse>(
-    `/admin/conflicts?status=${status}`,
-    undefined,
-    token
-  );
+  return fetchAPI<ConflictsResponse>(`/admin/conflicts?status=${status}`, undefined, token);
 }
 
 export async function resolveConflict(
@@ -386,6 +382,52 @@ export async function resolveConflict(
   return fetchAPI<ResolveConflictResponse>(
     `/admin/conflicts/${conflictId}/resolve`,
     { method: 'POST', body: JSON.stringify({ resolution, resolvedBy }) },
+    token
+  );
+}
+
+// Daily Challenge
+export interface DailyChallengeResponse {
+  date: string;
+  questions: Array<{
+    questionId: string;
+    text: string;
+    options: string[];
+    correctAnswer?: number;
+    explanation?: string;
+    lawReference?: string;
+  }>;
+  completed: boolean;
+  score: number | null;
+  streak: number;
+}
+
+export interface DailyChallengeSubmitResponse {
+  results: Array<{
+    questionId: string;
+    text: string;
+    options: string[];
+    selectedOption: number;
+    correctOption: number;
+    isCorrect: boolean;
+    explanation: string;
+    lawReference: string;
+  }>;
+  score: { correct: number; total: number; percentage: number };
+  streak: number;
+}
+
+export async function getDailyChallenge(token: string): Promise<DailyChallengeResponse> {
+  return fetchAPI<DailyChallengeResponse>('/me/daily-challenge', undefined, token);
+}
+
+export async function submitDailyChallenge(
+  answers: Array<{ questionId: string; selectedOption: number }>,
+  token: string
+): Promise<DailyChallengeSubmitResponse> {
+  return fetchAPI<DailyChallengeSubmitResponse>(
+    '/me/daily-challenge',
+    { method: 'POST', body: JSON.stringify({ answers }) },
     token
   );
 }
