@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/Redm0nd/lotg-exams/compare/v1.23.1...v1.24.0) (2026-06-08)
+
+
+### Features
+
+* **admin:** add streak leaderboard to analytics dashboard ([a2b252d](https://github.com/Redm0nd/lotg-exams/commit/a2b252d4291190da4b9d4f8d27f42cdaabe659eb))
+
 ## [1.23.1](https://github.com/Redm0nd/lotg-exams/compare/v1.23.0...v1.23.1) (2026-06-08)
 
 
